@@ -22,7 +22,10 @@ const schema = new mongoose.Schema({
         type: Boolean,
     },
     password: String,
-    hotels: []
+    hotels: [],
+    secretKey: String,
+    resetLink: String,
+    resetDateExpire: Date,
 }, {
     timestamps: true
 })

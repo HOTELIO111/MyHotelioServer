@@ -1,6 +1,6 @@
-const VendorModel = require("../../Model/HotelModel/VendorModel")
-const { isEmail, isMobileNumber } = require("../utils")
-const bcrypt = require('bcrypt');
+const VendorModel = require("../../Model/HotelModel/VendorModel");
+const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption");
+const { isEmail, isMobileNumber } = require("../utils");
 require("dotenv").config();
 const jwt = require('jsonwebtoken')
 
@@ -18,13 +18,15 @@ const AddVendor = async (req, res) => {
 
     // make the password hashed  
     // make the password as a hash password 
-    const salt = await bcrypt.genSalt(10)
-    const hashPassword = await bcrypt.hash(req.body.password, salt)
+    const hashPassword = EncryptPassword(req.body.password)
+    // const salt = await bcrypt.genSalt(10)
+    // const hashPassword = await bcrypt.hash(req.body.password, salt)
 
     try {
         const result = await new VendorModel({
             ...formData,
-            password: hashPassword
+            password: hashPassword.hashedPassword,
+            secretKey: hashPassword.salt
         }).save()
         res.status(200).json({
             error: true,
@@ -50,7 +52,8 @@ const VendorLogin = async (req, res) => {
         const { passsword, ...rest } = result
         // ver
         // compare the password  
-        const isPasswordCorrect = bcrypt.compare(req.body.password, result.password)
+        // const isPasswordCorrect = bcrypt.compare(req.body.password, result.password)
+        const isPasswordCorrect = comparePassword(req.body.password, result.password, result.secretKey)
         if (!isPasswordCorrect) return res.status(400).json({ error: true, message: "Password is Incorrect" })
 
         const accesstoken = jwt.sign(rest, process.env.SECRET_CODE)

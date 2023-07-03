@@ -1,7 +1,6 @@
 const { SingupValidate, LoginValidate } = require("../../validate");
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption")
 const CustomerAuthModel = require("../../Model/CustomerModels/CustomerAuthModel")
-const bycrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const { isMobileNumber, isEmail } = require("../utils");
 require('dotenv').config();
