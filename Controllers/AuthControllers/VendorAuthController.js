@@ -70,11 +70,13 @@ const VendorLogin = async (req, res) => {
 
 const VendorForgotPasword = async (req, res) => {
 
+    console.log("yaha se aage gaya")
     // check the user is login with email or Number 
     const isLoginwith = isMobileNumber(req.body.partnerEmail) === true ? "mobileNo" : isEmail(req.body.partnerEmail) === true ? "partnerEmail" : "Invalid Input"
     if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
 
     const credential = { [isLoginwith]: req.body.partnerEmail }
+
 
     // find the user 
     const isUser = await VendorModel.findOne(credential);

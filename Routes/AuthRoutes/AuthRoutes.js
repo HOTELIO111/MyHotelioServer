@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto')
 const { SingupValidate, LoginValidate } = require('../../validate');
 const { SignupUser, LoginUser, ForgotPassword, ResetPassword } = require("../../Controllers/AuthControllers/CustomerAuth")
 const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword } = require("../../Controllers/AuthControllers/VendorAuthController")
