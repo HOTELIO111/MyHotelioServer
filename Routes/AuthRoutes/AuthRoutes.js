@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { SingupValidate, LoginValidate } = require('../../validate');
 const { SignupUser, LoginUser, ForgotPassword, ResetPassword } = require("../../Controllers/AuthControllers/CustomerAuth")
-const { AddVendor, VendorLogin } = require("../../Controllers/AuthControllers/VendorAuthController")
+const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword } = require("../../Controllers/AuthControllers/VendorAuthController")
 
 
 // signup the user
@@ -17,8 +17,10 @@ router.post("/reset-password", ResetPassword);
 
 // vendor Login And Signup 
 
-router.post("/vendor/signup", AddVendor)
-router.post("/vendor/login", VendorLogin)
+router.post("/vendor/signup", AddVendor);
+router.post("/vendor/login", VendorLogin);
+router.post("/vendor/forgot-password", VendorForgotPasword);
+router.post("/vendor/reset-password", VendorResetPassword);
 
 
 

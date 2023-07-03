@@ -1,4 +1,5 @@
 const VendorModel = require("../../Model/HotelModel/VendorModel");
+const SendMail = require("../Others/Mailer");
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption");
 const { isEmail, isMobileNumber } = require("../utils");
 require("dotenv").config();
@@ -65,6 +66,79 @@ const VendorLogin = async (req, res) => {
     }
 }
 
+// forgot Password  
+
+const VendorForgotPasword = async (req, res) => {
+
+    // check the user is login with email or Number 
+    const isLoginwith = isMobileNumber(req.body.partnerEmail) === true ? "mobileNo" : isEmail(req.body.partnerEmail) === true ? "partnerEmail" : "Invalid Input"
+    if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
+
+    const credential = { [isLoginwith]: req.body.partnerEmail }
+
+    // find the user 
+    const isUser = await VendorModel.findOne(credential);
+    if (!isUser) return res.status(404).json({ error: true, message: "No User Found" })
+
+    // generate the resetlink
+    const resetUrl = crypto.randomBytes(20).toString('hex')
+
+    // store the link in the person db
+    isUser.resetLink = resetUrl;
+    isUser.resetDateExpire = Date.now() + 120000  // resetLink Valid only for 1 hour
+    await isUser.save();
+
+    // prepare a mail to send reset mail
+    const mailOptions = {
+        from: process.env.SENDEREMAIL,
+        to: req.body.partnerEmail,
+        subject: 'Reset Password',
+        text: `You are receiving this email because you (or someone else) has requested a password reset for your account.\n\n
+        Please click on the following link, or paste it into your browser to complete the process:\n\n
+        ${req.headers.origin}/reset-password/${resetUrl}\n\n
+        If you did not request this, please ignore this email and your password will remain unchanged.\n`
+    };
+
+    // send Mail 
+    const send = SendMail(mailOptions);
+    if (!send) return res.status(400).json("Email Not Sent")
+
+    res.status(200).json("reset email sended successfully")
+
+}
 
 
-module.exports = { AddVendor, VendorLogin }
+
+
+
+// reset my password 
+
+const VendorResetPassword = async (req, res) => {
+    const { resetLink, newPassword } = req.body;
+
+    // find user with reset Link
+    const user = await VendorModel.findOne({
+        resetLink: resetLink,
+        resetDateExpire: { $gt: new Date(Date.now()) }
+    });
+    if (!user) return res.status(400).json({ error: true, message: "Invalid or expired token'" });
+
+    try {
+        // convert the password in encryptedway
+        const hashedPassword = EncryptPassword(newPassword)
+        // check the the reset time is expired or not 
+        user.password = hashedPassword.hashedPassword;
+        user.secretKey = hashedPassword.salt
+        user.resetLink = undefined;
+        user.resetDateExpire = undefined;
+        await user.save();
+        res.status(200).json({ error: false, message: "password Changed Successfully" })
+    } catch (error) {
+        res.status(500).json({ error: error })
+    }
+}
+
+
+
+
+module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword }
