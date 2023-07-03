@@ -2,6 +2,7 @@ const VendorModel = require("../../Model/HotelModel/VendorModel");
 const SendMail = require("../Others/Mailer");
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption");
 const { isEmail, isMobileNumber } = require("../utils");
+const crypto = require('crypto')
 require("dotenv").config();
 const jwt = require('jsonwebtoken')
 
