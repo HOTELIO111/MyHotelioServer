@@ -19,6 +19,7 @@ const port = process.env.PORT || 8080
 // routes
 
 app.use("/api", CustomerRoutes);
+app.use("/hotel", HotelRoutes);
 app.get("/", (req, res) => {
     res.send("Welcome to Hotelio Backend")
 })
