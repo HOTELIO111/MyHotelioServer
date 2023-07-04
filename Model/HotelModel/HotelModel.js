@@ -20,15 +20,17 @@ const schema = new mongoose.Schema({
         type: Number,
     },
     hotelRooms: {
-        type: String,
+        type: Object,
     },
     hotelStatus: {
         type: Boolean,
     },
+    hotelTiming: {},
+    hotelBookings: [],
     hotelAmmenities: [],
     hotelRatings: String,
     geoLoaction: {},
-    
+
 }, {
     timestamps: true
 })

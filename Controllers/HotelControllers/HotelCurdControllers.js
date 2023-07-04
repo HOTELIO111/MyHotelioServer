@@ -106,4 +106,41 @@ const DeleteAllHotelData = async (req, res) => {
 
 
 
+// Search For Hotel or FilterData 
+const FilterTheHotelData = async (req, res) => {
+    const { searchInput, checkIn, checkOut, Date, price, roomType } = req.body;
+    try {
+        const filter = {}
+        if (searchInput) {
+            filter.hotelName.$or = [
+                { hotelName: { $regex: searchInput, $options: 'i' } },
+                { geoLoaction: { $regex: searchInput, $options: 'i' } },
+                { roomType: { $regex: searchInput, $options: 'i' } },
+            ]
+        }
+        if (checkIn && checkOut) {
+            filter.checkIn = { $gte: new Date(checkIn), $lte: new Date(checkOut) };
+        }
+        // if (price) {
+        //     filter.price = { $lte: price };
+        // }
+
+        // if (roomType) {
+        //     filter.roomType = roomType;
+        // }
+
+        // Query the database with the filter
+        const hotels = await HotelModel.find(filter);
+        res.status(200).json({ error: false, data: hotels })
+
+    } catch (error) {
+        res.status(500).json({ error })
+    }
+
+
+}
+
+
+
+
 module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData };
