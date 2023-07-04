@@ -3,25 +3,35 @@ const VendorModel = require("../../Model/HotelModel/VendorModel");
 
 
 
-
 const RegisterHotel = async (req, res) => {
-    const customerId = req.params.id
+    const customerId = req.params.id;
 
-    // check the hotel is already registered or not 
-    const IsRegistered = await HotelModel.findOne({ hotelEmail: req.body.hotelEmail })
-    if (IsRegistered) return res.status(409).json({ error: true, message: "Hotel Already Registered With this Email" });
+    // Check if the hotel is already registered or not
+    const IsRegistered = await HotelModel.findOne({ hotelEmail: req.body.hotelEmail });
+    if (IsRegistered) {
+        return res.status(409).json({ error: true, message: "Hotel Already Registered With this Email" });
+    }
 
-    // Register the hotel 
-    const response = await new HotelModel(req.body).save()
-    if (!response) return res.status(400).json({ error: true, message: "Not Registered" })
+    // Register the hotel
+    const response = await new HotelModel(req.body).save();
+    if (!response) {
+        return res.status(400).json({ error: true, message: "Not Registered" });
+    }
 
-    // find the user and update this hotel id in th
-    const Vendor = await VendorModel.findByIdAndUpdate(id, { $push: { hotels: response._id } }, { new: true });
-    if (!Vendor) return res.status(400).json({ error: true, message: "Hotel Not Registered Try Again" })
-
+    // Find the user and update this hotel id
+    const Vendor = await VendorModel.findOneAndUpdate(
+        { _id: customerId },
+        { $push: { hotels: response._id } },
+        { new: true, upsert: true }
+    );
+    if (!Vendor) {
+        // If the ID is not pushed into the customer's data, consider the hotel as unregistered
+        await response.remove();
+        return res.status(400).json({ error: true, message: "Hotel Not Registered. Try Again" });
+    }
 
     res.status(200).json({ error: false, data: response });
-}
+};
 
 
 // Get all the data 

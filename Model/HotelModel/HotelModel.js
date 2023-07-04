@@ -27,7 +27,7 @@ const schema = new mongoose.Schema({
     },
     hotelAmmenities: [],
     hotelRatings: String,
-    geoLoaction: [],
+    geoLoaction: {},
     
 }, {
     timestamps: true
