@@ -2,7 +2,6 @@ const HotelModel = require("../../Model/HotelModel/HotelModel");
 const VendorModel = require("../../Model/HotelModel/VendorModel");
 
 
-
 const RegisterHotel = async (req, res) => {
     const customerId = req.params.id;
 
@@ -105,42 +104,67 @@ const DeleteAllHotelData = async (req, res) => {
 }
 
 
-
-// Search For Hotel or FilterData 
-const FilterTheHotelData = async (req, res) => {
-    const { searchInput, checkIn, checkOut, Date, price, roomType } = req.body;
+// Search Api for Hotel or location Search 
+const ReqHotelData = async (req, res) => {
+    const { searchLocation } = req.query;
+    // hotel data 
+    const requested = req.params.data.split(",")
     try {
-        const filter = {}
-        if (searchInput) {
-            filter.hotelName.$or = [
-                { hotelName: { $regex: searchInput, $options: 'i' } },
-                { geoLoaction: { $regex: searchInput, $options: 'i' } },
-                { roomType: { $regex: searchInput, $options: 'i' } },
-            ]
+        // Get all the data from the API
+        const allData = await HotelModel.find({}).select(requested);
+        let modifiedData;
+        if (searchLocation === true) {
+            // Concatenate the fields and create a new field called "concatenatedData"
+            modifiedData = allData.map((data) => ({
+                ...data._doc,
+                concatenatedData: `${data.hotelName} , ${data.hotelAddress}`,
+            }));
+        } else {
+            modifiedData = allData;
         }
-        if (checkIn && checkOut) {
-            filter.checkIn = { $gte: new Date(checkIn), $lte: new Date(checkOut) };
-        }
-        // if (price) {
-        //     filter.price = { $lte: price };
-        // }
 
-        // if (roomType) {
-        //     filter.roomType = roomType;
-        // }
-
-        // Query the database with the filter
-        const hotels = await HotelModel.find(filter);
-        res.status(200).json({ error: false, data: hotels })
-
+        res.status(200).json({ error: false, data: modifiedData });
     } catch (error) {
-        res.status(500).json({ error })
+        res.status(500).json({ error: true, message: error.message });
+    }
+};
+
+
+
+const FilterTheHotelData = async (req, res) => {
+
+    // filter parameter we get 
+    const { location, roomType, checkIn, CheckOut, rooms, price } = req.query;
+
+    // make the filter 
+    const filter = {}
+
+    if (location) {
+        filter.hotelAddress = { $regex: location, $options: "i" }
+    }
+    if (checkIn && CheckOut) {
+        filter.$and = [
+            { checkInTime: { $gte: new Date(checkIn), $options: "i" } },
+            { checkOutTime: { $lte: new Date(CheckOut), $options: "i" } }
+        ]
     }
 
 
+
+
+    // get the data by filter 
+    try {
+        const result = await HotelModel.find(filter);
+        if (!result) return res.status(404).json({ message: "No date found" });
+
+        res.status(200).json({ error: false, data: result })
+    } catch (error) {
+        res.status(500).json({ error })
+    }
 }
 
 
 
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData };
+
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData };

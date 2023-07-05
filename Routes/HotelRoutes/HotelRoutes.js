@@ -1,4 +1,4 @@
-const { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData } = require('../../Controllers/HotelControllers/HotelCurdControllers');
+const { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData } = require('../../Controllers/HotelControllers/HotelCurdControllers');
 const router = require('express').Router();
 
 // add the hotel 
@@ -19,6 +19,9 @@ router.get("/deleteall", DeleteAllHotelData);
 
 
 // universal search Api 
+
+router.get("/search/:data", ReqHotelData);
+router.get("/filter", FilterTheHotelData);
 
 
 
