@@ -7,7 +7,9 @@ const HotelRoutes = require("./Routes/HotelRoutes/HotelRoutes")
 require('./connection')
 const app = express()
 
-app.use(cors())
+app.use(cors({
+    origin:["http://localhost:3000"]
+}))
 
 
 // some middlewares
