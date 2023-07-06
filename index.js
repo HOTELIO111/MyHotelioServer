@@ -1,10 +1,13 @@
 const express = require("express")
 require('dotenv').config()
+const cors = require('cors')
 const CustomerRoutes = require("./Routes/AuthRoutes/AuthRoutes")
 const HotelRoutes = require("./Routes/HotelRoutes/HotelRoutes")
 // database
 require('./connection')
 const app = express()
+
+app.use(cors())
 
 
 // some middlewares

@@ -10,6 +10,8 @@ const schema = new mongoose.Schema({
     amount: {
         type: String,
     },
+    checkInTime: Date,
+    checkOutTime: Date,
     bookedRoom: {
         type: String,
     },
