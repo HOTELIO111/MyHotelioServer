@@ -158,4 +158,14 @@ const ResetPassword = async (req, res) => {
 }
 
 
-module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword }
+
+// delete al the user 
+const DeleteAllCustomer = async (req, res) => {
+    CustomerAuthModel.deleteMany({}).then(() => {
+        res.status(200).json({ error: false, message: "" })
+    }).catch((error) => {
+        console.log(error)
+    })
+}
+
+module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer }
