@@ -8,7 +8,7 @@ require('./connection')
 const app = express()
 
 app.use(cors({
-    origin:["http://localhost:3000"]
+    origin: ["http://localhost:3000", "https://64a7bfa211c85141111ecdff--friendly-sunflower-ffef72.netlify.app"]
 }))
 
 
