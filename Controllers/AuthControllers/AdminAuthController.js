@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 
 const GetAddTheAdmin = async (req, res) => {
     // check if the admin is registered 
-    const isAdmin = await AdminModel.find({})
+    const isAdmin = await AdminModel.findOne({})
     if (isAdmin) return res.status(409).json({ error: true, message: "Admin Is Already Registerd" })
 
     const hashedPassword = EncryptPassword(req.body.password)

@@ -18,7 +18,7 @@ const schema = new mongoose.Schema({
         required: true,
     },
     password: {
-        type: Number,
+        type: String,
         required: true
     },
     resetLink: String,
