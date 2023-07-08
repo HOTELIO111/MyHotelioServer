@@ -4,6 +4,7 @@ const crypto = require('crypto')
 const { SingupValidate, LoginValidate } = require('../../validate');
 const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer } = require("../../Controllers/AuthControllers/CustomerAuth")
 const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword } = require("../../Controllers/AuthControllers/VendorAuthController")
+const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/AdminAuthController')
 
 
 // signup the user
@@ -30,13 +31,15 @@ router.post("/vendor/reset-password", VendorResetPassword);
 
 
 // admin SOme Routes 
-router.post("/admin/signup");
+router.post("/admin/signup", GetAddTheAdmin);
 // admin login 
-router.post("/admin/login")
+router.post("/admin/login", AdminLoginApi)
 // admin forgot password
-router.post("/admin/forgot-password");
+router.post("/admin/forgot-password", AdminForgotPassword);
+// admin reset password 
+router.post("/reset-password", AdminResetPassword)
 // admin update the data 
-router.post("/admin/update");
+router.post("/admin/update", UpdateAdmin);
 
 
 

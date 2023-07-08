@@ -13,10 +13,17 @@ const schema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    role: {
+        type: String,
+        required: true,
+    },
     password: {
         type: Number,
         required: true
-    }
+    },
+    resetLink: String,
+    resetDateExpires: Date,
+    secretKey: String,
 }, {
     timestamps: true,
 })

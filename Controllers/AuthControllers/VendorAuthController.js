@@ -59,7 +59,7 @@ const VendorLogin = async (req, res) => {
         // const isPasswordCorrect = bcrypt.compare(req.body.password, result.password)
         const isPasswordCorrect = comparePassword(req.body.password, result.password, result.secretKey)
         if (!isPasswordCorrect) return res.status(400).json({ error: true, message: "Password is Incorrect" })
-
+        // access token generate and store
         const accesstoken = jwt.sign(rest, process.env.SECRET_CODE)
         res.header("access-token", accesstoken)
         res.status(200).json({ error: false, data: result })
@@ -73,7 +73,7 @@ const VendorLogin = async (req, res) => {
 
 const VendorForgotPasword = async (req, res) => {
 
-    console.log("yaha se aage gaya")
+
     // check the user is login with email or Number 
     const isLoginwith = isMobileNumber(req.body.partnerEmail) === true ? "mobileNo" : isEmail(req.body.partnerEmail) === true ? "partnerEmail" : "Invalid Input"
     if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
@@ -156,7 +156,7 @@ const VendorResetPassword = async (req, res) => {
 //         authorization: "ORSFP20JViWFJgEia0VrX2jxeLccOZF0mEj7C4QygIoPTNhhKFobDSr2wLm0",
 //         message: `This is an OTP verification message from Hotelio. Your OTP is ${otp}`,
 //         numbers: [mobileNo]
-        
+
 //     };
 
 //     try {
