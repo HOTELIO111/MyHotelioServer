@@ -17,6 +17,8 @@ router.post("/reset-password", ResetPassword);
 // delete all user 
 router.delete("/deleteCustomers", DeleteAllCustomer);
 
+// router.post("/sendOtp/:number", SendOtpForVerify);
+
 
 // vendor Login And Signup 
 
@@ -24,6 +26,18 @@ router.post("/vendor/signup", AddVendor);
 router.post("/vendor/login", VendorLogin);
 router.post("/vendor/forgot-password", VendorForgotPasword);
 router.post("/vendor/reset-password", VendorResetPassword);
+
+
+
+// admin SOme Routes 
+router.post("/admin/signup");
+// admin login 
+router.post("/admin/login")
+// admin forgot password
+router.post("/admin/forgot-password");
+// admin update the data 
+router.post("/admin/update");
+
 
 
 

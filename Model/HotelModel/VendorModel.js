@@ -12,6 +12,8 @@ const schema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    verified: Boolean,
+    role: String,
     aadharNo: {
         type: Number,
     },

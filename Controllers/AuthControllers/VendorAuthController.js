@@ -1,9 +1,11 @@
+const { response } = require("express");
 const VendorModel = require("../../Model/HotelModel/VendorModel");
 const SendMail = require("../Others/Mailer");
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption");
 const { isEmail, isMobileNumber } = require("../utils");
 const crypto = require('crypto')
 require("dotenv").config();
+// const fast2sms = require('fast-two-sms');
 const jwt = require('jsonwebtoken')
 
 
@@ -140,6 +142,31 @@ const VendorResetPassword = async (req, res) => {
         res.status(500).json({ error: error })
     }
 }
+
+
+
+
+
+// const SendOtpForVerify = async (req, res) => {
+//     const mobileNo = req.params.number;
+
+//     const otp = crypto.randomInt(1000, 9999);
+
+//     const options = {
+//         authorization: "ORSFP20JViWFJgEia0VrX2jxeLccOZF0mEj7C4QygIoPTNhhKFobDSr2wLm0",
+//         message: `This is an OTP verification message from Hotelio. Your OTP is ${otp}`,
+//         numbers: [mobileNo]
+        
+//     };
+
+//     try {
+//         const response = await fast2sms.sendMessage(options);
+//         res.status(200).json(response);
+//     } catch (error) {
+//         res.status(500).json(error);
+//     }
+// };
+
 
 
 
