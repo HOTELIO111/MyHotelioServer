@@ -14,7 +14,7 @@ const AddVendor = async (req, res) => {
     const formData = req.body
 
     // check the user is already present or not
-    const isUser = await VendorModel.findOne({ partnerEmail: req.body.partnerEmail })
+    const isUser = await VendorModel.findOne({ email: req.body.email })
     if (isUser) return res.status(409).json({ error: true, message: "Email Already Registered" })
     // mobile no check
     const isUserWithMobile = await VendorModel.findOne({ mobileNo: req.body.mobileNo })
@@ -45,10 +45,10 @@ const AddVendor = async (req, res) => {
 const VendorLogin = async (req, res) => {
 
     // check the user is login with email or Number 
-    const isLoginwith = isMobileNumber(req.body.partnerEmail) === true ? "mobileNo" : isEmail(req.body.partnerEmail) === true ? "partnerEmail" : "Invalid Input"
+    const isLoginwith = isMobileNumber(req.body.email) === true ? "mobileNo" : isEmail(req.body.email) === true ? "email" : "Invalid Input"
     if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
 
-    const credential = { [isLoginwith]: req.body.partnerEmail }
+    const credential = { [isLoginwith]: req.body.email }
 
     try {
         const result = await VendorModel.findOne(credential)
@@ -75,10 +75,10 @@ const VendorForgotPasword = async (req, res) => {
 
 
     // check the user is login with email or Number 
-    const isLoginwith = isMobileNumber(req.body.partnerEmail) === true ? "mobileNo" : isEmail(req.body.partnerEmail) === true ? "partnerEmail" : "Invalid Input"
+    const isLoginwith = isMobileNumber(req.body.email) === true ? "mobileNo" : isEmail(req.body.email) === true ? "email" : "Invalid Input"
     if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
 
-    const credential = { [isLoginwith]: req.body.partnerEmail }
+    const credential = { [isLoginwith]: req.body.email }
 
 
     // find the user 
@@ -96,7 +96,7 @@ const VendorForgotPasword = async (req, res) => {
     // prepare a mail to send reset mail
     const mailOptions = {
         from: process.env.SENDEREMAIL,
-        to: req.body.partnerEmail,
+        to: req.body.email,
         subject: 'Reset Password',
         text: `You are receiving this email because you (or someone else) has requested a password reset for your account.\n\n
         Please click on the following link, or paste it into your browser to complete the process:\n\n

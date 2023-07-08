@@ -105,7 +105,7 @@ const AdminForgotPassword = async (req, res) => {
     // prepare a mail to send reset mail
     const mailOptions = {
         from: process.env.SENDEREMAIL,
-        to: req.body.partnerEmail,
+        to: req.body.email,
         subject: 'Reset Password',
         text: `You are receiving this email because you (or someone else) has requested a password reset for your account.\n\n
         Please click on the following link, or paste it into your browser to complete the process:\n\n

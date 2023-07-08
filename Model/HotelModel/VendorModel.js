@@ -1,10 +1,10 @@
 const mongoose = require("mongoose")
 
 const schema = new mongoose.Schema({
-    partnerName: {
+    name: {
         type: String,
     },
-    partnerEmail: {
+    email: {
         type: String,
         required: true,
     },
