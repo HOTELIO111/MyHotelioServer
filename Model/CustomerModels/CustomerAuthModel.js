@@ -28,4 +28,4 @@ const schema = new mongoose.Schema({
 
 const CustomerAuthModel = mongoose.model("customers", schema);
 
-module.exports = CustomerAuthModel
+module.exports = CustomerAuthModel;

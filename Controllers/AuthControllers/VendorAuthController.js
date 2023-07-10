@@ -143,6 +143,14 @@ const VendorResetPassword = async (req, res) => {
     }
 }
 
+// delete al the user 
+const DeleteVendors = async (req, res) => {
+    VendorModel.deleteMany({}).then(() => {
+        res.status(200).json({ error: false, message: "Every thing deleted" })
+    }).catch((error) => {
+        console.log(error)
+    })
+}
 
 
 
@@ -171,4 +179,4 @@ const VendorResetPassword = async (req, res) => {
 
 
 
-module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword }
+module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors }
