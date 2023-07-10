@@ -1,6 +1,7 @@
 const express = require("express")
 require('dotenv').config()
 const cors = require('cors')
+const Utils = require('./Routes/utils')
 const CustomerRoutes = require("./Routes/AuthRoutes/AuthRoutes")
 const HotelRoutes = require("./Routes/HotelRoutes/HotelRoutes")
 // database
@@ -8,7 +9,14 @@ require('./connection')
 const app = express()
 
 app.use(cors({
-    origin: ["https://hotelio-dashboard-trickle.netlify.app", "https://hotelio-rooms.netlify.app", "http://localhost:3000", "https://64a7bfa211c85141111ecdff--friendly-sunflower-ffef72.netlify.app", "https://build-hotelio.vercel.app"]
+    origin: [
+        "https://hotelio-dashboard-trickle.netlify.app",
+        "https://hotelio-rooms.netlify.app",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://64a7bfa211c85141111ecdff--friendly-sunflower-ffef72.netlify.app",
+        "https://build-hotelio.vercel.app"
+    ]
 }))
 
 
@@ -19,15 +27,22 @@ app.use(express.json())
 
 // variable Define 
 const port = process.env.PORT || 8080
+app.use(express.static("./static"))
 
 
 // routes
+app.use("/util", Utils);
 
 app.use("/api", CustomerRoutes);
 app.use("/hotel", HotelRoutes);
 app.get("/", (req, res) => {
     res.send("Welcome to Hotelio Backend")
 })
+// image Upload api 
+
+
+// assets path 
+
 
 
 
