@@ -41,7 +41,7 @@ const AdminLoginApi = async (req, res) => {
 
 
     // check the suser is exsist or not 
-    const isUser = await AdminModel.findOne({ email: req.body.email })
+    const isUser = await AdminModel.findOne(credential)
     if (!isUser) return res.status(404).json({ error: true, message: "No User Found" })
     const { password, ...rest } = isUser
 
@@ -53,7 +53,7 @@ const AdminLoginApi = async (req, res) => {
     // generate token 
     const acessToken = jwt.sign(rest, process.env.SECRET_CODE)
     req.header("access-token", acessToken);
-    res.status(200).json({ error: false, data: rest })
+    res.status(200).json({ error: false, data: isUser })
 
 }
 
