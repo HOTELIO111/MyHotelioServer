@@ -4,6 +4,8 @@ const schema = new mongoose.Schema({
     otpKey: String,
     otp: String,
     otpExpiresTime: Date,
+    numberVerified: String,
+    verified: String,
 }, {
     timestamps: true
 })

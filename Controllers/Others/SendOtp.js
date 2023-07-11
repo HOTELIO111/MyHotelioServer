@@ -14,9 +14,15 @@ const SendOtp = async (req, res) => {
     try {
         // Extract the mobile number from the request parameters
         const { number } = req.params;
-
+        let otp;
+        // check the number have already registered otp or not 
+        const isOtp = await OtpModel.findOne({ numberVerified: number })
+        if (isOtp) {
+            otp = isOtp.otp
+        } else {
+            otp = crypto.randomInt(1000, 9999);
+        }
         // Generate a random OTP
-        const otp = crypto.randomInt(1000, 9999);
 
         // Send the OTP via Twilio
         const message = await twilioClient.messages.create({
@@ -28,7 +34,8 @@ const SendOtp = async (req, res) => {
         const isStored = await new OtpModel({
             otpKey: message.sid,
             otp: otp,
-            otpExpiresTime: Date.now() + 59999  // 59 sec timer  
+            otpExpiresTime: Date.now() + 59999, // 59 sec timer  
+            numberVerified: number
         }).save()
 
         if (!isStored) {
@@ -64,7 +71,7 @@ const VerifyOptFormDb = async (req, res) => {
         if (!isReq) {
             return res
                 .status(404)
-                .json({ error: true, message: "No OTP Request Found" });
+                .json({ error: true, message: "Otp Expired " });
         }
 
         // If the OTP value doesn't match the stored OTP, return a 404 error
