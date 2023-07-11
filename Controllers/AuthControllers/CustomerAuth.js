@@ -187,4 +187,22 @@ const UpdateTheUser = async (req, res) => {
     }
 }
 
-module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer ,UpdateTheUser }
+
+// // Update the password 
+// const UpdateThePassword = async (req, res) => {
+//     // id of the user form the params
+//     const id = req.params.id
+
+//     try {
+//         // find the user by id 
+//         const isUser = await CustomerAuthModel.findById(id)
+//         if (!isUser) return res.status(400).json({ error: true, message: "User Auth Error" })
+
+//     } catch (error) {
+
+//     }
+// }
+
+
+
+module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser }

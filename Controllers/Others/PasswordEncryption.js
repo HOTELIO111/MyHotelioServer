@@ -1,5 +1,6 @@
 const crypto = require("crypto")
 
+
 const EncryptPassword = (password) => {
 
     const salt = crypto.randomBytes(16).toString("hex")

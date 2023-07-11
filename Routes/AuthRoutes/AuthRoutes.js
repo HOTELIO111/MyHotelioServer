@@ -5,6 +5,7 @@ const { SingupValidate, LoginValidate } = require('../../validate');
 const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser } = require("../../Controllers/AuthControllers/CustomerAuth")
 const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors } = require("../../Controllers/AuthControllers/VendorAuthController")
 const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/AdminAuthController')
+const { VerifyOptFormDb, SendOtp } = require("../../Controllers/Others/SendOtp")
 
 
 // signup the user
@@ -19,6 +20,8 @@ router.post("/reset-password", ResetPassword);
 router.delete("/deleteall", DeleteAllCustomer);
 // Update the Customer
 router.patch("/update/:id", UpdateTheUser)
+// update password
+// router.post("/update-pass/:id")
 
 // router.post("/sendOtp/:number", SendOtpForVerify);
 
@@ -43,6 +46,11 @@ router.post("/admin/forgot-password", AdminForgotPassword);
 router.post("/reset-password", AdminResetPassword);
 // admin update the data 
 router.post("/admin/update", UpdateAdmin);
+
+
+// SEND OTP FROM TWILLO 
+router.get("/sendopt/:number", SendOtp);
+router.get("/verifyotp/:key/:otp", VerifyOptFormDb);
 
 
 
