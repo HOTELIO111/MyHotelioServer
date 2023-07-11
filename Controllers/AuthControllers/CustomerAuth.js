@@ -168,4 +168,23 @@ const DeleteAllCustomer = async (req, res) => {
     })
 }
 
-module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer }
+// update the user 
+const UpdateTheUser = async (req, res) => {
+    // check the user Exists 
+    const id = req.params.id
+
+    try {
+        const response = await CustomerAuthModel.findById(id)
+        if (!response) return res.status(404).json({ error: true, message: "No user Found" })
+
+        // let Update the user 
+        const isUpdated = await CustomerAuthModel.findByIdAndUpdate(id, req.body, { new: true })
+        if (!isUpdated) return res.status(400).json({ error: true, message: "No Updated Something error" })
+
+        res.status(200).json({ error: false, data: isUpdated });
+    } catch (error) {
+        res.status(500).json({ error })
+    }
+}
+
+module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer ,UpdateTheUser }

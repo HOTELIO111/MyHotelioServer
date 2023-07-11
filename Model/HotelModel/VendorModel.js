@@ -20,14 +20,26 @@ const schema = new mongoose.Schema({
     panNo: {
         type: String,
     },
+    // document upload 
+    panImg: {
+        type: String,
+    },
+    aadharImg: [],
     status: {
         type: Boolean,
     },
     password: String,
     hotels: [],
+    // password secretkey to encode or decode 
     secretKey: String,
+    // password reset link
     resetLink: String,
     resetDateExpire: Date,
+
+    // verify the email or number or kyc 
+    aadharVerify: String,
+    panVerify: String,
+    emailVerify: String
 }, {
     timestamps: true
 })

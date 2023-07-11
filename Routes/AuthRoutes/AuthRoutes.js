@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto')
 const { SingupValidate, LoginValidate } = require('../../validate');
-const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer } = require("../../Controllers/AuthControllers/CustomerAuth")
+const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser } = require("../../Controllers/AuthControllers/CustomerAuth")
 const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors } = require("../../Controllers/AuthControllers/VendorAuthController")
 const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/AdminAuthController')
 
@@ -17,6 +17,8 @@ router.post("/forgot-password", ForgotPassword);
 router.post("/reset-password", ResetPassword);
 // delete all user 
 router.delete("/deleteall", DeleteAllCustomer);
+// Update the Customer
+router.patch("/update/:id", UpdateTheUser)
 
 // router.post("/sendOtp/:number", SendOtpForVerify);
 

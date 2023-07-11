@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
+    // hotel info
     hotelName: {
         type: String,
         required: true,
@@ -13,33 +14,35 @@ const schema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    hotelMapLink: {
-        type: String,
-        required: true,
-    },
-    hotelGST: {
-        type: String,
-        required: true,
-    },
     hotelMobileNo: {
         type: Number,
         required: true,
     },
-    hotelRooms: {
-        single: {
-            type: Number,
-            required: true,
-        },
-        twin: {
-            type: Number,
-            required: true,
-        },
-        family: {
-            type: Number,
-            required: true,
-        },
+
+    hotelStatus: {
+        type: Boolean,
+        required: true,
     },
-    roomsImages: [String],
+    hotelZip: String,
+    HotelCoverImg: String,
+    hotelRooms: {},
+    hotelRoomsImg: [],
+
+    // Ammenities
+    hotelAmenities: [],
+
+    // Hotel legal Info 
+    hotelOwnerType: String,
+    hotelRegNo: String,
+    hotelRegImg: String,
+    hotelPanCard: String,
+    hotelPanImg: String,
+    hotelGST: String,
+    hotelGSTImg: String,
+    hotelTinNo: String,
+    hotelTinImg: String,
+
+    // hotel Timings
     checkInTime: {
         type: Date,
         required: true,
@@ -48,18 +51,15 @@ const schema = new mongoose.Schema({
         type: Date,
         required: true,
     },
-    hotelStatus: {
-        type: Boolean,
+
+    // cancelations charge
+    hotelCancelCharge: String,
+    policyAccepted: [],
+    // Sir hi jane 
+    hotelMapLink: {
+        type: String,
         required: true,
     },
-    // hotelTiming: {
-    //     type: Map,
-    //     of: {
-    //         open: String,
-    //         close: String,
-    //     },
-    //     required: true,
-    // },
     hotelBookings: [
         {
             guestName: {
@@ -80,7 +80,6 @@ const schema = new mongoose.Schema({
             },
         },
     ],
-    hotelAmenities: [String],
     hotelRatings: {
         type: String,
         required: true,
