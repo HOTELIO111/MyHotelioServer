@@ -16,7 +16,7 @@ router.post("/forgot-password", ForgotPassword);
 // reset password
 router.post("/reset-password", ResetPassword);
 // delete all user 
-router.delete("/deleteCustomers", DeleteAllCustomer);
+router.delete("/deleteall", DeleteAllCustomer);
 
 // router.post("/sendOtp/:number", SendOtpForVerify);
 
@@ -34,11 +34,11 @@ router.delete("/vendor/deleteall", DeleteVendors);
 // admin SOme Routes 
 router.post("/admin/signup", GetAddTheAdmin);
 // admin login 
-router.post("/admin/login", AdminLoginApi)
+router.post("/admin/login", AdminLoginApi);
 // admin forgot password
 router.post("/admin/forgot-password", AdminForgotPassword);
 // admin reset password 
-router.post("/reset-password", AdminResetPassword)
+router.post("/reset-password", AdminResetPassword);
 // admin update the data 
 router.post("/admin/update", UpdateAdmin);
 
