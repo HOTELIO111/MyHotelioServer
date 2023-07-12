@@ -214,9 +214,13 @@ const UpdateThePassword = async (req, res) => {
         // If the OTP value doesn't match the stored OTP, return a 404 error
         if (isVerified.otp !== otp) return res.status(404).json({ error: true, message: "OTP Not Matched" });
 
+        // encrypt the password 
+        const encryptedPassword = EncryptPassword(newPassword)
+
         // update the password
         const updatePassword = await CustomerAuthModel.findByIdAndUpdate(id, {
-            password: newPassword
+            password: encryptedPassword.hashedPassword,
+            secretKey: encryptedPassword.salt
         }, { new: true })
         if (!updatePassword) return res.status(400).json({ error: true, message: "error in updating data" })
 
