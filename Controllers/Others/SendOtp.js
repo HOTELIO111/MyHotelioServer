@@ -14,14 +14,9 @@ const SendOtp = async (req, res) => {
     try {
         // Extract the mobile number from the request parameters
         const { number } = req.params;
-        let otp;
-        // check the number have already registered otp or not 
-        const isOtp = await OtpModel.findOne({ numberVerified: number })
-        if (isOtp) {
-            otp = isOtp.otp
-        } else {
-            otp = crypto.randomInt(1000, 9999);
-        }
+
+        const otp = crypto.randomInt(1000, 9999);
+
         // Generate a random OTP
 
         // Send the OTP via Twilio
