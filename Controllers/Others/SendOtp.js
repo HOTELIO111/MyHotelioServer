@@ -5,8 +5,8 @@ require('dotenv').config();
 const OtpModel = require("../../Model/other/OtpVerifyModel")
 
 // Create a Twilio client instance
-const accountSid = 'AC69e9bcd884480da2cb6c618e55c45ca5';
-const authToken = '3014f2799e3376bd299c81dcfbaab329';
+const accountSid = 'ACe150d0d218b5f6abaffdb62567b7f14b';
+const authToken = 'cbf8353328c2f5495901cdbd34a365ef';
 const twilioClient = twilio(accountSid, authToken);
 
 // Send OTP function
