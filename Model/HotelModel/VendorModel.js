@@ -12,7 +12,7 @@ const schema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    verified: Boolean,
+    kycVerified: String,
     role: String,
     aadharNo: {
         type: Number,
@@ -37,9 +37,7 @@ const schema = new mongoose.Schema({
     resetDateExpire: Date,
 
     // verify the email or number or kyc 
-    aadharVerify: String,
-    panVerify: String,
-    emailVerify: String
+    isEmailVerified: Boolean,
 }, {
     timestamps: true
 })

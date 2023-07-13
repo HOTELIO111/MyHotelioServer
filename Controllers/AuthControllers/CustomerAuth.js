@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const SendMail = require("../Others/Mailer");
 const { VerifyOptFormDb } = require("../Others/SendOtp");
 const OtpModel = require("../../Model/other/OtpVerifyModel");
+const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 
 
 
@@ -114,10 +115,7 @@ const ForgotPassword = async (req, res) => {
         from: process.env.SENDEREMAIL,
         to: req.body.email,
         subject: 'Reset Password',
-        text: `You are receiving this email because you (or someone else) has requested a password reset for your account.\n\n
-        Please click on the following link, or paste it into your browser to complete the process:\n\n
-        ${req.headers.origin}/reset-password/${resetUrl}\n\n
-        If you did not request this, please ignore this email and your password will remain unchanged.\n`
+        html: EmailForResetLink(isUser.name, `${req.header.origin}/reset-password/${resetUrl}`)
     };
 
     // send Mail 

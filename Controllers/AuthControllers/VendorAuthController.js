@@ -6,7 +6,8 @@ const { isEmail, isMobileNumber } = require("../utils");
 const crypto = require('crypto')
 require("dotenv").config();
 // const fast2sms = require('fast-two-sms');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 
 
 
@@ -98,10 +99,7 @@ const VendorForgotPasword = async (req, res) => {
         from: process.env.SENDEREMAIL,
         to: req.body.email,
         subject: 'Reset Password',
-        text: `You are receiving this email because you (or someone else) has requested a password reset for your account.\n\n
-        Please click on the following link, or paste it into your browser to complete the process:\n\n
-        ${req.headers.origin}/reset-password/${resetUrl}\n\n
-        If you did not request this, please ignore this email and your password will remain unchanged.\n`
+        html: EmailForResetLink(isUser.name, `${req.header.origin}/reset-password/${resetUrl}`),
     };
 
     // send Mail 

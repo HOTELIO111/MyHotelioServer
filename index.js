@@ -4,6 +4,7 @@ const cors = require('cors')
 const Utils = require('./Routes/utils')
 const CustomerRoutes = require("./Routes/AuthRoutes/AuthRoutes")
 const HotelRoutes = require("./Routes/HotelRoutes/HotelRoutes")
+const VerifyRoutes = require("./Routes/AuthRoutes/VerificationRoutes")
 // database
 require('./connection')
 const app = express()
@@ -35,6 +36,8 @@ app.use("/util", Utils);
 
 app.use("/api", CustomerRoutes);
 app.use("/hotel", HotelRoutes);
+// verfication related apis 
+app.use("/verify", VerifyRoutes);
 app.get("/", (req, res) => {
     res.send("Welcome to Hotelio Backend")
 })
