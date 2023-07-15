@@ -8,6 +8,8 @@ require("dotenv").config();
 // const fast2sms = require('fast-two-sms');
 const jwt = require('jsonwebtoken');
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
+const OtpModel = require("../../Model/other/OtpVerifyModel");
+const VerificationModel = require("../../Model/other/VerificationModel");
 
 
 
@@ -172,9 +174,66 @@ const DeleteVendors = async (req, res) => {
 //         res.status(500).json(error);
 //     }
 // };
+const GetVendorDataUpdate = async (req, res) => {
+    try {
+        const otpReqId = req.params.id;
+        const cid = req.params.cid;
+        const otp = req.params.otp;
+
+        // Data from the request body
+        const formData = req.body;
+
+        // Find the OTP request
+        const isReq = await VerificationModel.findOne({
+            _id: otpReqId,
+            OtpExpireTime: { $gt: new Date() },
+        });
+
+        if (!isReq) {
+            return res.status(400).json({ error: true, message: "OTP Expired" });
+        }
+
+        // Check if the OTP matches
+        if (isReq.verificationOtp !== otp) {
+            return res.status(404).json({ error: true, message: "Invalid OTP" });
+        }
+
+        // OTP verification successful
+
+        // Update the data for the vendor
+        const isUpdated = await VendorModel.findByIdAndUpdate(
+            cid,
+            {
+                ...formData,
+                isEmailVerified: true,
+            },
+            { new: true }
+        );
+
+        if (!isUpdated) {
+            return res.status(400).json({ error: true, message: "Updation Error" });
+        }
+
+        res.status(200).json({ error: false, data: isUpdated });
+    } catch (error) {
+        console.error(error); // Log the error for debugging purposes
+        res.status(500).json({ error: true, message: "Internal Server Error" });
+    }
+};
+
+
+// get all the vendor 
+const GetAllVendor = async (req, res) => {
+
+    try {
+        const alldata = await VendorModel.find({})
+        if (!alldata) return res.status(404).json({ error: true, message: "No data Found" })
+        res.status(200).json({ error: false, data: alldata })
+    } catch (error) {
+        res.status(500).json({ error })
+    }
+}
 
 
 
-
-
-module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors }
+module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor }

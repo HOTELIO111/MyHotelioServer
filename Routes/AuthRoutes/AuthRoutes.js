@@ -3,7 +3,7 @@ const router = express.Router();
 const crypto = require('crypto')
 const { SingupValidate, LoginValidate } = require('../../validate');
 const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword } = require("../../Controllers/AuthControllers/CustomerAuth")
-const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors } = require("../../Controllers/AuthControllers/VendorAuthController")
+const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor } = require("../../Controllers/AuthControllers/VendorAuthController")
 const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/AdminAuthController')
 const { VerifyOptFormDb, SendOtp } = require("../../Controllers/Others/SendOtp")
 
@@ -32,7 +32,11 @@ router.post("/vendor/signup", AddVendor);
 router.post("/vendor/login", VendorLogin);
 router.post("/vendor/forgot-password", VendorForgotPasword);
 router.post("/vendor/reset-password", VendorResetPassword);
+router.get("/vendor/getall", GetAllVendor);
 router.delete("/vendor/deleteall", DeleteVendors);
+
+// verify the email and update the data
+router.patch("/vendor/verified/:id/:cid/:otp", GetVendorDataUpdate);
 
 
 

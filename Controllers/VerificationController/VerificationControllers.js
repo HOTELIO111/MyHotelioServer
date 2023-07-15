@@ -48,7 +48,7 @@ const SendEmailVerify = async (req, res) => {
             throw new Error("Email not sent"); // Throw an error if the email is not successfully sent
         }
 
-        res.status(200).json({ error: false, message: "Email sent successfully" }); // Send a success response
+        res.status(200).json({ error: false, message: "Email sent successfully", data: isAdded }); // Send a success response
     } catch (error) {
         res.status(400).json({ error: true, message: error.message }); // Send an error response with the error message
     }
