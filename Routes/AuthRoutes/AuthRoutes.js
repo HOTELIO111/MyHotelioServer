@@ -6,6 +6,7 @@ const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer,
 const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor } = require("../../Controllers/AuthControllers/VendorAuthController")
 const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/AdminAuthController')
 const { VerifyOptFormDb, SendOtp } = require("../../Controllers/Others/SendOtp")
+const verify = require("../../Verify")
 
 
 // signup the user
@@ -33,7 +34,7 @@ router.post("/vendor/login", VendorLogin);
 router.post("/vendor/forgot-password", VendorForgotPasword);
 router.post("/vendor/reset-password", VendorResetPassword);
 router.get("/vendor/getall", GetAllVendor);
-router.delete("/vendor/deleteall", DeleteVendors);
+router.delete("/vendor/deleteall", verify, DeleteVendors);
 
 // verify the email and update the data
 router.patch("/vendor/verified/:id/:cid/:otp", GetVendorDataUpdate);
