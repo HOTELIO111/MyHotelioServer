@@ -79,7 +79,12 @@ const schema = new mongoose.Schema({
         type: String,
         required: true,
     },
-
+    isAdminApproved: Boolean,
+    hotelRatings: {
+        type: Number,
+        enum: [1, 2, 3, 4, 5],
+        default: 0
+    },
 }, {
     timestamps: true
 })

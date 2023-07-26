@@ -151,10 +151,6 @@ const FilterTheHotelData = async (req, res) => {
             { checkOutTime: { $lte: new Date(CheckOut), $options: "i" } }
         ]
     }
-
-
-
-
     // get the data by filter 
     try {
         const result = await HotelModel.find(filter);
@@ -181,6 +177,48 @@ const GetUsersHotel = async (req, res) => {
 
 
 
+const fitlerDataCreate = async (req, res) => {
+    const { city, roomType, amenities, accomodationType } = req.query;
+    const filter = {};
+
+    // check the user is Verified or not 
+    
+
+    // Filter with city
+    if (city) {
+        filter.city = { $regex: new RegExp(city, "i") };
+    }
+
+    // find the ammenities
+    if (amenities) {
+        const arrayAmenities = amenities.split(',').map((item) => item.trim());
+        filter.amenities = { $all: arrayAmenities };
+    }
 
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel };
+    // accomodation type
+    if (accomodationType) {
+        const accomodationArray = accomodationType.split(",").map((item) => item.trim());
+        filter.hotelType = { $in: accomodationArray };
+    }
+
+    try {
+        const result = await HotelModel.find(filter);
+        if (result.length === 0) {
+            return res.status(404).json({ message: "No data found" });
+        }
+
+        res.status(200).json({ error: false, data: result });
+    } catch (error) {
+        console.error("Error while filtering data:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+
+
+
+
+
+
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate };
