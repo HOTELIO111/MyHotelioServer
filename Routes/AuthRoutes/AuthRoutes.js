@@ -33,7 +33,7 @@ router.post("/vendor/signup", AddVendor);
 router.post("/vendor/login", VendorLogin);
 router.post("/vendor/forgot-password", VendorForgotPasword);
 router.post("/vendor/reset-password", VendorResetPassword);
-router.get("/vendor/getall", GetAllVendor);
+router.get("/vendor/getall", verify, GetAllVendor);
 router.delete("/vendor/deleteall", verify, DeleteVendors);
 
 // verify the email and update the data

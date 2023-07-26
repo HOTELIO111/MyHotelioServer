@@ -1,100 +1,84 @@
 const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
-    // hotel info
+    vendorId: {
+        type: String,
+        required: true
+    },
+    // Hotel Details 
     hotelName: {
         type: String,
-        required: true,
+    },
+    hotelType: {
+        type: String,
     },
     hotelEmail: {
         type: String,
-        required: true,
-    },
-    hotelAddress: {
-        type: String,
-        required: true,
     },
     hotelMobileNo: {
         type: Number,
-        required: true,
+    },
+    locality: {
+        type: String,
+    },
+    city: {
+        type: String,
+    },
+    country: {
+        type: String,
+    },
+    zipCode: {
+        type: Number,
+    },
+    geoLoc: {
+        lang: String,
+        lat: String,
+    },
+    // Hotel rooms info 
+    rooms: [
+        { counts: Number, roomType: String }
+    ],
+    amenities: {
+        type: Array
+    },
+    hotelCoverImg: {
+        type: String,
+    },
+    hotelImages: {
+        type: Array,
+    },
+    checkOut: {
+        type: String,
     },
 
-    hotelStatus: {
-        type: Boolean,
-        required: true,
+    // Legal Documents
+    ownershipType: String,
+    regNo: String,
+    regDocumentImg: String,
+    businessPan: String,
+    businessPanImg: String,
+    gstNo: String,
+    gstImg: String,
+    tinNo: String,
+    tinImg: String,
+
+    // Policy and privacy 
+    cancellationPrice: String,
+    termsAndCondition: Boolean,
+    hotelFullySanitized: Boolean,
+    notSupportDiscrimination: Boolean,
+    validAndTrueData: Boolean,
+
+
+    // Hotel Bookings 
+    hotelBookings: {
+        type: Array
     },
-    hotelZip: String,
-    HotelCoverImg: String,
-    hotelRooms: {},
-    hotelRoomsImg: [],
-
-    // Ammenities
-    hotelAmenities: [],
-
-    // Hotel legal Info 
-    hotelOwnerType: String,
-    hotelRegNo: String,
-    hotelRegImg: String,
-    hotelPanCard: String,
-    hotelPanImg: String,
-    hotelGST: String,
-    hotelGSTImg: String,
-    hotelTinNo: String,
-    hotelTinImg: String,
-
-    // hotel Timings
-    checkInTime: {
-        type: Date,
-        required: true,
-    },
-    checkOutTime: {
-        type: Date,
-        required: true,
-    },
-
-    // cancelations charge
-    hotelCancelCharge: String,
-    policyAccepted: [],
     // Sir hi jane 
     hotelMapLink: {
         type: String,
         required: true,
     },
-    hotelBookings: [
-        {
-            guestName: {
-                type: String,
-                required: true,
-            },
-            roomType: {
-                type: String,
-                required: true,
-            },
-            checkInDate: {
-                type: Date,
-                required: true,
-            },
-            checkOutDate: {
-                type: Date,
-                required: true,
-            },
-        },
-    ],
-    hotelRatings: {
-        type: String,
-        required: true,
-    },
-    geoLocation: {
-        latitude: {
-            type: Number,
-            required: true,
-        },
-        longitude: {
-            type: Number,
-            required: true,
-        },
-    },
-
 
 }, {
     timestamps: true

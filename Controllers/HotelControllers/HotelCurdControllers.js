@@ -3,7 +3,7 @@ const VendorModel = require("../../Model/HotelModel/VendorModel");
 
 
 const RegisterHotel = async (req, res) => {
-    const customerId = req.params.id;
+    const vendorId = req.params.id;
 
     // Check if the hotel is already registered or not
     const IsRegistered = await HotelModel.findOne({ hotelEmail: req.body.hotelEmail });
@@ -12,14 +12,17 @@ const RegisterHotel = async (req, res) => {
     }
 
     // Register the hotel
-    const response = await new HotelModel(req.body).save();
+    const response = await new HotelModel({
+        ...req.body,
+        vendorId: vendorId
+    }).save();
     if (!response) {
         return res.status(400).json({ error: true, message: "Not Registered" });
     }
 
     // Find the user and update this hotel id
     const Vendor = await VendorModel.findOneAndUpdate(
-        { _id: customerId },
+        { _id: vendorId },
         { $push: { hotels: response._id } },
         { new: true, upsert: true }
     );
@@ -164,7 +167,20 @@ const FilterTheHotelData = async (req, res) => {
 }
 
 
+const GetUsersHotel = async (req, res) => {
+    const Id = req.params.id
+    try {
+        const result = await HotelModel.find({ vendorId: Id })
+        if (!result) return res.status(404).json({ error: true, message: "No Hotels Registered" })
+
+        res.status(200).json({ error: false, data: result })
+    } catch (error) {
+        res.status(500).json(error)
+    }
+}
 
 
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData };
+
+
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel };
