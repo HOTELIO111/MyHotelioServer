@@ -182,7 +182,7 @@ const fitlerDataCreate = async (req, res) => {
     const filter = {};
 
     // check the user is Verified or not 
-    
+
 
     // Filter with city
     if (city) {
@@ -217,8 +217,43 @@ const fitlerDataCreate = async (req, res) => {
 
 
 
+const GetSearchTheHotelList = async (req, res) => {
+    const { location, checkIn, checkOut, persons } = req.query;
+
+    const search = {}
+
+    // location
+    if (location) {
+        search.city = { $regex: location, $options: "i" }
+    }
+
+
+    // checkin checkout abhi likhna 
+
+
+
+    // room mangement 
+    let totalRoom;
+    const roomRequired = parseInt(persons) / 3
+    if ((roomRequired - Math.round(roomRequired)) > 0.5) {
+        to
+    }
+
+
+    try {
+        const response = await HotelModel.find(search)
+        if (!response) return res.status(400).json({ error: true, message: "No Hotels Found At this Location" })
+
+        res.status(200).json({ error: false, data: response })
+    } catch (error) {
+        res.status(500).json({ error: true, error })
+    }
+
+
+}
 
 
 
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate };
+
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList };

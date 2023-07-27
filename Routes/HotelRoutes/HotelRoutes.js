@@ -1,4 +1,4 @@
-const { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate } = require('../../Controllers/HotelControllers/HotelCurdControllers');
+const { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList } = require('../../Controllers/HotelControllers/HotelCurdControllers');
 const router = require('express').Router();
 
 // add the hotel 
@@ -29,6 +29,7 @@ router.get("/filter", FilterTheHotelData);
 
 // new filter api
 router.get("/newfilter", fitlerDataCreate)
+router.get('/searchfilter', GetSearchTheHotelList);
 
 
 
