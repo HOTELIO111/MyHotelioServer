@@ -17,7 +17,7 @@ const RegisterHotel = async (req, res) => {
         vendorId: vendorId
     }).save();
     if (!response) {
-        return res.status(400).json({ error: true, message: "Not Registered" });
+        return res.status(400).json({ error: true, message: "Hotel Not Added Please try Again" });
     }
 
     // Find the user and update this hotel id
@@ -218,7 +218,7 @@ const fitlerDataCreate = async (req, res) => {
 
 
 const GetSearchTheHotelList = async (req, res) => {
-    const { location, checkIn, checkOut, persons } = req.query;
+    const { location, checkIn, checkOut, totalRoutes } = req.query;
 
     const search = {}
 
@@ -231,12 +231,9 @@ const GetSearchTheHotelList = async (req, res) => {
     // checkin checkout abhi likhna 
 
 
-
     // room mangement 
-    let totalRoom;
-    const roomRequired = parseInt(persons) / 3
-    if ((roomRequired - Math.round(roomRequired)) > 0.5) {
-        to
+    if (totalRoutes) {
+        search['rooms.counts'] = { $gt: totalRoutes }
     }
 
 

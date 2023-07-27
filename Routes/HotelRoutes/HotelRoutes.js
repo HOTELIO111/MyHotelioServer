@@ -23,13 +23,13 @@ router.get("/deleteall", DeleteAllHotelData);
 
 // universal search Api 
 
-router.get("/search/:data", ReqHotelData);
-router.get("/filter", FilterTheHotelData);
+// router.get("/search/:data", ReqHotelData);
+// router.get("/filter", FilterTheHotelData);
 
 
 // new filter api
-router.get("/newfilter", fitlerDataCreate)
-router.get('/searchfilter', GetSearchTheHotelList);
+router.get("/filter", fitlerDataCreate)
+router.get('/search', GetSearchTheHotelList);
 
 
 
