@@ -218,7 +218,7 @@ const fitlerDataCreate = async (req, res) => {
 
 
 const GetSearchTheHotelList = async (req, res) => {
-    const { location, checkIn, checkOut, totalRoutes } = req.query;
+    const { location, checkIn, checkOut, totalRooms } = req.query;
 
     const search = {}
 
@@ -232,8 +232,8 @@ const GetSearchTheHotelList = async (req, res) => {
 
 
     // room mangement 
-    if (totalRoutes) {
-        search['rooms.counts'] = { $gt: totalRoutes }
+    if (totalRooms) {
+        search['rooms.counts'] = { $gt: totalRooms }
     }
 
 
