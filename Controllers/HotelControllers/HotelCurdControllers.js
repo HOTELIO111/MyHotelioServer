@@ -251,6 +251,30 @@ const GetSearchTheHotelList = async (req, res) => {
 
 
 
+// get list of the field 
+const GetFieldList = async (req, res) => {
+    const { field } = req.params;
+
+    try {
+        const result = await HotelModel.distinct(field)
+        if (!result) return res.status(404).json({ error: true, message: "Invalid Request" })
+
+        // Make the data not repeatable (remove duplicates and format each word's first letter to uppercase)
+        const uniqueValues = [...new Set(result.map(item => capitalizeFirstLetter(item)))];
+
+        res.status(200).json({ error: false, data: uniqueValues });
+    } catch (error) {
+        res.status(500).json({ error })
+    }
+}
 
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList };
+// Function to capitalize the first letter of each word and make the rest lowercase
+function capitalizeFirstLetter(str) {
+    return str.replace(/\b\w+/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
+
+
+
+
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList };
