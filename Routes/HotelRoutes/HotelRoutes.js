@@ -17,7 +17,7 @@ router.get("/deletesingle/:id", DeleteSingleHotel);
 // delelte all the data 
 router.get("/deleteall", DeleteAllHotelData);
 
-// Get all the city name where we have hotel 
+// Get all the city 
 router.get("/get/:field", GetFieldList)
 
 
