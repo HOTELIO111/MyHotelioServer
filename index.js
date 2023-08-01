@@ -16,7 +16,8 @@ app.use(cors({
         "http://localhost:3000",
         "http://localhost:3001",
         "https://64a7bfa211c85141111ecdff--friendly-sunflower-ffef72.netlify.app",
-        "https://build-hotelio.vercel.app"
+        "https://build-hotelio.vercel.app",
+        "http://ec2-16-16-248-78.eu-north-1.compute.amazonaws.com"
     ]
 }))
 
