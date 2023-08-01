@@ -34,7 +34,7 @@ router.post("/vendor/login", VendorLogin);
 router.post("/vendor/forgot-password", VendorForgotPasword);
 router.post("/vendor/reset-password", VendorResetPassword);
 router.get("/vendor/getall", verify, GetAllVendor);
-router.delete("/vendor/deleteall", verify, DeleteVendors);
+router.delete("/vendor/deleteall", DeleteVendors);
 
 // verify the email and update the data
 router.patch("/vendor/verified/:id/:cid/:otp", GetVendorDataUpdate);
