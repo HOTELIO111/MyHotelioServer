@@ -30,13 +30,14 @@ const schema = new mongoose.Schema({
     zipCode: {
         type: Number,
     },
+    discription: String,
     geoLoc: {
         lang: String,
         lat: String,
     },
     // Hotel rooms info 
     rooms: [
-        { counts: Number, roomType: String }
+        { counts: Number, roomType: String, price: String }
     ],
     amenities: {
         type: Array
