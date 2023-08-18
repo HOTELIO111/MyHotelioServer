@@ -84,8 +84,6 @@ const SendMobileVefication = async (req, res) => {
             res.status(400).json({ error: true, message: "Opt Not sent" })
             isStored.remove()
         }
-
-
         // Return a success response
         res.status(200).json({ error: false, response: isStored._id, messageSID: message.sid, message: "opt sent successfully" });
     } catch (error) {
