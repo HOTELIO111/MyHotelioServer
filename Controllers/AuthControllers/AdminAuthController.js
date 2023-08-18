@@ -19,6 +19,7 @@ const GetAddTheAdmin = async (req, res) => {
         const result = await new AdminModel(
             {
                 ...req.body,
+                role: "Super Admin",
                 password: hashedPassword.hashedPassword,
                 secretKey: hashedPassword.salt
             }

@@ -9,6 +9,7 @@ const SendMail = require("../Others/Mailer");
 const { VerifyOptFormDb } = require("../Others/SendOtp");
 const OtpModel = require("../../Model/other/OtpVerifyModel");
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
+const VerificationModel = require("../../Model/other/VerificationModel");
 
 
 
@@ -29,16 +30,25 @@ const SignupUser = async (req, res) => {
         const isMobile = await CustomerAuthModel.findOne({ email: req.body.email })
         if (isMobile) return res.status(409).json("Mobile No Already Registered")
 
-        // // make the password as a hash password 
-        // const salt = await bycrypt.genSalt(10)
-        // const hashPassword = await bycrypt.hash(req.body.password, salt)
+        // verify the otp 
+        const isVarified = await VerificationModel.findOne({
+            verificationOtp: req.body.otp,
+            sendedTo: req.body.mobileNo,
+            OtpExpireTime: { $gt: new Date(Date.now()) }
+        })
+
+        if (!isVarified) return res.status(400).json({ error: true, message: "otp invalid or expired" })
+
+
+        // encrypt the password
         const hashPassword = EncryptPassword(req.body.password)
 
         // my formdata
         const formdata = new CustomerAuthModel({
             ...req.body,
             password: hashPassword.hashedPassword,
-            secretKey: hashPassword.salt
+            secretKey: hashPassword.salt,
+            isNumberVerified: true,
         })
 
         const saveData = await formdata.save()

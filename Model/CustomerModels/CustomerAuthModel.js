@@ -13,10 +13,17 @@ const schema = new mongoose.Schema({
         type: String,
         required: true
     },
-    location: String,
+    location: {
+        lang: String,
+        lat: String
+    },
     password: {
         type: String,
         required: true,
+    },
+    isNumberVerified: {
+        type: Boolean,
+        default: false
     },
     resetLink: String,
     resetDateExpires: Date,

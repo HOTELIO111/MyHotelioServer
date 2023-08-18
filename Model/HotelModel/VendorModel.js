@@ -38,6 +38,7 @@ const schema = new mongoose.Schema({
     resetDateExpire: Date,
 
     // verify the email or number or kyc 
+    isNumberVarified: Boolean,
     isEmailVerified: Boolean,
 }, {
     timestamps: true

@@ -23,11 +23,15 @@ const AddVendor = async (req, res) => {
     const isUserWithMobile = await VendorModel.findOne({ mobileNo: req.body.mobileNo })
     if (isUserWithMobile) return res.status(409).json({ error: true, message: "Mobile Number Already Registered" })
 
-    // make the password hashed  
+    // verify the otp 
+    const isVerified = await VerificationModel.findOne({
+        verificationOtp: formData.otp,
+        OtpExpireTime: { $gt: new Date(Date.now()) }
+    })
+
+    if (!isVerified) return res.status(400).json({ error: false, message: "Invalid Otp" })
     // make the password as a hash password 
     const hashPassword = EncryptPassword(req.body.password)
-    // const salt = await bcrypt.genSalt(10)
-    // const hashPassword = await bcrypt.hash(req.body.password, salt)
 
     try {
         const result = await new VendorModel({
@@ -57,9 +61,7 @@ const VendorLogin = async (req, res) => {
         const result = await VendorModel.findOne(credential)
         if (!result) return res.status(404).json({ error: true, message: "No User Found" })
         const { passsword, ...rest } = result
-        // ver
-        // compare the password  
-        // const isPasswordCorrect = bcrypt.compare(req.body.password, result.password)
+        // compare the password 
         const isPasswordCorrect = comparePassword(req.body.password, result.password, result.secretKey)
         if (!isPasswordCorrect) return res.status(400).json({ error: true, message: "Password is Incorrect" })
         // access token generate and store

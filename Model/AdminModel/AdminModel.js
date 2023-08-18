@@ -21,6 +21,9 @@ const schema = new mongoose.Schema({
         type: String,
         required: true
     },
+    avatar: {
+        type: String,
+    },
     resetLink: String,
     resetDateExpires: Date,
     secretKey: String,
