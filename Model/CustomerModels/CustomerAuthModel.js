@@ -7,7 +7,6 @@ const schema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: true
     },
     mobileNo: {
         type: String,
@@ -16,10 +15,6 @@ const schema = new mongoose.Schema({
     location: {
         lang: String,
         lat: String
-    },
-    password: {
-        type: String,
-        required: true,
     },
     isNumberVerified: {
         type: Boolean,

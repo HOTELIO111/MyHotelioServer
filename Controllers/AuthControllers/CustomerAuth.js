@@ -17,17 +17,17 @@ const VerificationModel = require("../../Model/other/VerificationModel");
 const SignupUser = async (req, res) => {
 
     try {
-        // lets validate the data
-        const { error, value } = SingupValidate(req.body);
-        if (error) return res.status(400).json(error.details[0].message);
+        // // lets validate the data
+        // const { error, value } = SingupValidate(req.body);
+        // if (error) return res.status(400).json(error.details[0].message);
 
 
         // username email resgistered or not check
-        const isUserFound = await CustomerAuthModel.findOne({ email: req.body.email })
-        if (isUserFound) return res.status(409).json("Email Already Registered")
+        // const isUserFound = await CustomerAuthModel.findOne({ email: req.body.email })
+        // if (isUserFound) return res.status(409).json("Email Already Registered")
 
         // check the mobile no is registered or not 
-        const isMobile = await CustomerAuthModel.findOne({ email: req.body.email })
+        const isMobile = await CustomerAuthModel.findOne({ mobileNo: req.body.mobileNo })
         if (isMobile) return res.status(409).json("Mobile No Already Registered")
 
         // verify the otp 
@@ -41,19 +41,18 @@ const SignupUser = async (req, res) => {
 
 
         // encrypt the password
-        const hashPassword = EncryptPassword(req.body.password)
+        // const hashPassword = EncryptPassword(req.body.password)
 
         // my formdata
         const formdata = new CustomerAuthModel({
             ...req.body,
-            password: hashPassword.hashedPassword,
-            secretKey: hashPassword.salt,
+            // password: hashPassword.hashedPassword,
+            // secretKey: hashPassword.salt,
             isNumberVerified: true,
         })
 
         const saveData = await formdata.save()
         res.status(200).json(saveData);
-
     } catch (error) {
         res.status(500).json(error)
     }
@@ -62,40 +61,66 @@ const SignupUser = async (req, res) => {
 
 
 // Login Controller 
+// const LoginUser = async (req, res) => {
+
+//     try {
+//         // validate the data  
+//         // const { error, value } = LoginValidate(req.body);
+//         // if (error) return res.status(400).json(error.details[0].message)
+
+
+
+//         // check the user is login with email or Number 
+//         const isLoginwith = isMobileNumber(req.body.email) === true ? "mobileNo" : isEmail(req.body.email) === true ? "email" : "Invalid Input"
+//         if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
+
+//         const credential = { [isLoginwith]: req.body.email }
+
+
+//         // find the user 
+//         const User = await CustomerAuthModel.findOne(credential);
+//         if (!User) return res.status(404).json({ message: "User Not Found" });
+//         const { password, ...rest } = User
+
+//         // compare the password 
+//         const compare = comparePassword(req.body.password, User.password, User.secretKey)
+//         // const compare = bycrypt.compare(req.body.password, User.password)
+//         if (!compare) return res.status(404).json({ message: "Password Incorrect" })
+
+//         //  jenerate the jwt token  
+//         const token = jwt.sign(rest, process.env.SECRET_CODE)
+//         res.header("access-token", token)
+//         res.status(200).json(User)
+//     } catch (error) {
+//         res.status(500).json(error)
+//     }
+
+// }
+
 const LoginUser = async (req, res) => {
+    const { mobileNo, otp } = req.query;
 
-    try {
-        // validate the data  
-        const { error, value } = LoginValidate(req.body);
-        if (error) return res.status(400).json(error.details[0].message)
+    // check the account with mobile no
+    const isFound = await CustomerAuthModel.findOne({ mobileNo: mobileNo })
+    if (!isFound) return res.status(404).json({ error: true, message: "No user found with this number" })
 
+    // verify the otp 
+    const isVarified = await VerificationModel.findOne({
+        verificationOtp: otp,
+        sendedTo: mobileNo,
+        OtpExpireTime: { $gt: new Date(Date.now()) }
+    })
 
+    if (!isVarified) return res.status(400).json({ error: true, message: "otp invalid or expired" })
 
-        // check the user is login with email or Number 
-        const isLoginwith = isMobileNumber(req.body.email) === true ? "mobileNo" : isEmail(req.body.email) === true ? "email" : "Invalid Input"
-        if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
-
-        const credential = { [isLoginwith]: req.body.email }
-
-
-        // find the user 
-        const User = await CustomerAuthModel.findOne(credential);
-        if (!User) return res.status(404).json({ message: "User Not Found" });
-        const { password, ...rest } = User
-
-        // compare the password 
-        const compare = comparePassword(req.body.password, User.password, User.secretKey)
-        // const compare = bycrypt.compare(req.body.password, User.password)
-        if (!compare) return res.status(404).json({ message: "Password Incorrect" })
-
-        //  jenerate the jwt token  
-        const token = jwt.sign(rest, process.env.SECRET_CODE)
-        res.header("access-token", token)
-        res.status(200).json(User)
-    } catch (error) {
-        res.status(500).json(error)
+    const jwtPayload = {
+        _id: isFound._id,
+        mobileNo: isFound.mobileNo,
     }
-
+    //  jenerate the jwt token  
+    const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
+    res.header("access-token", token)
+    res.status(200).json(isFound)
 }
 
 // forgot Password  

@@ -12,7 +12,7 @@ const verify = require("../../Verify")
 // signup the user
 router.post("/signup", SignupUser);
 // login the user 
-router.post("/login", LoginUser);
+router.get("/login", LoginUser);
 // forgot password
 router.post("/forgot-password", ForgotPassword);
 // reset password
