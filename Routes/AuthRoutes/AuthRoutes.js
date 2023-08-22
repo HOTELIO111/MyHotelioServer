@@ -2,12 +2,17 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto')
 const { SingupValidate, LoginValidate } = require('../../validate');
-const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword } = require("../../Controllers/AuthControllers/CustomerAuth")
+const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField } = require("../../Controllers/AuthControllers/CustomerAuth")
 const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor } = require("../../Controllers/AuthControllers/VendorAuthController")
 const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/AdminAuthController')
 const { VerifyOptFormDb, SendOtp } = require("../../Controllers/Others/SendOtp")
 const verify = require("../../Verify")
 
+// authenticate the customer '
+router.get("/authenticate", Authentication)
+
+// get the user 
+router.get("/get", GetUserDataByField)
 
 // signup the user
 router.post("/signup", SignupUser);

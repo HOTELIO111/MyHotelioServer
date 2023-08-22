@@ -3,22 +3,23 @@ const mongoose = require("mongoose");
 const schema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        // required: true
     },
     email: {
         type: String,
     },
     mobileNo: {
         type: String,
-        required: true
     },
     location: {
         lang: String,
         lat: String
     },
-    isNumberVerified: {
-        type: Boolean,
-        default: false
+    password: {
+        type: String,
+    },
+    isVerified: {
+        type: Array,
     },
     resetLink: String,
     resetDateExpires: Date,
