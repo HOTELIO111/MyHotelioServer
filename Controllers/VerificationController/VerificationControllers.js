@@ -1,9 +1,12 @@
-const { emailFormat } = require("../../Model/other/EmailFormats");
+const { emailFormat, Contactus } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 const SendMail = require("../Others/Mailer");
 require('dotenv').config();
 const crypto = require("crypto");
 const twilio = require('twilio');
+const { isMobileNumber, isEmail } = require("../utils");
+const { default: axios } = require("axios");
+const CustomerAuthModel = require("../../Model/CustomerModels/CustomerAuthModel");
 
 // Create a Twilio client instance
 const accountSid = process.env.SID;
@@ -11,46 +14,49 @@ const authToken = process.env.TOKEN;
 const twilioClient = twilio(accountSid, authToken);
 
 
-
+// need to modify more
 const SendEmailVerify = async (req, res) => {
     try {
-        const email = req.body.email; // Get the email from the request body
-        const name = req.body.name; // Get the name from the request body
+        const { email, name, format } = req.query;
+        const otp = crypto.randomInt(1000, 9999);
 
-        // Generate the OTP
-        const otp = crypto.randomInt(100000, 999999); // Generate a new OTP if there is no previous entry
-
-        // Create the email content using the provided name and OTP
-        const EmailContent = emailFormat(name, otp);
-
-        const mailOptions = {
-            from: process.env.SENDEREMAIL, // Set the sender's email address
-            to: email, // Set the recipient's email address
-            subject: "Email Verification Code", // Set the email subject
-            html: EmailContent // Set the email content
+        const emailFormats = {
+            'contact': Contactus({ name, email }),
+            'otp': emailFormat(otp),
+            'notification': '<h1>This is notification from hotelio</h1>'
         };
 
-        // Store the verification request in the database
-        const isAdded = await new VerificationModel({
+        const mailOptions = {
+            from: process.env.SENDEREMAIL,
+            to: email,
+            html: emailFormats[format]
+        };
+
+        if (format === 'contact') {
+            mailOptions.cc = process.env.CCMAIL;
+            mailOptions.subject = `${name} Enquiry`
+        } else {
+            mailOptions.subject = "Email Verification Code"
+        }
+
+        const verificationModelData = {
             verificationType: "Email",
             verificationOtp: otp,
             sendedTo: email,
-            OtpExpireTime: Date.now() + 300000 // Set the expiration time to 5 minutes from the current time
-        }).save();
+            OtpExpireTime: Date.now() + 300000
+        };
 
-        if (!isAdded) {
-            throw new Error("Email not sent"); // Throw an error if the verification request is not added to the database
-        }
+        const isAdded = format === 'otp' ? await new VerificationModel(verificationModelData).save() : null;
 
-        // Send the email
         const isSent = await SendMail(mailOptions);
-        if (!isSent) {
-            throw new Error("Email not sent"); // Throw an error if the email is not successfully sent
-        }
 
-        res.status(200).json({ error: false, message: "Email sent successfully", data: isAdded }); // Send a success response
+        if (isSent) {
+            res.status(200).json({ error: false, message: "Email sent successfully", data: isAdded });
+        } else {
+            throw new Error("Email not sent");
+        }
     } catch (error) {
-        res.status(400).json({ error: true, message: error.message }); // Send an error response with the error message
+        res.status(400).json({ error: true, message: error.message });
     }
 };
 

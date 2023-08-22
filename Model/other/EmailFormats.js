@@ -1,6 +1,6 @@
-const emailFormat = (senderName, Code) => {
+const emailFormat = (Code) => {
   return `<p>
-    Dear ${senderName},
+    Hello , Welcome to Hotelio,
   </p>
   
   <p>
@@ -52,4 +52,33 @@ const EmailForResetLink = (senderName, resetLink) => {
 }
 
 
-module.exports = { emailFormat, EmailForResetLink }
+const Contactus = ({ name, email }) => {
+  return `<!DOCTYPE html>
+  <html>
+  <head>
+    <style>
+      /* Add any desired CSS styling here */
+    </style>
+  </head>
+  <body>
+    <h1>New Inquiry Notification</h1>
+    <p>Hello,</p>
+    <p>A new inquiry has been submitted through the contact form:</p>
+    
+    <h2>Inquiry From :</h2>
+    <ul>
+      <li><strong>Name:</strong> ${name}</li>
+      <li><strong>Email:</strong> ${email}</li>
+    </ul>
+    
+    <p>Please respond promptly to address the inquiry.</p>
+    
+    <p>Best regards,</p>
+    <p>Hotelio Rooms</p>
+  </body>
+  </html>
+  `
+}
+
+
+module.exports = { emailFormat, EmailForResetLink, Contactus }

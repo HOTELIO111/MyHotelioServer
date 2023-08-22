@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { SendEmailVerify, SendMobileVefication, verifyEmailOtp, verifyMobileOtp } = require("../../Controllers/VerificationController/VerificationControllers")
 
 // send mail verification code
-router.post("/email", SendEmailVerify);
+router.get("/email", SendEmailVerify);
 // on mobile verification 
 router.get("/mobile/:number", SendMobileVefication);
 // verify the email otp 

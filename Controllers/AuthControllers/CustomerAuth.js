@@ -12,6 +12,81 @@ const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 
 
+const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
+    let verification;
+    // Verify OTP
+    if (isLoginwith === 'mobileNo') {
+        verification = await VerificationModel.findOne({
+            verificationType: "Mobile",
+            verificationOtp: otp,
+            sendedTo: mobileNo,
+            OtpExpireTime: { $gt: new Date(Date.now()) }
+        });
+    } else {
+        verification = await VerificationModel.findOne({
+            verificationType: "Email",
+            verificationOtp: otp,
+            sendedTo: mobileNo,
+            OtpExpireTime: { $gt: new Date(Date.now()) }
+        });
+    }
+
+    return verification
+
+}
+
+
+
+
+const Authentication = async (req, res) => {
+    const { mobileNo, otp, password } = req.query;
+
+    let isLoginwith;
+    if (isMobileNumber(mobileNo)) {
+        isLoginwith = "mobileNo";
+    } else if (isEmail(mobileNo)) {
+        isLoginwith = "email";
+    } else {
+        return res.status(400).json({ error: true, message: "Please Enter a Valid Email or Mobile No" });
+    }
+
+    // check if user 
+    const isUser = await CustomerAuthModel.findOne({ [isLoginwith]: mobileNo })
+    const isOtpVerified = await CheckOtpVerify(isLoginwith, otp, mobileNo)
+
+    if (isUser) {
+        if (isOtpVerified) return res.status(200).json({ error: false, message: "login success with otp", data: isUser })
+        const comparePass = isUser.password === password
+        if (!comparePass) return res.status(400).json({ error: false, message: "enter a valid otp or password " })
+        return res.status(200).json({ error: false, message: "loging successfully", data: isUser })
+    }
+
+    if (!isOtpVerified) return res.status(400).json({ error: true, message: "please enter a valid otp" })
+
+
+
+    // Delete the verification document
+    await VerificationModel.deleteOne({ _id: isOtpVerified._id });
+
+    // Find user if exists
+    // const isUser = await CustomerAuthModel.findOne({ [isLoginwith]: mobileNo });
+    // Create a new user
+    try {
+        const isCreated = await new CustomerAuthModel({
+            [isLoginwith]: mobileNo,
+            isVerified: [mobileNo]
+        }).save();
+        if (!isCreated) {
+            return res.status(400).json({ error: true, message: "user not registered try again" });
+        }
+        res.status(201).json({ error: false, data: isCreated });
+    } catch (error) {
+        res.status(500).json({ error });
+    }
+};
+
+// 
+
 
 // signup 
 const SignupUser = async (req, res) => {
@@ -98,7 +173,9 @@ const SignupUser = async (req, res) => {
 // }
 
 const LoginUser = async (req, res) => {
-    const { mobileNo, otp } = req.query;
+    const { mobileNo, otp, password } = req.query;
+
+    if (!otp && !password) return res.status(400).json({ error: true, message: 'please enter otp or password any of things' })
 
     // check the account with mobile no
     const isFound = await CustomerAuthModel.findOne({ mobileNo: mobileNo })
@@ -264,5 +341,22 @@ const UpdateThePassword = async (req, res) => {
 }
 
 
+const GetUserDataByField = async (req, res) => {
+    const { field } = req.query
 
-module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword }
+    const isLoginwith = isMobileNumber(field) === true ? "mobileNo" : isEmail(field) === true ? "email" : "Invalid Input"
+    if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
+
+    try {
+        const response = await CustomerAuthModel.findOne({ [isLoginwith]: field })
+        if (!response) return res.status(404).json({ error: true, message: "no user found" })
+        res.status(200).json({ error: false, data: response })
+    } catch (error) {
+        res.status(500).json({ error })
+    }
+
+}
+
+
+
+module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField }
