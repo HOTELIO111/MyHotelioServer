@@ -1,3 +1,4 @@
+const { default: axios } = require("axios");
 const { emailFormat } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 const SendMail = require("../Others/Mailer");
@@ -56,42 +57,51 @@ const SendEmailVerify = async (req, res) => {
 
 
 
-// sendMobileOtp 
 const SendMobileVefication = async (req, res) => {
     try {
         // Extract the mobile number from the request parameters
         const { number } = req.params;
-
         const otp = crypto.randomInt(1000, 9999);
 
-        // Generate a random OTP
+        const optData = {
+            user: "Houdact",
+            password: "912be393a7XX",
+            senderid: "HOTLIO",
+            mobiles: `+91${number}`, // Removed space after '+'
+            sms: `${otp} is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
+        }
 
-        // Send the OTP via Twilio
-        const message = await twilioClient.messages.create({
-            body: `Welcome to Hotelio! To verify your mobile number, please enter the following OTP (One-Time Password): ${otp}. This code will be valid for the next 5 minutes.`,
-            from: '+16509101714',
-            to: `+91${number}`
-        });
+        const queryString = Object.keys(optData)
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(optData[key])}`)
+            .join("&");
+
+        const response = await axios.get('http://sms.whistle.mobi/sendsms.jsp?' + queryString);
+
+        if (response.status !== 200) {
+            return res.status(400).json({ error: true, message: "OTP failed! Please try again." });
+        }
 
         const isStored = await new VerificationModel({
             verificationType: "Mobile",
             verificationOtp: otp,
-            OtpExpireTime: Date.now() + 300000, // 59 sec timer  
+            OtpExpireTime: Date.now() + 300000, // 5 minutes timer (300,000 milliseconds)
             sendedTo: number
         }).save()
 
         if (!isStored) {
-            res.status(400).json({ error: true, message: "Opt Not sent" })
-            isStored.remove()
+            return res.status(400).json({ error: true, message: "OTP Not sent" });
         }
+
         // Return a success response
-        res.status(200).json({ error: false, response: isStored._id, messageSID: message.sid, message: "opt sent successfully" });
+        res.status(200).json({ error: false, response: isStored._id, message: "OTP sent successfully" });
     } catch (error) {
         // Handle any errors that occur during the process
         console.error(error);
         res.status(500).json({ error: 'Failed to send OTP.' });
     }
 }
+
+
 
 const verifyEmailOtp = async (req, res) => {
     try {
