@@ -1,6 +1,4 @@
 const { emailFormat, Contactus } = require("../../Model/other/EmailFormats");
-const { default: axios } = require("axios");
-const { emailFormat } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 const SendMail = require("../Others/Mailer");
 require('dotenv').config();
