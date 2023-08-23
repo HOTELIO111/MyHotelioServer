@@ -41,12 +41,10 @@ const Authentication = async (req, res) => {
 
     // check the input is email or mobile no 
     const isInput = verifyInput(mobileNo)
-    console.log(isInput, mobileNo, otp, password)
     // check the mobile number is already registered or not 
     const user = await CustomerAuthModel.findOne({ [isInput]: mobileNo })
     // verify the otp req 
     const isOtpVerified = await CheckOtpVerify(isInput, otp, mobileNo)
-    console.log(isOtpVerified)
 
     if (!user) {
         // create a new user 
@@ -62,7 +60,6 @@ const Authentication = async (req, res) => {
 
     const isPasswordValid = user.password === password
 
-    console.log(isOtpVerified)
 
     if (isPasswordValid || isOtpVerified) {
 
