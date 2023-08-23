@@ -37,53 +37,72 @@ const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
 
 
 
-
 const Authentication = async (req, res) => {
     const { mobileNo, otp, password } = req.query;
 
-    let isLoginwith;
-    if (isMobileNumber(mobileNo)) {
-        isLoginwith = "mobileNo";
-    } else if (isEmail(mobileNo)) {
-        isLoginwith = "email";
-    } else {
-        return res.status(400).json({ error: true, message: "Please Enter a Valid Email or Mobile No" });
-    }
-
-    // check if user 
-    const isUser = await CustomerAuthModel.findOne({ [isLoginwith]: mobileNo })
-    const isOtpVerified = await CheckOtpVerify(isLoginwith, otp, mobileNo)
-
-    if (isUser) {
-        if (isOtpVerified) return res.status(200).json({ error: false, message: "login success with otp", data: isUser })
-        const comparePass = isUser.password === password
-        if (!comparePass) return res.status(400).json({ error: false, message: "enter a valid otp or password " })
-        return res.status(200).json({ error: false, message: "loging successfully", data: isUser })
-    }
-
-    if (!isOtpVerified) return res.status(400).json({ error: true, message: "please enter a valid otp" })
-
-
-
-    // Delete the verification document
-    await VerificationModel.deleteOne({ _id: isOtpVerified._id });
-
-    // Find user if exists
-    // const isUser = await CustomerAuthModel.findOne({ [isLoginwith]: mobileNo });
-    // Create a new user
     try {
+        let isLoginWith;
+
+        if (isMobileNumber(mobileNo)) {
+            isLoginWith = "mobileNo";
+        } else if (isEmail(mobileNo)) {
+            isLoginWith = "email";
+        } else {
+            return res.status(400).json({ error: true, message: "Please enter a valid email or mobile number" });
+        }
+
+        // Check if the user exists
+        const isUser = await CustomerAuthModel.findOne({ [isLoginWith]: mobileNo });
+
+        // Verify OTP
+        const isOtpVerified = await CheckOtpVerify(isLoginWith, otp, mobileNo);
+
+        if (isUser) {
+            // if (isOtpVerified) {
+            //     return res.status(200).json({ error: false, message: "Login successful with OTP", data: isUser });
+            // }
+
+            const isPasswordValid = isUser.password === password;
+            if (!isPasswordValid && !isOtpVerified) {
+                return res.status(400).json({ error: true, message: "Invalid OTP or password" });
+            }
+
+            // Apply jwt 
+            const jwtPayload = {
+                _id: isUser._id,
+                [isLoginWith]: isUser[isLoginWith],
+            }
+            //  jenerate the jwt token  
+            const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
+            res.header("access-token", token)
+            res.status(200).json(isUser)
+
+            return res.status(200).json({ error: false, message: "Login successful", data: isUser });
+        }
+
+        if (!isOtpVerified) {
+            return res.status(400).json({ error: true, message: "Please enter a valid OTP" });
+        }
+
+        // Delete the verification document after successful login
+        await VerificationModel.deleteOne({ _id: isOtpVerified._id });
+
+        // Create a new user if not found
         const isCreated = await new CustomerAuthModel({
-            [isLoginwith]: mobileNo,
+            [isLoginWith]: mobileNo,
             isVerified: [mobileNo]
         }).save();
+
         if (!isCreated) {
-            return res.status(400).json({ error: true, message: "user not registered try again" });
+            return res.status(400).json({ error: true, message: "User registration failed. Please try again." });
         }
+
         res.status(201).json({ error: false, data: isCreated });
     } catch (error) {
         res.status(500).json({ error });
     }
 };
+
 
 // 
 
@@ -111,6 +130,7 @@ const SignupUser = async (req, res) => {
             sendedTo: req.body.mobileNo,
             OtpExpireTime: { $gt: new Date(Date.now()) }
         })
+
 
         if (!isVarified) return res.status(400).json({ error: true, message: "otp invalid or expired" })
 
