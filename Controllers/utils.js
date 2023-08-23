@@ -15,4 +15,14 @@ const isMobileNumber = (input) => {
     return mobileRegex.test(input);
 }
 
-module.exports = { isEmail, isMobileNumber }
+const verifyInput = (input) => {
+    if (isEmail(input)) {
+        return "email";
+    } else if (isMobileNumber(input)) {
+        return "mobileNo";
+    } else {
+        return "Invalid Input";
+    }
+};
+
+module.exports = { isEmail, isMobileNumber, verifyInput }
