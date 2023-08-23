@@ -3,15 +3,8 @@ const VerificationModel = require("../../Model/other/VerificationModel");
 const SendMail = require("../Others/Mailer");
 require('dotenv').config();
 const crypto = require("crypto");
-const twilio = require('twilio');
 const { isMobileNumber, isEmail } = require("../utils");
 const { default: axios } = require("axios");
-const CustomerAuthModel = require("../../Model/CustomerModels/CustomerAuthModel");
-
-// Create a Twilio client instance
-const accountSid = process.env.SID;
-const authToken = process.env.TOKEN;
-const twilioClient = twilio(accountSid, authToken);
 
 
 // need to modify more
