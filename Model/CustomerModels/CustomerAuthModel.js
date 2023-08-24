@@ -1,6 +1,10 @@
+const { string } = require("joi");
 const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
+    avatar: {
+        type: String,
+    },
     name: {
         type: String,
         // required: true
@@ -17,6 +21,9 @@ const schema = new mongoose.Schema({
     },
     password: {
         type: String,
+    },
+    googleId: {
+        type: String
     },
     isVerified: {
         type: Array,
