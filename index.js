@@ -4,7 +4,6 @@ const cors = require('cors')
 const Utils = require('./Routes/utils')
 const CustomerRoutes = require("./Routes/AuthRoutes/AuthRoutes")
 const HotelRoutes = require("./Routes/HotelRoutes/HotelRoutes")
-const GoogleAuth = require('./Routes/AuthRoutes/GoogleAuth')
 const VerifyRoutes = require("./Routes/AuthRoutes/VerificationRoutes")
 // database
 require('./connection')
@@ -38,7 +37,6 @@ app.use(express.static("./static"))
 app.use("/util", Utils);
 
 app.use("/api", CustomerRoutes);
-app.use("/api/social", GoogleAuth)
 app.use("/hotel", HotelRoutes);
 // verfication related apis 
 app.use("/verify", VerifyRoutes);

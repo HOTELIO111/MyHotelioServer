@@ -82,6 +82,39 @@ const Authentication = async (req, res) => {
 }
 
 
+// Google Login Signup Authentication 
+
+const GetAuthWIthGoogle = async (req, res) => {
+    const formdata = req.body;
+    if (!formdata.verified_email) return res.status(400).json({ error: true, message: "please login with a verified email" })
+
+    let finalUser;
+    // find user 
+    const user = await CustomerAuthModel.findOne({ email: formdata.email })
+    if (!user) {
+        finalUser = await new CustomerAuthModel({
+            email: formdata.email,
+            isVerified: [formdata.email],
+            avatar: formdata.picture,
+            name: formdata.name,
+            googleId: formdata.id
+        }).save()
+    } else {
+        finalUser = user
+    }
+
+    // create jwt 
+    const jwtModel = {
+        email: finalUser.email,
+        name: finalUser.name,
+        id: finalUser._id
+    }
+    const token = jwt.sign(jwtModel, process.env.SECRET_CODE)
+    res.header('access-token', token)
+    res.status(200).json({ error: false, data: finalUser, message: 'login successfully' })
+}
+
+
 // const Authentication = async (req, res) => {
 //     const { mobileNo, otp, password } = req.query;
 
@@ -413,4 +446,4 @@ const GetUserDataByField = async (req, res) => {
 
 
 
-module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField }
+module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField, GetAuthWIthGoogle }
