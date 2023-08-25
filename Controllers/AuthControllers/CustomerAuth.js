@@ -389,43 +389,46 @@ const UpdateTheUser = async (req, res) => {
 
 // Update the password 
 const UpdateThePassword = async (req, res) => {
-    // id of the user form the params
-    const id = req.params.id
-    const otpKey = req.body.key
-    const otp = req.body.otp
-    const newPassword = req.body.password
-
+    console.log("yaha tak chala")
     try {
-        // find the user by id 
-        const isUser = await CustomerAuthModel.findById(id)
-        if (!isUser) return res.status(400).json({ error: true, message: "User Auth Error Try Again" });
+        const userId = req.params.id;
+        const { id: otpId, otp, password: newPassword } = req.body;
 
-        // verify the otp in db 
-        const isVerified = await OtpModel.findOne({
-            otpKey: otpKey,
-            otpExpiresTime: { $gt: new Date(Date.now()) },
+        // Find the user by ID
+        const user = await CustomerAuthModel.findById(userId);
+        if (!user) {
+            return res.status(400).json({ error: true, message: "User authentication error. Please try again." });
+        }
+
+        // Verify the OTP in the database
+        const verifiedOTP = await VerificationModel.findOne({
+            _id: otpId,
+            verificationOtp: otp,
+            OtpExpireTime: { $gt: new Date() },
         });
-        // If no OTP request is found, return a 404 error
-        if (!isVerified) return res.status(404).json({ error: true, message: "Otp Expired " });
 
-        // If the OTP value doesn't match the stored OTP, return a 404 error
-        if (isVerified.otp !== otp) return res.status(404).json({ error: true, message: "OTP Not Matched" });
+        if (!verifiedOTP) {
+            return res.status(404).json({ error: true, message: "OTP expired or not found." });
+        }
 
-        // encrypt the password 
-        const encryptedPassword = EncryptPassword(newPassword)
+        // Encrypt the new password
+        const encryptedPassword = EncryptPassword(newPassword);
 
-        // update the password
-        const updatePassword = await CustomerAuthModel.findByIdAndUpdate(id, {
+        // Update the password
+        const updatedUser = await CustomerAuthModel.findByIdAndUpdate(userId, {
             password: encryptedPassword.hashedPassword,
             secretKey: encryptedPassword.salt
-        }, { new: true })
-        if (!updatePassword) return res.status(400).json({ error: true, message: "error in updating data" })
+        }, { new: true });
 
-        res.status(200).json({ error: true, data: updatePassword, message: "Password Updated Successfully" })
+        if (!updatedUser) {
+            return res.status(400).json({ error: true, message: "Error updating user data." });
+        }
+
+        res.status(200).json({ success: true, data: updatedUser, message: "Password updated successfully." });
     } catch (error) {
-        res.status(500).json(error)
+        res.status(500).json({ error: true, message: "An internal server error occurred." });
     }
-}
+};
 
 
 const GetUserDataByField = async (req, res) => {
