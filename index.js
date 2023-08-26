@@ -9,27 +9,28 @@ const VerifyRoutes = require("./Routes/AuthRoutes/VerificationRoutes")
 require('./connection')
 const app = express()
 
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'http://www.hoteliorooms.com');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
+// app.use((req, res, next) => {
+//     res.header('Access-Control-Allow-Origin', 'http://www.hoteliorooms.com');
+//     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+//     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//     next();
+// });
 
-app.use(cors({
-    origin: [
-        "http://www.hoteliorooms.com",
-        "https://www.hoteliorooms.com",
-        "https://hotelio-dashboard-trickle.netlify.app",
-        "https://hotelio-rooms.netlify.app",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "https://64a7bfa211c85141111ecdff--friendly-sunflower-ffef72.netlify.app",
-        "https://build-hotelio.vercel.app",
-        "http://ec2-16-16-248-78.eu-north-1.compute.amazonaws.com"
-    ]
-}))
+// app.use(cors({
+//     origin: [
+//         "http://www.hoteliorooms.com",
+//         "https://www.hoteliorooms.com",
+//         "https://hotelio-dashboard-trickle.netlify.app",
+//         "https://hotelio-rooms.netlify.app",
+//         "http://localhost:3000",
+//         "http://localhost:3001",
+//         "https://64a7bfa211c85141111ecdff--friendly-sunflower-ffef72.netlify.app",
+//         "https://build-hotelio.vercel.app",
+//         "http://ec2-16-16-248-78.eu-north-1.compute.amazonaws.com"
+//     ]
+// }))
 
+app.use(cors())
 
 // some middlewares
 app.use(express.json())
