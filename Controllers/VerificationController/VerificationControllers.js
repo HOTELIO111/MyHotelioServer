@@ -44,7 +44,7 @@ const SendEmailVerify = async (req, res) => {
         const isSent = await SendMail(mailOptions);
 
         if (isSent) {
-            res.status(200).json({ error: false, message: "Email sent successfully", data: isAdded });
+            res.status(200).json({ error: false, message: "Email sent successfully", data: isAdded._id });
         } else {
             throw new Error("Email not sent");
         }
@@ -91,7 +91,7 @@ const SendMobileVefication = async (req, res) => {
         }
 
         // Return a success response
-        res.status(200).json({ error: false, response: isStored._id, message: "OTP sent successfully" });
+        res.status(200).json({ error: false, data: isStored._id, message: "OTP sent successfully" });
     } catch (error) {
         // Handle any errors that occur during the process
         console.error(error);
