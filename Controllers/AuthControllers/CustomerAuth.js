@@ -55,10 +55,18 @@ const Authentication = async (req, res) => {
         }).save()
         if (!register) return res.status(404).json({ error: true, message: "please check the data and try again" })
 
-        return res.status(201).json({ error: false, data: register, message: "user created successfully" })
+        const token = await jwt.sign(jwtPayload, process.env.SECRET_CODE)
+        // res.header("access-token", token)
+        return res.status(201).json({ error: false, data: register, message: "user created successfully", token: token })
     }
 
-    const isPasswordValid = user.password === password
+    let isPasswordValid;
+    if (user.password) {
+        isPasswordValid = comparePassword(password, user.password, user.secretKey)
+    } else {
+        isPasswordValid = false
+    }
+
 
 
     if (isPasswordValid || isOtpVerified) {
@@ -69,12 +77,11 @@ const Authentication = async (req, res) => {
             [isInput]: user[isInput],
         }
         //  jenerate the jwt token  
-        const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
-        res.header("access-token", token)
-        res.status(200).json({ error: false, data: user })
+        const token = await jwt.sign(jwtPayload, process.env.SECRET_CODE)
+        // res.header("access-token", token)
+        res.status(200).json({ error: false, data: user, token: token })
     } else {
         // For example, log an error or track failed login attempts
-        console.log("Failed login attempt");
         return res.status(400).json({ error: true, message: "Invalid OTP and password" });
     }
 
