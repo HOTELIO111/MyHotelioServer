@@ -55,11 +55,10 @@ const Authentication = async (req, res) => {
         }).save()
         if (!register) return res.status(404).json({ error: true, message: "please check the data and try again" })
 
-        const token = await jwt.sign(jwtPayload, process.env.SECRET_CODE)
+        const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
         // res.header("access-token", token)
         return res.status(201).json({ error: false, data: register, message: "user created successfully", token: token })
     }
-
     let isPasswordValid;
     if (user.password) {
         isPasswordValid = comparePassword(password, user.password, user.secretKey)
@@ -396,7 +395,6 @@ const UpdateTheUser = async (req, res) => {
 
 // Update the password 
 const UpdateThePassword = async (req, res) => {
-    console.log("yaha tak chala")
     try {
         const userId = req.params.id;
         const { id: otpId, otp, password: newPassword } = req.body;
@@ -451,8 +449,8 @@ const GetUserDataByField = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error })
     }
-
 }
+
 
 
 
