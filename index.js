@@ -18,7 +18,7 @@ const app = express()
 
 app.use(cors({
     origin: [
-        "https://www.admin.hoteliorooms.com",
+        "https://admin.hoteliorooms.com",
         "https://www.hoteliorooms.com",
         "https://hotelio-dashboard-trickle.netlify.app",
         "https://hotelio-rooms.netlify.app",
