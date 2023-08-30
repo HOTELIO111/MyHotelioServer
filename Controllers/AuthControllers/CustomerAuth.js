@@ -41,23 +41,29 @@ const Authentication = async (req, res) => {
 
     // check the input is email or mobile no 
     const isInput = verifyInput(mobileNo)
+    let user;
     // check the mobile number is already registered or not 
-    const user = await CustomerAuthModel.findOne({ [isInput]: mobileNo })
+    user = await CustomerAuthModel.findOne({ [isInput]: mobileNo })
     // verify the otp req 
     const isOtpVerified = await CheckOtpVerify(isInput, otp, mobileNo)
 
     if (!user) {
         // create a new user 
         if (!isOtpVerified) return res.status(401).json({ error: true, message: "Otp Invalid" })
-        const register = await new CustomerAuthModel({
+        user = await new CustomerAuthModel({
             [isInput]: mobileNo,
             isVerified: [isInput]
         }).save()
-        if (!register) return res.status(404).json({ error: true, message: "please check the data and try again" })
+        if (!user) return res.status(404).json({ error: true, message: "please check the data and try again" })
 
+        // assign jwt 
+        const jwtPayload = {
+            _id: user._id,
+            [isInput]: user[isInput],
+        }
         const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
         // res.header("access-token", token)
-        return res.status(201).json({ error: false, data: register, message: "user created successfully", token: token })
+        return res.status(201).json({ error: false, data: user, message: "user created successfully", token: token })
     }
     let isPasswordValid;
     if (user.password) {
@@ -442,8 +448,9 @@ const GetUserDataByField = async (req, res) => {
     const isLoginwith = isMobileNumber(field) === true ? "mobileNo" : isEmail(field) === true ? "email" : "Invalid Input"
     if (isLoginwith === "Invalid Input") return res.status(400).json({ error: true, message: "Please Enter the Valid Email Or Mobile No" })
 
+    const credential = { [isLoginwith]: field }
     try {
-        const response = await CustomerAuthModel.findOne({ [isLoginwith]: field })
+        const response = await CustomerAuthModel.findOne(credential)
         if (!response) return res.status(404).json({ error: true, message: "no user found" })
         res.status(200).json({ error: false, data: response })
     } catch (error) {

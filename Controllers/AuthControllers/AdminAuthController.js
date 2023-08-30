@@ -19,7 +19,7 @@ const GetAddTheAdmin = async (req, res) => {
         const result = await new AdminModel(
             {
                 ...req.body,
-                role: "Super Admin",
+                role: "admin",
                 password: hashedPassword.hashedPassword,
                 secretKey: hashedPassword.salt
             }
@@ -150,6 +150,8 @@ const AdminResetPassword = async (req, res) => {
         res.status(500).json({ error: error })
     }
 }
+
+
 
 
 

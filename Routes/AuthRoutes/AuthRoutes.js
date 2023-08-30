@@ -57,7 +57,7 @@ router.post("/admin/forgot-password", AdminForgotPassword);
 // admin reset password 
 router.post("/reset-password", AdminResetPassword);
 // admin update the data 
-router.post("/admin/update", UpdateAdmin);
+router.patch("/admin/update/:id", UpdateAdmin);
 
 
 // SEND OTP FROM TWILLO 
