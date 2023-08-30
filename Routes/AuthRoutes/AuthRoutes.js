@@ -44,7 +44,7 @@ router.get("/vendor/getall", verify, GetAllVendor);
 router.delete("/vendor/deleteall", DeleteVendors);
 
 // verify the email and update the data
-router.patch("/vendor/verified/:id/:cid/:otp", GetVendorDataUpdate);
+router.patch("/vendor/verified", GetVendorDataUpdate);
 
 
 

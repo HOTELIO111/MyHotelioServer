@@ -178,19 +178,24 @@ const DeleteVendors = async (req, res) => {
 // };
 const GetVendorDataUpdate = async (req, res) => {
     try {
-        const otpReqId = req.params.id;
-        const cid = req.params.cid;
-        const otp = req.params.otp;
+        // const otpReqId = req.params.id;
+        // const cid = req.params.cid;
+        // const otp = req.params.otp;
+
+        const { otp, otpid, email, cid } = req.query;
 
         // Data from the request body
         const formData = req.body;
 
         // Find the OTP request
         const isReq = await VerificationModel.findOne({
-            _id: otpReqId,
-            OtpExpireTime: { $gt: new Date() },
+            _id: otpid,
+            sendedTo: email,
+            OtpExpireTime: { $gt: Date.now() },
         });
 
+
+        // check the expirys
         if (!isReq) {
             return res.status(400).json({ error: true, message: "OTP Expired" });
         }
