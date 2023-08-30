@@ -16,21 +16,18 @@ const app = express()
 //     next();
 // });
 
-// app.use(cors({
-//     origin: [
-//         "http://www.hoteliorooms.com",
-//         "https://www.hoteliorooms.com",
-//         "https://hotelio-dashboard-trickle.netlify.app",
-//         "https://hotelio-rooms.netlify.app",
-//         "http://localhost:3000",
-//         "http://localhost:3001",
-//         "https://64a7bfa211c85141111ecdff--friendly-sunflower-ffef72.netlify.app",
-//         "https://build-hotelio.vercel.app",
-//         "http://ec2-16-16-248-78.eu-north-1.compute.amazonaws.com"
-//     ]
-// }))
+app.use(cors({
+    origin: [
+        "https://www.admin.hoteliorooms.com",
+        "https://www.hoteliorooms.com",
+        "https://hotelio-dashboard-trickle.netlify.app",
+        "https://hotelio-rooms.netlify.app",
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ]
+}))
 
-app.use(cors())
+// app.use(cors())
 
 // some middlewares
 app.use(express.json())
