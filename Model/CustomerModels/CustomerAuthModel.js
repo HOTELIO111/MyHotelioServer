@@ -28,6 +28,12 @@ const schema = new mongoose.Schema({
     isVerified: {
         type: Array,
     },
+    birthday: Date,
+    address: String,
+    gender: String,
+    maritialStatus: String,
+    state: String,
+    pinCode: String,
     resetLink: String,
     resetDateExpires: Date,
     secretKey: String,
