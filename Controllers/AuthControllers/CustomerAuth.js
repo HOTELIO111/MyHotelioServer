@@ -459,6 +459,51 @@ const GetUserDataByField = async (req, res) => {
 }
 
 
+const AddFieldWithOtp = async (req, res) => {
+    try {
+        const { id, otpid, otp } = req.query;
+        const data = req.body;
+        console.log(data)
+
+        // Verify the OTP 
+        const isVerified = await VerificationModel.findById(otpid);
+
+        if (!isVerified) {
+            return res.status(400).json({ error: true, message: 'Invalid Otp Request' });
+        }
+
+        // check the expiry 
+
+        if (!isVerified.OtpExpireTime <= Date.now()) return res.status(400).json({ error: true, message: "otp Expired" })
+        if (!isVerified.verificationOtp === otp) return res.status(400).json({ error: true, message: "Incorrect Otp" })
+
+        // If verified, then update the field
+        const isUpdated = await CustomerAuthModel.findByIdAndUpdate(id, data, { new: true });
+
+        if (!isUpdated) {
+            return res.status(400).json({ error: true, message: 'Updation failed' });
+        }
+
+        return res.status(200).json({ error: false, message: "Updation successfully", data: isUpdated });
+    } catch (error) {
+        console.error("Error in AddFieldWithOtp:", error);
+        res.status(500).json({ error: true, message: "Internal server error" });
+    }
+};
 
 
-module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField, GetAuthWIthGoogle }
+// delete custome by id 
+const DeleteCustomerById = async (req, res) => {
+    const { id } = req.params.id
+    CustomerAuthModel.deleteOne({ _id: id }).then(() => {
+        res.status(200).json("successfull deleted")
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
+
+
+
+
+module.exports = { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField, GetAuthWIthGoogle, AddFieldWithOtp, DeleteCustomerById }

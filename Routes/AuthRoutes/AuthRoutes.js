@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto')
 const { SingupValidate, LoginValidate } = require('../../validate');
-const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField, GetAuthWIthGoogle } = require("../../Controllers/AuthControllers/CustomerAuth")
+const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField, GetAuthWIthGoogle, AddFieldWithOtp, DeleteCustomerById } = require("../../Controllers/AuthControllers/CustomerAuth")
 const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor } = require("../../Controllers/AuthControllers/VendorAuthController")
 const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/AdminAuthController')
 const { VerifyOptFormDb, SendOtp } = require("../../Controllers/Others/SendOtp")
@@ -30,6 +30,10 @@ router.delete("/deleteall", DeleteAllCustomer);
 router.patch("/update/:id", UpdateTheUser)
 // update password
 router.post("/update-pass/:id", UpdateThePassword);
+// verify and update user with otp verification  
+router.patch('/update', AddFieldWithOtp);
+// delet by id 
+router.get("/delete/:id", DeleteCustomerById);
 
 // router.post("/sendOtp/:number", SendOtpForVerify);
 
