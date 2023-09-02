@@ -461,24 +461,34 @@ const GetUserDataByField = async (req, res) => {
 
 const AddFieldWithOtp = async (req, res) => {
     try {
-        const { id, otpid, otp } = req.query;
-        const data = req.body;
-        console.log(data)
+        const { id, otpid, otp, key, value } = req.query;
+        console.log(key, value)
+        console.log(id, otpid, otp)
 
         // Verify the OTP 
-        const isVerified = await VerificationModel.findById(otpid);
+        const isVerified = await VerificationModel.findOne({
+            _id: otpid,
+            OtpExpireTime: { $gt: Date.now() }
+        });
+
 
         if (!isVerified) {
             return res.status(400).json({ error: true, message: 'Invalid Otp Request' });
         }
 
+        // check the field is already register or not
+        const ifFound = await CustomerAuthModel.findOne({ [key]: value })
+        if (ifFound) return res.status(404).json({ error: true, message: `${value} already registered with a account` })
+
         // check the expiry 
 
-        if (!isVerified.OtpExpireTime <= Date.now()) return res.status(400).json({ error: true, message: "otp Expired" })
+
         if (!isVerified.verificationOtp === otp) return res.status(400).json({ error: true, message: "Incorrect Otp" })
 
         // If verified, then update the field
-        const isUpdated = await CustomerAuthModel.findByIdAndUpdate(id, data, { new: true });
+        const isUpdated = await CustomerAuthModel.findByIdAndUpdate(id, {
+            [key]: value
+        }, { new: true });
 
         if (!isUpdated) {
             return res.status(400).json({ error: true, message: 'Updation failed' });
