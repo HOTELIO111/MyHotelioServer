@@ -1,4 +1,3 @@
-const { SingupValidate, LoginValidate } = require("../../validate");
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption")
 const CustomerAuthModel = require("../../Model/CustomerModels/CustomerAuthModel")
 const jwt = require("jsonwebtoken");
@@ -6,8 +5,6 @@ const { isMobileNumber, isEmail, verifyInput } = require("../utils");
 require('dotenv').config();
 const crypto = require('crypto');
 const SendMail = require("../Others/Mailer");
-const { VerifyOptFormDb } = require("../Others/SendOtp");
-const OtpModel = require("../../Model/other/OtpVerifyModel");
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 
@@ -62,8 +59,7 @@ const Authentication = async (req, res) => {
             [isInput]: user[isInput],
         }
         const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
-        // res.header("access-token", token)
-        return res.status(201).json({ error: false, data: user, message: "user created successfully", token: token })
+        return res.status(201).json({ error: false, data: user, message: "user created successfully", token: token }).header('Authorization', `Bearer ${token}`);
     }
     let isPasswordValid;
     if (user.password) {
@@ -82,9 +78,9 @@ const Authentication = async (req, res) => {
             [isInput]: user[isInput],
         }
         //  jenerate the jwt token  
-        const token = await jwt.sign(jwtPayload, process.env.SECRET_CODE)
+        const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
         // res.header("access-token", token)
-        res.status(200).json({ error: false, data: user, token: token })
+        res.status(200).json({ error: false, data: user, token: token }).header('Authorization', `Bearer ${token}`);
     } else {
         // For example, log an error or track failed login attempts
         return res.status(400).json({ error: true, message: "Invalid OTP and password" });
@@ -122,8 +118,7 @@ const GetAuthWIthGoogle = async (req, res) => {
         id: finalUser._id
     }
     const token = jwt.sign(jwtModel, process.env.SECRET_CODE)
-    res.header('access-token', token)
-    res.status(200).json({ error: false, data: finalUser, message: 'login successfully' })
+    res.status(200).json({ error: false, data: finalUser, message: 'login successfully' }).header('Authorization', `Bearer ${token}`);
 }
 
 
@@ -462,9 +457,6 @@ const GetUserDataByField = async (req, res) => {
 const AddFieldWithOtp = async (req, res) => {
     try {
         const { id, otpid, otp, key, value } = req.query;
-        console.log(key, value)
-        console.log(id, otpid, otp)
-
         // Verify the OTP 
         const isVerified = await VerificationModel.findOne({
             _id: otpid,

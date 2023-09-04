@@ -5,12 +5,6 @@ const VendorModel = require("../../Model/HotelModel/VendorModel");
 const RegisterHotel = async (req, res) => {
     const vendorId = req.params.id;
 
-    // Check if the hotel is already registered or not
-    const IsRegistered = await HotelModel.findOne({ hotelEmail: req.body.hotelEmail });
-    if (IsRegistered) {
-        return res.status(409).json({ error: true, message: "Hotel Already Registered With this Email" });
-    }
-
     // Register the hotel
     const response = await new HotelModel({
         ...req.body,
@@ -23,7 +17,7 @@ const RegisterHotel = async (req, res) => {
     // Find the user and update this hotel id
     const Vendor = await VendorModel.findOneAndUpdate(
         { _id: vendorId },
-        { $push: { hotels: response._id } },
+        { $push: { hotels: response } },
         { new: true, upsert: true }
     );
     if (!Vendor) {
@@ -85,15 +79,35 @@ const UpdateHotelData = async (req, res) => {
 
 const DeleteSingleHotel = async (req, res) => {
     // id of the user to delete
-    const id = req.params.id
+    const id = req.params.id;
 
-    // find the data and delete the data
-    HotelModel.findByIdAndDelete(id).then(() => {
-        res.status(200).json({ error: false, message: "Deleted Successfully" })
-    }).catch((err) => {
-        res.status(500).json(err)
-    })
+    try {
+        // Find the hotel by ID
+        const isHotel = await HotelModel.findById(id);
+
+        // Check if the hotel exists
+        if (!isHotel) {
+            return res.status(404).json({ error: true, message: "Hotel not found" });
+        }
+
+        // Delete the hotel data from the Vendor Data
+        const deleteVendorHotel = await VendorModel.updateOne(
+            { _id: isHotel.vendorId },
+            { $pull: { hotels: { _id: isHotel._id } } }
+        );
+        if (!deleteVendorHotel) return res.status(400).json({ error: true, message: "no deleted try again" })
+
+        // Remove the hotel document
+        const deleteHotel = await HotelModel.findByIdAndDelete(id)
+        if (!deleteHotel) return res.status(400).json({ error: true, message: "hotel deletion faild ! try again" })
+
+        res.status(200).json({ error: false, message: "Deleted successfully" });
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(500).json({ error: true, message: "Internal server error" });
+    }
 }
+
 
 // delet all the dat
 const DeleteAllHotelData = async (req, res) => {

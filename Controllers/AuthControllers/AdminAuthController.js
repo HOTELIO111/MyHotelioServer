@@ -25,7 +25,6 @@ const GetAddTheAdmin = async (req, res) => {
             }
         ).save()
         if (!result) return res.status(400).json({ error: true, message: "Not Registered" })
-
         res.status(200).json({ error: false, data: result })
     } catch (error) {
         res.status(500).json(error)
@@ -54,8 +53,8 @@ const AdminLoginApi = async (req, res) => {
 
     // generate token 
     const acessToken = jwt.sign(rest, process.env.SECRET_CODE)
-    req.header("access-token", acessToken);
-    res.status(200).json({ error: false, data: isUser })
+    req.header('Authorization', `Bearer ${acessToken}`);
+    res.status(200).json({ error: false, data: isUser, token: acessToken })
 
 }
 

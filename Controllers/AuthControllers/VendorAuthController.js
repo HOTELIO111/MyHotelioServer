@@ -1,4 +1,3 @@
-const { response } = require("express");
 const VendorModel = require("../../Model/HotelModel/VendorModel");
 const SendMail = require("../Others/Mailer");
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption");
@@ -8,7 +7,6 @@ require("dotenv").config();
 // const fast2sms = require('fast-two-sms');
 const jwt = require('jsonwebtoken');
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
-const OtpModel = require("../../Model/other/OtpVerifyModel");
 const VerificationModel = require("../../Model/other/VerificationModel");
 
 
@@ -23,19 +21,13 @@ const AddVendor = async (req, res) => {
     const isUserWithMobile = await VendorModel.findOne({ mobileNo: req.body.mobileNo })
     if (isUserWithMobile) return res.status(409).json({ error: true, message: "Mobile Number Already Registered" })
 
-    // verify the otp 
-    const isVerified = await VerificationModel.findOne({
-        verificationOtp: formData.otp,
-        OtpExpireTime: { $gt: new Date(Date.now()) }
-    })
-
-    if (!isVerified) return res.status(400).json({ error: false, message: "Invalid Otp" })
     // make the password as a hash password 
     const hashPassword = EncryptPassword(req.body.password)
 
     try {
         const result = await new VendorModel({
             ...formData,
+            kycVerified: true,
             password: hashPassword.hashedPassword,
             secretKey: hashPassword.salt
         }).save()
@@ -65,9 +57,13 @@ const VendorLogin = async (req, res) => {
         const isPasswordCorrect = comparePassword(req.body.password, result.password, result.secretKey)
         if (!isPasswordCorrect) return res.status(400).json({ error: true, message: "Password is Incorrect" })
         // access token generate and store
-        const accesstoken = jwt.sign(rest, process.env.SECRET_CODE)
-        res.header("access-token", accesstoken)
-        res.status(200).json({ error: false, data: result })
+        const jwtTokenValue = {
+            _id: result._id,
+            name: result.name,
+        }
+        const accesstoken = jwt.sign(jwtTokenValue, process.env.SECRET_CODE)
+        res.header('Authorization', `Bearer ${accesstoken}`);
+        res.status(200).json({ error: false, data: result, token: accesstoken })
 
     } catch (error) {
         res.status(500).json(error)
@@ -178,11 +174,7 @@ const DeleteVendors = async (req, res) => {
 // };
 const GetVendorDataUpdate = async (req, res) => {
     try {
-        // const otpReqId = req.params.id;
-        // const cid = req.params.cid;
-        // const otp = req.params.otp;
-
-        const { otp, otpid, email, cid } = req.query;
+        const { otp, otpid, cid } = req.query;
 
         // Data from the request body
         const formData = req.body;
@@ -190,7 +182,6 @@ const GetVendorDataUpdate = async (req, res) => {
         // Find the OTP request
         const isReq = await VerificationModel.findOne({
             _id: otpid,
-            sendedTo: email,
             OtpExpireTime: { $gt: Date.now() },
         });
 
@@ -206,16 +197,19 @@ const GetVendorDataUpdate = async (req, res) => {
         }
 
         // OTP verification successful
+        const verifiedWith = isReq.verificationType === 'Mobile' ? 'isNumberVarified' : 'isEmailVerified'
 
         // Update the data for the vendor
         const isUpdated = await VendorModel.findByIdAndUpdate(
             cid,
             {
                 ...formData,
-                isEmailVerified: true,
+                [verifiedWith]: true,
             },
             { new: true }
         );
+
+        console.log()
 
         if (!isUpdated) {
             return res.status(400).json({ error: true, message: "Updation Error" });
@@ -241,6 +235,21 @@ const GetAllVendor = async (req, res) => {
     }
 }
 
+const GetVendorUpdate = async (req, res) => {
+    const { id } = req.params;
+    const formData = req.body;
 
 
-module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor }
+    try {
+        const response = await VendorModel.findByIdAndUpdate(id, formData, { new: true })
+        if (!response) return (400).json({ error: true, message: 'update failed try again' })
+
+        res.status(200).json({ error: false, message: 'success', data: response })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+}
+
+
+
+module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate }

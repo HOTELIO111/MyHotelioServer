@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const crypto = require('crypto')
-const { SingupValidate, LoginValidate } = require('../../validate');
 const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField, GetAuthWIthGoogle, AddFieldWithOtp, DeleteCustomerById } = require("../../Controllers/AuthControllers/CustomerAuth")
-const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor } = require("../../Controllers/AuthControllers/VendorAuthController")
+const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate } = require("../../Controllers/AuthControllers/VendorAuthController")
 const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/AdminAuthController')
 const { VerifyOptFormDb, SendOtp } = require("../../Controllers/Others/SendOtp")
-const verify = require("../../Verify")
+const verify = require("../../middlewares/Verify")
 
 // authenticate the customer '
 router.get("/authenticate", Authentication)
@@ -44,9 +42,10 @@ router.post("/vendor/signup", AddVendor);
 router.post("/vendor/login", VendorLogin);
 router.post("/vendor/forgot-password", VendorForgotPasword);
 router.post("/vendor/reset-password", VendorResetPassword);
-router.get("/vendor/getall", verify, GetAllVendor);
+router.get("/vendor/getall", GetAllVendor);
 router.delete("/vendor/deleteall", DeleteVendors);
-
+// normal vendor data Update 
+router.patch("/vendor/update/:id", GetVendorUpdate);
 // verify the email and update the data
 router.patch("/vendor/verified", GetVendorDataUpdate);
 

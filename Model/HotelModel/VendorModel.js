@@ -13,7 +13,7 @@ const schema = new mongoose.Schema({
         required: true,
     },
     img: String,
-    kycVerified: String,
+    kycVerified: Boolean,
     role: String,
     aadharNo: {
         type: Number,
