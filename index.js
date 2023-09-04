@@ -6,7 +6,7 @@ const CustomerRoutes = require("./Routes/AuthRoutes/AuthRoutes")
 const HotelRoutes = require("./Routes/HotelRoutes/HotelRoutes")
 const VerifyRoutes = require("./Routes/AuthRoutes/VerificationRoutes")
 // database
-require('./connection')
+require('./config/connection')
 const app = express()
 
 // app.use((req, res, next) => {

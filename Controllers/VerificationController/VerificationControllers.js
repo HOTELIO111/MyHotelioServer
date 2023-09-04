@@ -101,26 +101,19 @@ const SendMobileVefication = async (req, res) => {
 
 
 
-const verifyEmailOtp = async (req, res) => {
+const VerifyOtp = async (req, res) => {
+    const { otpid, otp } = req.query
     try {
-        const otpReqId = req.params.id;
 
-        // Data from the request body
-        const { otp } = req.body;
+        const verified = await VerificationModel.findOne({
+            _id: otpid,
+            OtpExpireTime: { $gt: Date.now() }
+        })
+        if (!verified) return res.status(404).json({ error: true, message: "otp Expired" })
 
-        // Find the OTP request
-        const isReq = await VerificationModel.findOne({ _id: otpReqId, OtpExpireTime: { $gt: new Date(Date.now()) } });
-        if (!isReq) {
-            return res.status(400).json({ error: true, message: "Otp Expired" });
-        }
+        if (!(verified.verificationOtp === otp)) return res.status(400).json({ error: true, message: "Incorrect Otp" })
 
-        // Check if the OTP matches
-        if (isReq.verificationOtp !== otp) {
-            return res.status(404).json({ error: true, message: "Invalid OTP" });
-        }
 
-        // OTP verification successful
-        await isReq.remove(); // Remove the OTP request from the database
 
         return res.status(200).json({ error: false, message: "OTP Verified" });
     } catch (error) {
@@ -130,33 +123,8 @@ const verifyEmailOtp = async (req, res) => {
 };
 
 
-// verify the mobile otp req 
-
-const verifyMobileOtp = async (req, res) => {
-
-    // id from params 
-    const OtpReqId = req.params.id;
-    // otp in body
-    const { otp } = req.body;
-
-    try {
-        // find the opt req
-        const isReq = await VerificationModel.findOne({ _id: OtpReqId, OtpExpireTime: { $gt: new Date(Date.now()) } })
-        if (!isReq) return res.status(400).json({ error: true, message: "Otp Expired" })
-
-        if (isReq.verificationOtp !== otp) return res.status(404).json({ error: true, message: "Otp Not Matched" })
-
-        await isReq.remove();
-        res.status(200).json({ error: false, message: "Otp Verified Successfully" })
-
-        // check the 
-
-    } catch (error) {
-        console.error("Error occurred during OTP verification:", error);
-        return res.status(500).json({ error: true, message: "Internal Server Error" });
-    }
-}
 
 
 
-module.exports = { SendEmailVerify, SendMobileVefication, verifyEmailOtp, verifyMobileOtp }
+
+module.exports = { SendEmailVerify, SendMobileVefication, VerifyOtp }
