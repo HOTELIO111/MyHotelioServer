@@ -24,13 +24,18 @@ const schema = new mongoose.Schema({
     city: {
         type: String,
     },
+    state: {
+        type: String,
+    },
     country: {
         type: String,
     },
     zipCode: {
         type: Number,
     },
-    discription: String,
+    discription: {
+        type: String,
+    },
     geoLoc: {
         lang: String,
         lat: String,
@@ -65,10 +70,22 @@ const schema = new mongoose.Schema({
 
     // Policy and privacy 
     cancellationPrice: String,
-    termsAndCondition: Boolean,
-    hotelFullySanitized: Boolean,
-    notSupportDiscrimination: Boolean,
-    validAndTrueData: Boolean,
+    termsAndCondition: {
+        type: Boolean,
+        default: false
+    },
+    hotelFullySanitized: {
+        type: Boolean,
+        default: false
+    },
+    notSupportDiscrimination: {
+        type: Boolean,
+        default: false
+    },
+    validAndTrueData: {
+        type: Boolean,
+        default: false
+    },
 
 
     // Hotel Bookings 
@@ -79,12 +96,17 @@ const schema = new mongoose.Schema({
     hotelMapLink: {
         type: String,
         required: true,
+        default: "No Link"
     },
     isAdminApproved: Boolean,
+    isPostpaidAllowed: {
+        type: Boolean,
+        default: false
+    },
     hotelRatings: {
         type: Number,
-        enum: [1, 2, 3, 4, 5],
-        default: 1
+        enum: [0, 1, 2, 3, 4, 5],
+        default: 0
     },
 }, {
     timestamps: true

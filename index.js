@@ -2,9 +2,12 @@ const express = require("express")
 require('dotenv').config()
 const cors = require('cors')
 const Utils = require('./Routes/utils')
-const CustomerRoutes = require("./Routes/AuthRoutes/AuthRoutes")
-const HotelRoutes = require("./Routes/HotelRoutes/HotelRoutes")
-const VerifyRoutes = require("./Routes/AuthRoutes/VerificationRoutes")
+const CustomerRoutes = require("./Routes/AuthRoutes/auth.routes")
+const HotelRoutes = require("./Routes/HotelRoutes/hotel.routes")
+const VerifyRoutes = require("./Routes/AuthRoutes/verification.routes")
+const RoomTypeRoutes = require('./Routes/HotelRoutes/roomtype.routes')
+const AmenitiesRoutes = require('./Routes/HotelRoutes/amenities.routes')
+const RouteV1 = require('./Routes/index')
 // database
 require('./config/connection')
 const app = express()
@@ -41,24 +44,25 @@ app.use(express.static("./static"))
 
 // routes
 app.use("/util", Utils);
-
 app.use("/api", CustomerRoutes);
 app.use("/hotel", HotelRoutes);
 // verfication related apis 
 app.use("/verify", VerifyRoutes);
+app.use('/roomtype', RoomTypeRoutes);
+app.use('/amenity', AmenitiesRoutes);
+
+
+
+
+
+
+
+
+
+
 app.get("/", (req, res) => {
     res.send("Welcome to Hotelio Backend")
 })
-// image Upload api 
-
-
-// assets path 
-
-
-
-
-
-
 
 
 // server startt
