@@ -1,5 +1,6 @@
-const HotelModel = require("../../Model/HotelModel/HotelModel");
-const VendorModel = require("../../Model/HotelModel/VendorModel");
+const HotelModel = require("../../Model/HotelModel/hotel.model");
+const VendorModel = require("../../Model/HotelModel/vendor.model");
+const { defaultDetails } = require("../../Model/other/DefaultText");
 
 
 const RegisterHotel = async (req, res) => {
@@ -10,6 +11,8 @@ const RegisterHotel = async (req, res) => {
         ...req.body,
         vendorId: vendorId
     }).save();
+    response.discription = defaultDetails(response.hotelName, `${response.city} ${response.state}`)
+    response.save()
     if (!response) {
         return res.status(400).json({ error: true, message: "Hotel Not Added Please try Again" });
     }
@@ -232,7 +235,8 @@ const fitlerDataCreate = async (req, res) => {
 
 
 const GetSearchTheHotelList = async (req, res) => {
-    const { location, checkIn, checkOut, totalRooms } = req.query;
+    const { location, checkIn, checkOut, totalRooms, roomType, priceMin, priceMax, hotelType, amenities, payment, rating, page, pageSize } = req.query;
+    const skip = (page - 1) * pageSize
 
     const search = {}
 
@@ -241,9 +245,30 @@ const GetSearchTheHotelList = async (req, res) => {
         search.city = { $regex: location, $options: "i" }
     }
 
+    // category 
+    if (hotelType) {
+        search.hotelType = { $regex: hotelType, $options: 'i' }
+    }
 
+    if (rating) {
+        search.hotelRatings = { $gte: rating }
+    }
 
-    // checkin checkout abhi likhna 
+    if (roomType) {
+        search['rooms.roomType'] = { $regex: roomType, $options: 'i' }
+    }
+
+    // price 
+    if (priceMin && priceMax) {
+        search['rooms.price'] = { $lte: priceMax, $gte: priceMin }
+    }
+    // amaenities
+    if (amenities) {
+        const amenitiesArray = amenities.split(',').map(item => item.trim());
+        search.amenities = { $all: amenitiesArray }
+    }
+
+    // // checkin checkout abhi likhna 
 
 
     // room mangement 
@@ -253,7 +278,7 @@ const GetSearchTheHotelList = async (req, res) => {
 
 
     try {
-        const response = await HotelModel.find(search)
+        const response = await HotelModel.find(search).skip(skip).limit(Number(pageSize))
         if (!response) return res.status(400).json({ error: true, message: "No Hotels Found At this Location" })
 
         res.status(200).json({ error: false, data: response })
@@ -291,5 +316,21 @@ function capitalizeFirstLetter(str) {
 
 
 
+// Delete the single Vendor  
+const pagination = async (req, res) => {
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList };
+    try {
+        const items = await HotelModel.find()
+            .skip(skip)
+            .limit(Number(pageSize));
+        res.json(items);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+
+
+
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination };

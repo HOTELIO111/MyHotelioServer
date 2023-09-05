@@ -1,4 +1,4 @@
-const VendorModel = require("../../Model/HotelModel/VendorModel");
+const VendorModel = require("../../Model/HotelModel/vendor.model");
 const SendMail = require("../Others/Mailer");
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption");
 const { isEmail, isMobileNumber } = require("../utils");
@@ -27,7 +27,6 @@ const AddVendor = async (req, res) => {
     try {
         const result = await new VendorModel({
             ...formData,
-            kycVerified: true,
             password: hashPassword.hashedPassword,
             secretKey: hashPassword.salt
         }).save()
@@ -205,6 +204,7 @@ const GetVendorDataUpdate = async (req, res) => {
             {
                 ...formData,
                 [verifiedWith]: true,
+                kycVerified: true,
             },
             { new: true }
         );
