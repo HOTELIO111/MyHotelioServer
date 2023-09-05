@@ -1,5 +1,5 @@
-const HotelModel = require("../../Model/HotelModel/hotel.model");
-const VendorModel = require("../../Model/HotelModel/vendor.model");
+const HotelModel = require("../../Model/HotelModel/hotelModel");
+const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
 
 

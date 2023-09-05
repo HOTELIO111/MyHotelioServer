@@ -1,4 +1,4 @@
-const AdminModel = require("../../Model/AdminModel/admin.model");
+const AdminModel = require("../../Model/AdminModel/adminModel");
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const SendMail = require("../Others/Mailer");
 require('dotenv').config()

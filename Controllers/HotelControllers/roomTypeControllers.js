@@ -1,4 +1,4 @@
-const RoomsTypeModel = require("../../Model/HotelModel/Rooms.model");
+const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
 
 
 const AddRoomType = async (req, res) => {

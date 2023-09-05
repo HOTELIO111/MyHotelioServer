@@ -5,7 +5,7 @@ const {
     UpdateRoomType,
     DeleteRoomTypeAll,
     GetRoomType
-} = require('../../Controllers/HotelControllers/roomtype.controllers')
+} = require('../../Controllers/HotelControllers/roomTypeControllers')
 
 
 

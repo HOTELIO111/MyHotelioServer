@@ -1,5 +1,5 @@
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption")
-const CustomerAuthModel = require("../../Model/CustomerModels/customer.model")
+const CustomerAuthModel = require("../../Model/CustomerModels/customerModel")
 const jwt = require("jsonwebtoken");
 const { isMobileNumber, isEmail, verifyInput } = require("../utils");
 require('dotenv').config();

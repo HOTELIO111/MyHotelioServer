@@ -1,4 +1,4 @@
-const VendorModel = require("../../Model/HotelModel/vendor.model");
+const VendorModel = require("../../Model/HotelModel/vendorModel");
 const SendMail = require("../Others/Mailer");
 const { EncryptPassword, comparePassword } = require("../Others/PasswordEncryption");
 const { isEmail, isMobileNumber } = require("../utils");
