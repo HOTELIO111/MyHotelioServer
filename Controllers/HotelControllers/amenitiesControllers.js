@@ -1,4 +1,4 @@
-const AmenityModel = require('./../../Model/HotelModel/amenties.model');
+const AmenityModel = require('../../Model/HotelModel/amenitiesModel');
 
 const AddAmenity = async (req, res) => {
     const formdata = req.body;

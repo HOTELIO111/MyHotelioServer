@@ -7,7 +7,7 @@ const {
     DeleteAllAmenity,
     UpdateAmenity,
     DeleteAmenity
-} = require('../../Controllers/HotelControllers/amenities.controllers')
+} = require('../../Controllers/HotelControllers/amenitiesControllers')
 
 
 // add the Amenities
