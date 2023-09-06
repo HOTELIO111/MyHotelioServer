@@ -20,7 +20,7 @@ const RegisterHotel = async (req, res) => {
     // Find the user and update this hotel id
     const Vendor = await VendorModel.findOneAndUpdate(
         { _id: vendorId },
-        { $push: { hotels: response } },
+        { $push: { hotels: response._id } },
         { new: true, upsert: true }
     );
     if (!Vendor) {
