@@ -7,6 +7,7 @@ const HotelRoutes = require("./Routes/HotelRoutes/hotel")
 const VerifyRoutes = require("./Routes/AuthRoutes/verification")
 const RoomTypeRoutes = require('./Routes/HotelRoutes/roomType')
 const AmenitiesRoutes = require('./Routes/HotelRoutes/amenities')
+const AdminRoutes = require('./Routes/admin/adminRoutes')
 // database
 require('./config/connection')
 const app = express()
@@ -45,6 +46,7 @@ app.use(express.static("./static"))
 app.use("/util", Utils);
 app.use("/api", CustomerRoutes);
 app.use("/hotel", HotelRoutes);
+app.use('/admin', AdminRoutes);
 // verfication related apis 
 app.use("/verify", VerifyRoutes);
 app.use('/roomtype', RoomTypeRoutes);

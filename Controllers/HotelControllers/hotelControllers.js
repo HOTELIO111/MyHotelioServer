@@ -1,6 +1,7 @@
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
+const { HotelList } = require("../../helper/hotel/hotel_helper");
 
 
 const RegisterHotel = async (req, res) => {
@@ -183,10 +184,14 @@ const FilterTheHotelData = async (req, res) => {
 const GetUsersHotel = async (req, res) => {
     const Id = req.params.id
     try {
-        const result = await HotelModel.find({ vendorId: Id })
-        if (!result) return res.status(404).json({ error: true, message: "No Hotels Registered" })
 
-        res.status(200).json({ error: false, data: result })
+        // get the hotels  as per id  
+        const allHotels = await HotelList(Id)
+        if (allHotels === null) return res.status(400).json({ error: true, message: "no hotels found" })
+        // const result = await HotelModel.find({ vendorId: Id })
+        // if (!result) return res.status(404).json({ error: true, message: "No Hotels Registered" })
+
+        res.status(200).json({ error: false, data: allHotels })
     } catch (error) {
         res.status(500).json(error)
     }
