@@ -20,7 +20,7 @@ const emailFormat = (Code) => {
   </p>
   
   <p>
-    If you have any questions or need further assistance, please do not hesitate to contact our support team at +92382938921.
+    If you have any questions or need further assistance, please do not hesitate to contact our support team at +91 (811) 5510050.
   </p>
   
   <p>
