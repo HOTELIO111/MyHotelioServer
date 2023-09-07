@@ -19,8 +19,8 @@ const EncryptPassword = (password) => {
 
 
 const comparePassword = (password, encryptedpassword, salt) => {
-
     let result;
+
 
     const hashedPassword = crypto.pbkdf2Sync(
         password,

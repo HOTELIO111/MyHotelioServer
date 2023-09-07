@@ -59,7 +59,8 @@ const Authentication = async (req, res) => {
             [isInput]: user[isInput],
         }
         const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
-        return res.status(201).json({ error: false, data: user, message: "user created successfully", token: token }).header('Authorization', `Bearer ${token}`);
+        res.header('Authorization', `Bearer ${token}`);
+        return res.status(201).json({ error: false, data: user, message: "user created successfully", token: token })
     }
     let isPasswordValid;
     if (user.password) {
@@ -80,7 +81,8 @@ const Authentication = async (req, res) => {
         //  jenerate the jwt token  
         const token = jwt.sign(jwtPayload, process.env.SECRET_CODE)
         // res.header("access-token", token)
-        res.status(200).json({ error: false, data: user, token: token }).header('Authorization', `Bearer ${token}`);
+        res.header('Authorization', `Bearer ${token}`);
+        res.status(200).json({ error: false, data: user, token: token })
     } else {
         // For example, log an error or track failed login attempts
         return res.status(400).json({ error: true, message: "Invalid OTP and password" });
@@ -378,13 +380,21 @@ const DeleteAllCustomer = async (req, res) => {
 const UpdateTheUser = async (req, res) => {
     // check the user Exists 
     const id = req.params.id
+    const formData = req.body;
 
     try {
         const response = await CustomerAuthModel.findById(id)
         if (!response) return res.status(404).json({ error: true, message: "No user Found" })
 
+        if (formData.password) {
+            const hashedPassword = EncryptPassword(req.body.password)
+            formData.password = hashedPassword.hashedPassword
+            formData.secretKey = hashedPassword.salt
+        }
         // let Update the user 
-        const isUpdated = await CustomerAuthModel.findByIdAndUpdate(id, req.body, { new: true })
+        const isUpdated = await CustomerAuthModel.findByIdAndUpdate(id, {
+            ...formData
+        }, { new: true })
         if (!isUpdated) return res.status(400).json({ error: true, message: "No Updated Something error" })
 
         res.status(200).json({ error: false, data: isUpdated });
