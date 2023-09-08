@@ -8,6 +8,9 @@ const schema = new Schema({
         type: Number,
         default: 4,
     },
+    includeFacilities: {
+        type: Array,
+    },
     minPrice: {
         type: Number,
         required: true

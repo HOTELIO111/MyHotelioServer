@@ -1,4 +1,4 @@
-const { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination } = require('../../Controllers/HotelControllers/hotelControllers');
+const { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination, DeleteSelectedVendorHotel } = require('../../Controllers/HotelControllers/hotelControllers');
 const router = require('express').Router();
 
 // add the hotel 
@@ -16,6 +16,8 @@ router.patch("/updatedetails/:id", UpdateHotelData);
 router.get("/deletesingle/:id", DeleteSingleHotel);
 // delelte all the data 
 router.get("/deleteall", DeleteAllHotelData);
+// delete all hotels of a vendor 
+router.delete("/deletebyvendor/:id", DeleteSelectedVendorHotel)
 
 // Get all the city 
 router.get("/get/:field", GetFieldList)

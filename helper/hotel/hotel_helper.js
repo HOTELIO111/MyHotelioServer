@@ -24,7 +24,23 @@ const HotelList = async (id) => {
 
 
 
+// find the roles
+
+const IsWho = async (id) => {
+
+
+    const [isVendor, isAdmin] = await Promise.all([
+        VendorModel.findById(id), AdminModel.findById(id)
+    ])
+
+    const role = isVendor ? isVendor.role : isAdmin ? isAdmin.role : null
+
+    return role
+}
 
 
 
-module.exports = { HotelList }
+
+
+
+module.exports = { HotelList, IsWho }
