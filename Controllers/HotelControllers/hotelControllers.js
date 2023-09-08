@@ -1,3 +1,4 @@
+const { findByIdAndDelete } = require("../../Model/CustomerModels/customerModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
@@ -110,6 +111,17 @@ const DeleteSingleHotel = async (req, res) => {
         // Handle any errors that occur during the process
         res.status(500).json({ error: true, message: "Internal server error" });
     }
+}
+
+// delete all hotel of the single vendor 
+const DeleteSelectedVendorHotel = async (req, res) => {
+    const { id } = req.params;
+
+    HotelModel.deleteMany({ vendorId: id }).then(() => {
+        res.status(200).json({ error: false, message: "deletion successfully done" })
+    }).catch(error => {
+        res.status(500).json({ error: true, message: error.message })
+    })
 }
 
 
@@ -338,4 +350,4 @@ const pagination = async (req, res) => {
 
 
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination };
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination, DeleteSelectedVendorHotel };

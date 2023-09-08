@@ -8,6 +8,7 @@ const VerifyRoutes = require("./Routes/AuthRoutes/verification")
 const RoomTypeRoutes = require('./Routes/HotelRoutes/roomType')
 const AmenitiesRoutes = require('./Routes/HotelRoutes/amenities')
 const AdminRoutes = require('./Routes/admin/adminRoutes')
+const FacilitiesRoutes = require('./Routes/HotelRoutes/facilitiesRoutes')
 // database
 require('./config/connection')
 const app = express()
@@ -51,6 +52,7 @@ app.use('/admin', AdminRoutes);
 app.use("/verify", VerifyRoutes);
 app.use('/roomtype', RoomTypeRoutes);
 app.use('/amenity', AmenitiesRoutes);
+app.use('/facility', FacilitiesRoutes)
 
 
 

@@ -42,7 +42,18 @@ const schema = new mongoose.Schema({
     },
     // Hotel rooms info 
     rooms: [
-        { counts: Number, roomType: String, price: String }
+        {
+            counts: {
+                type: Number,
+                default: 1
+            },
+            roomType: String,
+            price: String,
+            status: {
+                type: Boolean,
+                default: true
+            }
+        }
     ],
     amenities: {
         type: Array
@@ -70,6 +81,7 @@ const schema = new mongoose.Schema({
 
     // Policy and privacy 
     cancellationPrice: String,
+    cancellationPolicy: String,
     termsAndCondition: {
         type: Boolean,
         default: false
