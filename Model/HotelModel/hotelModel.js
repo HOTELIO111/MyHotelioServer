@@ -49,6 +49,7 @@ const schema = new mongoose.Schema({
             },
             roomType: String,
             price: String,
+            prevPrice: String,
             status: {
                 type: Boolean,
                 default: true

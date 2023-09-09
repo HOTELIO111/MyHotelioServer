@@ -23,4 +23,5 @@ const DeleteTheCustomer = async (id) => {
 
 
 
+
 module.exports = { DeleteTheCustomer, GetallCustomer }

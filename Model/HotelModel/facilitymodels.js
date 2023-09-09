@@ -4,6 +4,10 @@ const schema = new Schema({
     title: {
         type: String,
     },
+    icon: {
+        type: String
+    },
+    
     isPaid: {
         type: Boolean,
         default: false
