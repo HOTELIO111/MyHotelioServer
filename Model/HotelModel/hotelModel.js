@@ -3,7 +3,12 @@ const mongoose = require("mongoose");
 const schema = new mongoose.Schema({
     vendorId: {
         type: String,
-        required: true
+        required: function () {
+            return this.isAddedBy === "vendor"
+        }
+    },
+    isAddedBy: {
+        type: String,
     },
     // Hotel Details 
     hotelName: {

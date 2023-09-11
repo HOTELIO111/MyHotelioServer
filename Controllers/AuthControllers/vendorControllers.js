@@ -8,6 +8,7 @@ require("dotenv").config();
 const jwt = require('jsonwebtoken');
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
+const { DeleteTheSingleVendor, DeleteAllVendor } = require("../../helper/vendor/vendorhelpers");
 
 
 
@@ -31,7 +32,7 @@ const AddVendor = async (req, res) => {
             secretKey: hashPassword.salt
         }).save()
         res.status(200).json({
-            error: true,
+            error: false,
             data: result
         })
     } catch (error) {
@@ -142,11 +143,27 @@ const VendorResetPassword = async (req, res) => {
 
 // delete al the user 
 const DeleteVendors = async (req, res) => {
-    VendorModel.deleteMany({}).then(() => {
-        res.status(200).json({ error: false, message: "Every thing deleted" })
-    }).catch((error) => {
-        console.log(error)
-    })
+    try {
+        const isDeleted = await DeleteAllVendor()
+        if (!isDeleted) return res.status(404).json({ error: true, message: "faild to delete ! try agian " })
+
+        res.status(200).json({ error: false, message: "success" })
+
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+
+
+    // VendorModel.deleteMany({}).then(() => {
+    //     res.status(200).json({ error: false, message: "Every thing deleted" })
+    // }).catch((error) => {
+    //     console.log(error)
+    // })
+}
+
+// make kyc request  
+const RequestKyc = async (req, res) => {
+    const { name, email, aadharNo, panNo, aadharImg, panImg } = req.body
 }
 
 
@@ -251,5 +268,18 @@ const GetVendorUpdate = async (req, res) => {
 }
 
 
+const DeleteVendorById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const response = await DeleteTheSingleVendor(id)
+        if (!response) return res.status(404).json({ error: true, message: "user not found" })
 
-module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate }
+        res.status(200).json({ error: false, message: "deleted succesfully" })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+}
+
+
+
+module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate, DeleteVendorById }
