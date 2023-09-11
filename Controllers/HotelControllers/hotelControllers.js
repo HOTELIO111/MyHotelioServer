@@ -1,17 +1,21 @@
-const { findByIdAndDelete } = require("../../Model/CustomerModels/customerModel");
+
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
-const { HotelList } = require("../../helper/hotel/hotel_helper");
+const { HotelList, GetDeleteTheVendorHotel, DeleteVendorSingleHotel, IsWho } = require("../../helper/hotel/hotel_helper");
 
 
 const RegisterHotel = async (req, res) => {
     const vendorId = req.params.id;
 
+    // find is who 
+    const _is = await IsWho(vendorId)
+
     // Register the hotel
     const response = await new HotelModel({
         ...req.body,
-        vendorId: vendorId
+        vendorId: _is === "vendor" ? vendorId : "",
+        isAddedBy: _is
     }).save();
     response.discription = defaultDetails(response.hotelName, `${response.city} ${response.state}`)
     response.save()
@@ -117,12 +121,31 @@ const DeleteSingleHotel = async (req, res) => {
 const DeleteSelectedVendorHotel = async (req, res) => {
     const { id } = req.params;
 
-    HotelModel.deleteMany({ vendorId: id }).then(() => {
-        res.status(200).json({ error: false, message: "deletion successfully done" })
-    }).catch(error => {
-        res.status(500).json({ error: true, message: error.message })
-    })
+    const result = await GetDeleteTheVendorHotel(id)
+    if (!result) return res.status(400).json({ error: true, message: "deleted successfully" })
+
+    res.status(200).json({ error: false, message: "success", data: result })
 }
+
+// delete vendor single hotel
+const DeleteSigleHotel = async (req, res) => {
+    const { hotelId } = req.query;
+
+    try {
+        // find the hotel data
+        const isHotel = await HotelModel.findById(hotelId)
+        if (!isHotel) return res.status(404).json({ error: true, message: "no hotel found" })
+
+        // delete the hotel 
+        const isDeleted = await DeleteVendorSingleHotel(hotelId, isHotel.vendorId)
+        if (!isDeleted) return res.status(400).json({ error: true, message: "failed to deleted ! try again " })
+
+        res.status(200).json({ error: false, message: "success deleted " })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+}
+
 
 
 // delet all the dat
@@ -350,4 +373,4 @@ const pagination = async (req, res) => {
 
 
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination, DeleteSelectedVendorHotel };
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination, DeleteSelectedVendorHotel, DeleteSigleHotel };

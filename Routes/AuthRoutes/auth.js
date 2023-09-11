@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField, GetAuthWIthGoogle, AddFieldWithOtp, DeleteCustomerById } = require("../../Controllers/AuthControllers/customerControllers")
-const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate } = require("../../Controllers/AuthControllers/vendorControllers")
+const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate, DeleteVendorById } = require("../../Controllers/AuthControllers/vendorControllers")
 const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/adminControllers')
 const { VerifyOptFormDb, SendOtp } = require("../../Controllers/Others/SendOtp")
 const verify = require("../../middlewares/Verify")
@@ -37,12 +37,18 @@ router.get("/delete/:id", DeleteCustomerById);
 
 
 // vendor Login And Signup 
-
 router.post("/vendor/signup", AddVendor);
 router.post("/vendor/login", VendorLogin);
+
+// vendor forgot password
 router.post("/vendor/forgot-password", VendorForgotPasword);
 router.post("/vendor/reset-password", VendorResetPassword);
+// get all the vendor 
 router.get("/vendor/getall", GetAllVendor);
+
+// delete vendor by id and also all hoteles delete
+router.get("/vendor/delete/:id", DeleteVendorById)
+// delete all vendors
 router.delete("/vendor/deleteall", DeleteVendors);
 // normal vendor data Update 
 router.patch("/vendor/update/:id", GetVendorUpdate);

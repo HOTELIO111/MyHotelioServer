@@ -39,8 +39,49 @@ const IsWho = async (id) => {
 }
 
 
+// delet the vendor hotel 
+const GetDeleteTheVendorHotel = async (id) => {
+    // delete all the hotels of the vendor from the hotel table 
+    const vendor = await VendorModel.findById(id)
+    try {
+        const [isHotelDeleted, isVendorHotelListDeleted] = await Promise.all([
+            HotelModel.deleteMany({ vendorId: id }), VendorModel.updateOne({ _id: id }, { $set: { hotels: [] } })
+        ])
+        if (!isHotelDeleted && !isVendorHotelListDeleted) return false
+
+        return true
+    } catch (error) {
+        return false
+    }
+}
+
+
+const DeleteVendorSingleHotel = async (hid, vid) => {
+    try {
+        const vendor = await VendorModel.findOne({ _id: vid });
+
+        if (!vendor) {
+            return false; // Vendor not found
+        }
+
+        const updatedHotels = vendor.hotels.filter(hotelId => hotelId.toString() !== hid);
+
+        const result = await VendorModel.updateOne({ _id: vid }, { $set: { hotels: updatedHotels } });
+        const isHotelDeleted = await HotelModel.deleteOne({ _id: hid });
+
+        if (result.nModified === 0 || isHotelDeleted.deletedCount === 0) {
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
 
 
 
 
-module.exports = { HotelList, IsWho }
+
+
+module.exports = { HotelList, IsWho, GetDeleteTheVendorHotel, DeleteVendorSingleHotel }
