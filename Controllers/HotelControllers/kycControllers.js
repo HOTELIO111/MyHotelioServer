@@ -1,4 +1,5 @@
-const { createTheKycRequest, DeleteTheKycRequest } = require("../../helper/vendor/kycHelpers");
+const KycModel = require("../../Model/HotelModel/kycModel");
+const { createTheKycRequest, DeleteTheKycRequest, GetAllKyc, IsVerifiedActions } = require("../../helper/vendor/kycHelpers");
 
 
 
@@ -18,9 +19,6 @@ const RegisterKyc = async (req, res) => {
 }
 
 
-const KycVerified = async (req, res) => {
-
-}
 
 
 const deleteTheKycRequest = async (req, res) => {
@@ -36,5 +34,47 @@ const deleteTheKycRequest = async (req, res) => {
 }
 
 
+const GetAllKycRequests = async (req, res) => {
+    try {
+        const response = await GetAllKyc()
+        if (response === (null || Error)) return res.status(404).json({ error: true, message: "No data found" })
 
-module.exports = { RegisterKyc, deleteTheKycRequest }
+        res.status(200).json({ error: false, data: response, message: "success" })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+}
+
+
+// Make action on Kyc request  
+
+const MakeActionKyc = async (req, res) => {
+    const { id, action } = req.query;
+
+    if (!["approved", "failed", "requested"].includes(action)) return res.status(401).json({ error: true, message: "invalid action type" })
+
+
+    // if (action !== "approved") {
+    //     if (kycReq.isVerified === "approved") return res.status(422).json({ error: true, message: "you already approved it so you cannot do cancel it" })
+    // }
+
+
+    try {
+        if (!id && !action) return res.status({ error: true, message: "please check the credentials try again" })
+
+        const response = await IsVerifiedActions(id, action)
+
+        if (!response) return res.status(404).json({ error: true, message: "Kyc Request not found" })
+
+        res.status(200).json({ error: false, message: "success", data: response })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+
+}
+
+
+
+
+
+module.exports = { RegisterKyc, deleteTheKycRequest, GetAllKycRequests, MakeActionKyc }
