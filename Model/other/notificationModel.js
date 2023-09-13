@@ -2,10 +2,6 @@ const { Schema, model } = require('mongoose');
 
 
 const schema = new Schema({
-    title: {
-        type: String,
-        default: "Your Notification"
-    },
     message: {
         type: String,
         required: true,
