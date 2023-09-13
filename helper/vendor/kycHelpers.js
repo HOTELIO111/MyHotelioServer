@@ -34,6 +34,7 @@ const GetAllKyc = async () => {
         const approved = []
         const failed = []
         const requested = []
+        const all = [...allKyc]
 
         allKyc?.forEach(element => {
             if (element.isVerified === "approved") {
@@ -46,7 +47,7 @@ const GetAllKyc = async () => {
                 return null
             }
         });
-        return data = { approved, failed, requested }
+        return data = { approved, failed, requested, all }
     } catch (error) {
         return Error
     }
