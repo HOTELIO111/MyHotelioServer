@@ -30,7 +30,7 @@ const DeleteTheKycRequest = async (id) => {
 
 const GetAllKyc = async (id) => {
     if (id) {
-        const user = await KycModel.findById(id)
+        const user = await KycModel.find({ vendorId: id })
         return user
     }
     try {
