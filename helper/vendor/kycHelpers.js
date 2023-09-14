@@ -28,7 +28,11 @@ const DeleteTheKycRequest = async (id) => {
 }
 
 
-const GetAllKyc = async () => {
+const GetAllKyc = async (id) => {
+    if (id) {
+        const user = await KycModel.findById(id)
+        return user
+    }
     try {
         const allKyc = await KycModel.find({}).sort({ createdAt: -1 })
         const approved = []
