@@ -76,13 +76,16 @@ const DeleteSingeVendorAllNotification = async (req, res) => {
 
 const GetAllNotifications = async (req, res) => {
     try {
-        const response = await NotificationModel.find({})
-        if (!response) return res.status(404).json({ error: true, message: "no data found" })
-        res.status(200).json({ error: false, message: "success", data: response })
+        const response = await NotificationModel.find({});
+        if (response.length === 0) {
+            return res.status(204).json({ error: false, message: "No data found" });
+        }
+        res.status(200).json({ error: false, message: "Success", data: response });
     } catch (error) {
-        res.status(500).json({ error: true, message: error.message })
+        res.status(500).json({ error: true, message: error.message });
     }
-}
+};
+
 
 
 const GetDeleteAllTheNotification = () => {
