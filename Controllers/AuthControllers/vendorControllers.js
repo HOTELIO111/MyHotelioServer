@@ -282,4 +282,20 @@ const DeleteVendorById = async (req, res) => {
 
 
 
-module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate, DeleteVendorById }
+// Get Vendor by id
+
+const GetVendorById = async (req, res) => {
+    const { id } = req.params
+
+    try {
+        const user = await VendorModel.findById(id)
+        if (!user) return res.status(204).json({ error: true, message: "no user found" })
+        res.status(200).json({ error: false, message: "success", data: user })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+}
+
+
+
+module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate, DeleteVendorById, GetVendorById }
