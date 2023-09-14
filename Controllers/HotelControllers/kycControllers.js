@@ -35,8 +35,9 @@ const deleteTheKycRequest = async (req, res) => {
 
 
 const GetAllKycRequests = async (req, res) => {
+    const { id } = req.query;
     try {
-        const response = await GetAllKyc()
+        const response = await GetAllKyc(id)
         if (response === (null || Error)) return res.status(404).json({ error: true, message: "No data found" })
 
         res.status(200).json({ error: false, data: response, message: "success" })
