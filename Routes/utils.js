@@ -41,23 +41,30 @@ router.post('/uploadfile/:folder', upload.single('myfile'), (req, res) => {
 });
 
 
+
 router.get("/s3/upload", async (req, res) => {
-
     const { id, fileName } = req.query;
+    const fileExtension = path.extname(fileName).toLowerCase();
 
-    // generate the file Name And PAth
-    const GeneratePath = `${id}/${Date.now()}-${fileName}`
+    // Check if the file extension is one of the accepted formats
+    if (fileExtension !== '.jpeg' && fileExtension !== '.jpg' && fileExtension !== '.png') {
+        return res.status(400).json({ error: true, message: "Unsupported file format" });
+    }
+
+    // Generate the file Name And Path
+    const GeneratePath = `${id}/${Date.now()}-${fileName}`;
 
     const command = new PutObjectCommand({
         Bucket: "hotelio-images",
         Key: GeneratePath,
-        ContentType: "image/*"
-    })
+        ContentType: `image/${fileExtension.substr(1)}`
+    });
 
-    const UploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 120 })
+    const UploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 120 });
 
-    res.status(200).json({ error: false, url: UploadUrl, UploadedPath: GeneratePath })
-})
+    res.status(200).json({ error: false, url: UploadUrl, UploadedPath: GeneratePath });
+});
+
 
 
 // function to genereate objurl 
