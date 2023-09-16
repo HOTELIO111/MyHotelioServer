@@ -8,7 +8,8 @@ require("dotenv").config();
 const jwt = require('jsonwebtoken');
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
-const { DeleteTheSingleVendor, DeleteAllVendor } = require("../../helper/vendor/vendorhelpers");
+const { DeleteTheSingleVendor, DeleteAllVendor, VendorPasswordUpdate } = require("../../helper/vendor/vendorhelpers");
+const { isOtpVerify } = require("../../helper/misc");
 
 
 
@@ -298,4 +299,28 @@ const GetVendorById = async (req, res) => {
 
 
 
-module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate, DeleteVendorById, GetVendorById }
+// Get pasword Update of the vendor 
+
+const GetVendorPasswordUpdate = async (req, res) => {
+    const { otpid, otp } = req.query;
+    const { email, password } = req.body;
+
+
+    if (!otpid && !otp && !email && !password) return res.status(400).json({ error: true, message: "Please Check the parameters" })
+    try {
+
+        // check the otp varification 
+        const isVerified = await isOtpVerify(otp, otpid)
+        if (isVerified.error === true) return res.status(400).json(isVerified)
+
+        // update the password 
+        const updatePassword = await VendorPasswordUpdate(email, password)
+        res.status(updatePassword.status).json({ error: updatePassword.error, message: updatePassword.message })
+    } catch (error) {
+
+    }
+}
+
+
+
+module.exports = { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate, DeleteVendorById, GetVendorById, GetVendorPasswordUpdate }

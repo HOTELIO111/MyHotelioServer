@@ -1,3 +1,4 @@
+const { EncryptPassword } = require("../../Controllers/Others/PasswordEncryption")
 const HotelModel = require("../../Model/HotelModel/hotelModel")
 const VendorModel = require("../../Model/HotelModel/vendorModel")
 
@@ -35,4 +36,30 @@ const DeleteAllVendor = async () => {
 }
 
 
-module.exports = { DeleteTheSingleVendor, DeleteAllVendor }
+
+
+// update the password of the vendor 
+
+const VendorPasswordUpdate = async (email, password) => {
+    try {
+        const isVendor = await VendorModel.findOne({ email: email })
+
+        if (!isVendor) return { error: true, message: "No vendor found with this Email", status: 404 }
+
+        // create the hashed pasword 
+        const hashedPassword = EncryptPassword(password)
+        
+        // update the password 
+        isVendor.password = hashedPassword.hashedPassword;
+        isVendor.secretKey = hashedPassword.salt;
+        isVendor.save()
+
+        return { error: false, message: "success", status: 200 }
+
+    } catch (error) {
+        return { error: true, message: error.message, status: 500 }
+    }
+}
+
+
+module.exports = { DeleteTheSingleVendor, DeleteAllVendor, VendorPasswordUpdate }

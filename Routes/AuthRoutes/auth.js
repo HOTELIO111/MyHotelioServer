@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { SignupUser, LoginUser, ForgotPassword, ResetPassword, DeleteAllCustomer, UpdateTheUser, UpdateThePassword, Authentication, GetUserDataByField, GetAuthWIthGoogle, AddFieldWithOtp, DeleteCustomerById } = require("../../Controllers/AuthControllers/customerControllers")
-const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate, DeleteVendorById, GetVendorById } = require("../../Controllers/AuthControllers/vendorControllers")
-const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword  } = require('../../Controllers/AuthControllers/adminControllers')
+const { AddVendor, VendorLogin, VendorForgotPasword, VendorResetPassword, DeleteVendors, GetVendorDataUpdate, GetAllVendor, GetVendorUpdate, DeleteVendorById, GetVendorById, GetVendorPasswordUpdate } = require("../../Controllers/AuthControllers/vendorControllers")
+const { GetAddTheAdmin, AdminLoginApi, UpdateAdmin, AdminForgotPassword, AdminResetPassword } = require('../../Controllers/AuthControllers/adminControllers')
 const { VerifyOptFormDb, SendOtp } = require("../../Controllers/Others/SendOtp")
 const verify = require("../../middlewares/Verify")
 
@@ -56,6 +56,9 @@ router.post("/vendor/forgot-password", VendorForgotPasword);
 router.post("/vendor/reset-password", VendorResetPassword);
 // get all the vendor 
 router.get("/vendor/getall", GetAllVendor);
+
+// update password 
+router.patch("/vendor/update-password", GetVendorPasswordUpdate)
 // Get Vendor By id 
 router.get("/vendor/get/:id", GetVendorById);
 
