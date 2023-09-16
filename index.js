@@ -12,6 +12,7 @@ const FacilitiesRoutes = require('./Routes/HotelRoutes/facilitiesRoutes')
 const kycRoutes = require('./Routes/HotelRoutes/kycroutes')
 const PropertyCateRoutes = require("./Routes/HotelRoutes/propertyTypesRoutes")
 const NotificationRoutes = require('./Routes/notifications/notificationsRoutes')
+const MultiTableRoutes = require('./Routes/multiTableDataApi')
 // database
 require('./config/connection')
 const app = express()
@@ -59,6 +60,7 @@ app.use('/facility', FacilitiesRoutes)
 app.use('/property-type', PropertyCateRoutes)
 app.use('/kyc', kycRoutes);
 app.use('/notify', NotificationRoutes)
+app.use('/api', MultiTableRoutes)
 
 
 
