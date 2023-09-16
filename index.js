@@ -10,6 +10,7 @@ const AmenitiesRoutes = require('./Routes/HotelRoutes/amenities')
 const AdminRoutes = require('./Routes/admin/adminRoutes')
 const FacilitiesRoutes = require('./Routes/HotelRoutes/facilitiesRoutes')
 const kycRoutes = require('./Routes/HotelRoutes/kycroutes')
+const PropertyCateRoutes = require("./Routes/HotelRoutes/propertyTypesRoutes")
 const NotificationRoutes = require('./Routes/notifications/notificationsRoutes')
 // database
 require('./config/connection')
@@ -55,6 +56,7 @@ app.use("/verify", VerifyRoutes);
 app.use('/roomtype', RoomTypeRoutes);
 app.use('/amenity', AmenitiesRoutes);
 app.use('/facility', FacilitiesRoutes)
+app.use('/property-type', PropertyCateRoutes)
 app.use('/kyc', kycRoutes);
 app.use('/notify', NotificationRoutes)
 

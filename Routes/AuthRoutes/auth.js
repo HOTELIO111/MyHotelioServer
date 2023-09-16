@@ -36,6 +36,17 @@ router.get("/delete/:id", DeleteCustomerById);
 // router.post("/sendOtp/:number", SendOtpForVerify);
 
 
+
+
+
+
+
+
+
+
+
+
+
 // vendor Login And Signup 
 router.post("/vendor/signup", AddVendor);
 router.post("/vendor/login", VendorLogin);
@@ -56,6 +67,18 @@ router.delete("/vendor/deleteall", DeleteVendors);
 router.patch("/vendor/update/:id", GetVendorUpdate);
 // verify the email and update the data
 router.patch("/vendor/verified", GetVendorDataUpdate);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

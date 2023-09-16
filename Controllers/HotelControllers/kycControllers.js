@@ -9,6 +9,9 @@ const RegisterKyc = async (req, res) => {
     try {
         if (!vendorId && !name && !email && !aadharNo && !panNo && !aadharImg && !panImg) return res.status(401).json({ error: true, message: "Invalid Credential" })
 
+        // check the already kyc request with this id is existed or not 
+        const isExisted = await KycModel.findOne({ vendorId: vendorId })
+        if (isExisted) return res.status(409).json({ error: true, message: "you already applied for the kyc" })
         const isRequested = await createTheKycRequest(req.body)
         if (!isRequested) return res.status(400).json({ error: true, message: "failed !try  again" })
 
