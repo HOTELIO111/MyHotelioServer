@@ -1,5 +1,31 @@
 const mongoose = require("mongoose");
 
+
+
+
+const roomSchema = new mongoose.Schema({
+    counts: {
+        type: Number,
+        default: 1
+    },
+    roomType: String,
+    price: String,
+    prevPrice: String,
+    status: {
+        type: Boolean,
+        default: true
+    },
+    additionAmenities: {
+        type: Array,
+    },
+    additionalFacilties: {
+        type: Array
+    }
+}, {
+    timestamps: true
+}
+)
+
 const schema = new mongoose.Schema({
     vendorId: {
         type: String,
@@ -46,22 +72,11 @@ const schema = new mongoose.Schema({
         lat: String,
     },
     // Hotel rooms info 
-    rooms: [
-        {
-            counts: {
-                type: Number,
-                default: 1
-            },
-            roomType: String,
-            price: String,
-            prevPrice: String,
-            status: {
-                type: Boolean,
-                default: true
-            }
-        }
-    ],
+    rooms: [roomSchema],
     amenities: {
+        type: Array
+    },
+    facilities: {
         type: Array
     },
     hotelCoverImg: {
@@ -114,7 +129,7 @@ const schema = new mongoose.Schema({
     hotelMapLink: {
         type: String,
         required: true,
-        default: "No Link"
+        default: "https://www.google.com/maps/d/embed?mid=1nxxfsdOOs2x2HPEsNV-YlJDLFzM&hl=en&ehbc=2E312F"
     },
     isAdminApproved: Boolean,
     isPostpaidAllowed: {

@@ -85,6 +85,7 @@ router.patch("/vendor/verified", GetVendorDataUpdate);
 
 
 
+
 // admin SOme Routes 
 router.post("/admin/signup", GetAddTheAdmin);
 // admin login 

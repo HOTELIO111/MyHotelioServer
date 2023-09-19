@@ -372,5 +372,39 @@ const pagination = async (req, res) => {
 
 
 
+// delete all hoteles and also the data from the vendor hotels data 
+const DeleteAllHotel = async (req, res) => {
+    try {
+        const AllHotelIdAndVendorIdList = await HotelModel.find({}, { _id: 1, vendorId: 1 });
+        if (!AllHotelIdAndVendorIdList || AllHotelIdAndVendorIdList.length === 0) {
+            return res.status(404).json({ error: true, message: "No hotels data found" });
+        }
 
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination, DeleteSelectedVendorHotel, DeleteSigleHotel };
+        // Use Promise.all to await all the delete operations
+        const deletePromises = AllHotelIdAndVendorIdList.map(async element => {
+            const [hotelDeleted, vendorHotelRemoved] = await Promise.all([
+                HotelModel.deleteOne({ _id: element._id }),
+                VendorModel.findByIdAndUpdate(element.vendorId, { $pull: { hotels: element._id } })
+            ]);
+            if (!hotelDeleted || !vendorHotelRemoved) {
+                throw new Error("Failed to delete hotel or remove from vendor");
+            }
+        });
+
+        // Wait for all the delete operations to complete
+        await Promise.all(deletePromises);
+
+        res.status(200).json({ error: false, message: "Success" });
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message });
+    }
+};
+
+
+
+
+// ------Room Api's ----------------------------------------------------
+
+
+
+module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination, DeleteSelectedVendorHotel, DeleteSigleHotel, DeleteAllHotel };

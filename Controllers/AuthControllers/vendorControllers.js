@@ -10,6 +10,7 @@ const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 const { DeleteTheSingleVendor, DeleteAllVendor, VendorPasswordUpdate } = require("../../helper/vendor/vendorhelpers");
 const { isOtpVerify } = require("../../helper/misc");
+const HotelModel = require("../../Model/HotelModel/hotelModel");
 
 
 
@@ -320,6 +321,10 @@ const GetVendorPasswordUpdate = async (req, res) => {
 
     }
 }
+
+
+
+
 
 
 
