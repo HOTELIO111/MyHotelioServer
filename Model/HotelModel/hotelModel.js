@@ -142,7 +142,7 @@ const schema = new mongoose.Schema({
     hotelRatings: {
         type: Number,
         enum: [0, 1, 2, 3, 4, 5],
-        default: 0
+        default: 3
     },
 }, {
     timestamps: true
