@@ -35,6 +35,8 @@ const schema = new mongoose.Schema({
     },
     isAddedBy: {
         type: String,
+        default: 'vendor',
+        required: true
     },
     // Hotel Details 
     hotelName: {
@@ -88,6 +90,9 @@ const schema = new mongoose.Schema({
     checkOut: {
         type: String,
     },
+    checkIn: {
+        type: String,
+    },
 
     // Legal Documents
     ownershipType: String,
@@ -97,8 +102,6 @@ const schema = new mongoose.Schema({
     businessPanImg: String,
     gstNo: String,
     gstImg: String,
-    tinNo: String,
-    tinImg: String,
 
     // Policy and privacy 
     cancellationPrice: String,

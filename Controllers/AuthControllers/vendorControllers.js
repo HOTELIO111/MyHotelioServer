@@ -30,6 +30,7 @@ const AddVendor = async (req, res) => {
     try {
         const result = await new VendorModel({
             ...formData,
+            role: formData.role ? formData.role : "vendor",
             password: hashPassword.hashedPassword,
             secretKey: hashPassword.salt
         }).save()

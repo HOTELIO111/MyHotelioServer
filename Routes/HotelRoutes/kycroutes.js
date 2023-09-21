@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { RegisterKyc, deleteTheKycRequest, GetAllKycRequests, MakeActionKyc } = require('../../Controllers/HotelControllers/kycControllers')
+const { RegisterKyc, deleteTheKycRequest, GetAllKycRequests, MakeActionKyc, DeleteALLKycReq } = require('../../Controllers/HotelControllers/kycControllers')
 
 
 // create new kyc req 
@@ -10,6 +10,9 @@ router.get("/verify", MakeActionKyc)
 router.get("/getall", GetAllKycRequests)
 // delete the kyc request
 router.get("/delete/:id", deleteTheKycRequest)
+
+// delete all the kyc 
+router.delete("/deleteall", DeleteALLKycReq)
 
 
 

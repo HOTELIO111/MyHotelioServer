@@ -8,13 +8,13 @@ const { HotelList, GetDeleteTheVendorHotel, DeleteVendorSingleHotel, IsWho } = r
 const RegisterHotel = async (req, res) => {
     const vendorId = req.params.id;
 
-    // find is who 
     const _is = await IsWho(vendorId)
+    if (_is === null) return res.status(401).json({ error: true, message: "Invalid Hotel Partner Id " })
 
     // Register the hotel
     const response = await new HotelModel({
         ...req.body,
-        vendorId: _is === "vendor" ? vendorId : "",
+        vendorId: _is === "vendor" ? vendorId : null,
         isAddedBy: _is
     }).save();
     response.discription = defaultDetails(response.hotelName, `${response.city} ${response.state}`)

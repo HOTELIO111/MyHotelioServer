@@ -1,25 +1,60 @@
 const KycModel = require("../../Model/HotelModel/kycModel");
+const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { createTheKycRequest, DeleteTheKycRequest, GetAllKyc, IsVerifiedActions } = require("../../helper/vendor/kycHelpers");
 
 
 
 // register the kyc req 
 const RegisterKyc = async (req, res) => {
-    const { vendorId, name, email, aadharNo, panNo, aadharImg, panImg } = req.body;
     try {
-        if (!vendorId && !name && !email && !aadharNo && !panNo && !aadharImg && !panImg) return res.status(401).json({ error: true, message: "Invalid Credential" })
+        // Request validation
+        const { vendorId, name, email, aadharNo, panNo, aadharImg, panImg } = req.body;
+        if (!vendorId || !name || !email || !aadharNo || !panNo || !aadharImg || !panImg) {
+            return res.status(400).json({ error: true, message: "Invalid request data" });
+        }
+        // Find the vendor
+        const vendor = await VendorModel.findOne({ _id: vendorId, name, email });
 
-        // check the already kyc request with this id is existed or not 
-        const isExisted = await KycModel.findOne({ vendorId: vendorId })
-        if (isExisted) return res.status(409).json({ error: true, message: "you already applied for the kyc" })
-        const isRequested = await createTheKycRequest(req.body)
-        if (!isRequested) return res.status(400).json({ error: true, message: "failed !try  again" })
+        if (!vendor) {
+            return res.status(404).json({ error: true, message: "Vendor not found" });
+        }
 
-        res.status(200).json({ error: false, message: "success", data: isRequested })
+        // Check if a KYC request with this vendorId exists
+        const existingKycRequest = await KycModel.findOne({ vendorId: vendorId });
+
+        if (existingKycRequest) {
+            if (existingKycRequest.isVerified !== "failed") {
+                return res.status(409).json({
+                    error: true,
+                    message: `You have already requested for KYC. Your request is still ${existingKycRequest.isVerified}`,
+                });
+            }
+            if (existingKycRequest.isVerified === 'failed') {
+                // updateKycWithNewData
+                const isUpdate = await KycModel.findByIdAndUpdate(existingKycRequest._id, {
+                    vendorId, name, email, ...req.body, isVerified: "requested"
+                }, { new: true })
+                if (!isUpdate) return res.status(401).json({ error: true, message: "missing credentials " })
+                return res.status(200).json({ error: false, message: 'success', data: isUpdate })
+            }
+
+        }
+
+
+
+        // Create the KYC request
+        const isRequested = await createTheKycRequest(req.body);
+
+        if (!isRequested) {
+            return res.status(500).json({ error: true, message: "Failed to create KYC request" });
+        }
+
+        res.status(200).json({ error: false, message: "Success", data: isRequested });
     } catch (error) {
-        res.status(500).json({ error: true, message: error.message })
+        console.error("Error in RegisterKyc:", error);
+        res.status(500).json({ error: true, message: "Internal server error" });
     }
-}
+};
 
 
 
@@ -78,7 +113,17 @@ const MakeActionKyc = async (req, res) => {
 }
 
 
+// delete all the kyc request 
+const DeleteALLKycReq = async (req, res) => {
+    KycModel.deleteMany({}).then(() => {
+        res.status(200).json({ error: false, message: "success" })
+    }).catch((error) => {
+        console.log(error)
+    })
+}
 
 
 
-module.exports = { RegisterKyc, deleteTheKycRequest, GetAllKycRequests, MakeActionKyc }
+
+
+module.exports = { RegisterKyc, deleteTheKycRequest, GetAllKycRequests, MakeActionKyc, DeleteALLKycReq }
