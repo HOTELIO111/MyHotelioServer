@@ -9,7 +9,7 @@ const roomSchema = new mongoose.Schema({
         default: 1
     },
     roomType: String,
-    price: String,
+    price: Number,
     prevPrice: String,
     status: {
         type: Boolean,
