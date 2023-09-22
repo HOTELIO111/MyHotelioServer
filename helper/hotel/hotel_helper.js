@@ -3,6 +3,7 @@
 
 const AdminModel = require("../../Model/AdminModel/adminModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
+const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel")
 
 const HotelList = async (id) => {
@@ -83,6 +84,50 @@ const DeleteVendorSingleHotel = async (hid, vid) => {
 
 
 
+const GetAllRoomWiseAmenities = async (arrayToMatch) => {
+    try {
+        const allamenities = {};
+        const allroomtype = await RoomsTypeModel.find({});
+
+        // Populate the allamenities object with room types and their amenities
+        allroomtype.forEach(element => {
+            allamenities[element._id] = element.amenties;
+        });
+
+        const keys = {};
+
+        for (let element of arrayToMatch) {
+            for (let key in allamenities) {
+                if (allamenities[key].includes(element)) {
+                    if (!keys[element]) {
+                        keys[element] = [];
+                    }
+                    keys[element].push(key);
+                }
+            }
+        }
+
+        return { amenities: allamenities, keys: keys };
+    } catch (error) {
+        throw error; // Handle or log the error as needed
+    }
+};
 
 
-module.exports = { HotelList, IsWho, GetDeleteTheVendorHotel, DeleteVendorSingleHotel }
+const GetAllFacilitiesRoomWise = async () => {
+    const allamenities = {}
+    const allroomtype = await RoomsTypeModel.find({})
+    allroomtype.forEach(element => {
+        allamenities[element._id] = element.includeFacilities
+    });
+
+    return allamenities
+}
+
+
+
+
+
+module.exports = { HotelList, IsWho, GetDeleteTheVendorHotel, DeleteVendorSingleHotel, GetAllRoomWiseAmenities, GetAllFacilitiesRoomWise }
+
+
