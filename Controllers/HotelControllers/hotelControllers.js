@@ -2,7 +2,7 @@
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
-const { HotelList, GetDeleteTheVendorHotel, DeleteVendorSingleHotel, IsWho } = require("../../helper/hotel/hotel_helper");
+const { HotelList, GetDeleteTheVendorHotel, DeleteVendorSingleHotel, IsWho, GetAllRoomWiseAmenities } = require("../../helper/hotel/hotel_helper");
 
 
 const RegisterHotel = async (req, res) => {
@@ -275,7 +275,7 @@ const fitlerDataCreate = async (req, res) => {
 
 
 const GetSearchTheHotelList = async (req, res) => {
-    const { location, checkIn, checkOut, totalRooms, roomType, priceMin, priceMax, hotelType, amenities, payment, rating, page, pageSize } = req.query;
+    const { location, checkIn, checkOut, totalRooms, roomType, priceMin, priceMax, hotelType, amenities, facilities, payment, ratings, page, pageSize } = req.query;
     const skip = (page - 1) * pageSize
 
     const search = {}
@@ -290,8 +290,8 @@ const GetSearchTheHotelList = async (req, res) => {
         search.hotelType = { $regex: hotelType, $options: 'i' }
     }
 
-    if (rating) {
-        search.hotelRatings = { $gte: rating }
+    if (ratings) {
+        search.hotelRatings = { $gte: ratings }
     }
 
     if (roomType) {
@@ -300,20 +300,37 @@ const GetSearchTheHotelList = async (req, res) => {
 
     // price 
     if (priceMin && priceMax) {
-        search['rooms.price'] = { $lte: priceMax, $gte: priceMin }
+        if (typeof priceMin === 'number' && typeof priceMax === 'number' && priceMin <= priceMax) {
+            search['rooms.price'] = { $lte: priceMax, $gte: priceMin };
+        }
     }
     // amaenities
     if (amenities) {
         const amenitiesArray = amenities.split(',').map(item => item.trim());
-        search.amenities = { $all: amenitiesArray }
+
+        const allAmenities = await GetAllRoomWiseAmenities(amenitiesArray);
+
+        // Create an array to store the values from allAmenities
+        const enumValues = Object.values(allAmenities.keys);
+
+        console.log(enumValues)
+
+        // Create a query to check if "rooms.roomType" is in any of the enumValues arrays
+        search["rooms.roomType"] = { $in: enumValues[0] };
     }
 
-    // // checkin checkout abhi likhna 
+
+
+    // checkin checkout
+    if (checkIn && checkOut) {
+        search.checkIn = { $lte: checkIn };
+        search.checkOut = { $gte: checkOut };
+    }
 
 
     // room mangement 
     if (totalRooms) {
-        search['rooms.counts'] = { $gt: totalRooms }
+        search['rooms.counts'] = { $gte: totalRooms }
     }
 
 
@@ -325,8 +342,6 @@ const GetSearchTheHotelList = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: true, error })
     }
-
-
 }
 
 
