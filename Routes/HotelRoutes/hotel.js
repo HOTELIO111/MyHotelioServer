@@ -48,11 +48,6 @@ router.get("/room/delete/:hotelid/:roomid", DeleteRoomDataFromHotel)
 
 
 
-// universal search Api 
-
-// router.get("/search/:data", ReqHotelData);
-// router.get("/filter", FilterTheHotelData);
-
 
 // new filter api
 router.get("/filter", fitlerDataCreate)
