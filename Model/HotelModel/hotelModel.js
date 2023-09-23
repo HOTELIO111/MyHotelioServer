@@ -1,97 +1,100 @@
 const mongoose = require("mongoose");
 
-
-
-
-const roomSchema = new mongoose.Schema({
+const roomSchema = new mongoose.Schema(
+  {
     counts: {
-        type: Number,
-        default: 1
+      type: Number,
+      default: 1,
     },
     roomType: String,
     price: Number,
     prevPrice: String,
     status: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true,
     },
     additionAmenities: {
-        type: Array,
+      type: Array,
     },
     additionalFacilties: {
-        type: Array
-    }
-}, {
-    timestamps: true
-}
-)
+      type: Array,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const schema = new mongoose.Schema({
+const schema = new mongoose.Schema(
+  {
     vendorId: {
-        type: String,
-        required: function () {
-            return this.isAddedBy === "vendor"
-        }
+      type: String,
+      required: function () {
+        return this.isAddedBy === "vendor";
+      },
     },
     isAddedBy: {
-        type: String,
-        default: 'vendor',
-        required: true
+      type: String,
+      default: "vendor",
+      required: true,
     },
-    // Hotel Details 
+    // Hotel Details
     hotelName: {
-        type: String,
+      type: String,
     },
     hotelType: {
-        type: String,
+      type: String,
     },
     hotelEmail: {
-        type: String,
+      type: String,
     },
     hotelMobileNo: {
-        type: Number,
+      type: Number,
     },
     locality: {
-        type: String,
+      type: String,
+    },
+    address: {
+      type: String,
     },
     city: {
-        type: String,
+      type: String,
     },
     state: {
-        type: String,
+      type: String,
     },
     country: {
-        type: String,
+      type: String,
     },
     zipCode: {
-        type: Number,
+      type: Number,
     },
     discription: {
-        type: String,
+      type: String,
     },
     geoLoc: {
-        lang: String,
-        lat: String,
+      lang: String,
+      lat: String,
     },
-    // Hotel rooms info 
+    // Hotel rooms info
     rooms: [roomSchema],
     amenities: {
-        type: Array
+      type: Array,
     },
     facilities: {
-        type: Array
+      type: Array,
     },
     hotelCoverImg: {
-        type: String,
+      type: String,
     },
     hotelImages: {
-        type: Array,
+      type: Array,
     },
     checkOut: {
-        type: String,
+      type: String,
     },
     checkIn: {
-        type: String,
+      type: String,
     },
 
     // Legal Documents
@@ -103,52 +106,53 @@ const schema = new mongoose.Schema({
     gstNo: String,
     gstImg: String,
 
-    // Policy and privacy 
+    // Policy and privacy
     cancellationPrice: String,
     cancellationPolicy: String,
     termsAndCondition: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     hotelFullySanitized: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     notSupportDiscrimination: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     validAndTrueData: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
 
-
-    // Hotel Bookings 
+    // Hotel Bookings
     hotelBookings: {
-        type: Array
+      type: Array,
     },
-    // Sir hi jane 
+    // Sir hi jane
     hotelMapLink: {
-        type: String,
-        required: true,
-        default: "https://www.google.com/maps/d/embed?mid=1nxxfsdOOs2x2HPEsNV-YlJDLFzM&hl=en&ehbc=2E312F"
+      type: String,
+      required: true,
+      default:
+        "https://www.google.com/maps/d/embed?mid=1nxxfsdOOs2x2HPEsNV-YlJDLFzM&hl=en&ehbc=2E312F",
     },
     isAdminApproved: Boolean,
     isPostpaidAllowed: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     hotelRatings: {
-        type: Number,
-        enum: [0, 1, 2, 3, 4, 5],
-        default: 3
+      type: Number,
+      enum: [0, 1, 2, 3, 4, 5],
+      default: 3,
     },
-}, {
-    timestamps: true
-})
+  },
+  {
+    timestamps: true,
+  }
+);
 
-
-const HotelModel = mongoose.model("Hotels", schema)
+const HotelModel = mongoose.model("Hotels", schema);
 
 module.exports = HotelModel;
