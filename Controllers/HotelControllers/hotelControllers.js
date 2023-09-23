@@ -300,9 +300,10 @@ const GetSearchTheHotelList = async (req, res) => {
 
     // price 
     if (priceMin && priceMax) {
-        if (typeof priceMin === 'number' && typeof priceMax === 'number' && priceMin <= priceMax) {
-            search['rooms.price'] = { $lte: priceMax, $gte: priceMin };
-        }
+        search['rooms.price'] = { $lte: parseInt(priceMax), $gte: parseInt(priceMin) }; 
+        // if (typeof priceMin === 'number' && typeof priceMax === 'number' && priceMin <= priceMax) {
+        //     
+        // }
     }
     // amaenities
     if (amenities) {
@@ -330,7 +331,7 @@ const GetSearchTheHotelList = async (req, res) => {
 
     // room mangement 
     if (totalRooms) {
-        search['rooms.counts'] = { $gte: totalRooms }
+        search['rooms.counts'] = { $gte: parseInt(totalRooms) }
     }
 
 
