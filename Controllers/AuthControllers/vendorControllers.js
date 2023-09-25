@@ -48,9 +48,17 @@ const AddVendor = async (req, res) => {
       password: hashPassword.hashedPassword,
       secretKey: hashPassword.salt,
     }).save();
+
+    const jwtTokenValue = {
+      _id: result._id,
+      name: result.name,
+    };
+    const accesstoken = jwt.sign(jwtTokenValue, process.env.SECRET_CODE);
+    res.header("Authorization", `Bearer ${accesstoken}`);
     res.status(200).json({
       error: false,
       data: result,
+      token: accesstoken,
     });
   } catch (error) {
     res.status(500).json({ error: error });
