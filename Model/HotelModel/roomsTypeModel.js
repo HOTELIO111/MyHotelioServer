@@ -1,31 +1,30 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model } = require("mongoose");
 
-const schema = new Schema({
+const schema = new Schema(
+  {
     roomType: {
-        type: String,
+      type: String,
     },
     personAllowed: {
-        type: Number,
-        default: 4,
+      type: Number,
+      default: 4,
     },
-    includeFacilities: {
-        type: Array,
-    },
+    includeFacilities: [{ type: Schema.Types.ObjectId, ref: "facilities" }],
     minPrice: {
-        type: Number,
-        required: true
+      type: Number,
+      required: true,
     },
     maxPrice: {
-        type: Number,
-        required: true
+      type: Number,
+      required: true,
     },
-    amenties: Array
-}, {
-    timestamps: true
-})
+    amenties: [{ type: Schema.Types.ObjectId, ref: "amenities" }],
+  },
+  {
+    timestamps: true,
+  }
+);
 
-
-
-const RoomsTypeModel = model("room-category", schema)
+const RoomsTypeModel = model("room-category", schema);
 
 module.exports = RoomsTypeModel;

@@ -1,426 +1,488 @@
-
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
-const { HotelList, GetDeleteTheVendorHotel, DeleteVendorSingleHotel, IsWho, GetAllRoomWiseAmenities } = require("../../helper/hotel/hotel_helper");
-
+const {
+  HotelList,
+  GetDeleteTheVendorHotel,
+  DeleteVendorSingleHotel,
+  IsWho,
+  GetAllRoomWiseAmenities,
+} = require("../../helper/hotel/hotel_helper");
 
 const RegisterHotel = async (req, res) => {
-    const vendorId = req.params.id;
+  const vendorId = req.params.id;
 
-    const _is = await IsWho(vendorId)
-    if (_is === null) return res.status(401).json({ error: true, message: "Invalid Hotel Partner Id " })
+  const _is = await IsWho(vendorId);
+  if (_is === null)
+    return res
+      .status(401)
+      .json({ error: true, message: "Invalid Hotel Partner Id " });
 
-    // Register the hotel
-    const response = await new HotelModel({
-        ...req.body,
-        vendorId: _is === "vendor" ? vendorId : null,
-        isAddedBy: _is
-    }).save();
-    response.discription = defaultDetails(response.hotelName, `${response.city} ${response.state}`)
-    response.save()
-    if (!response) {
-        return res.status(400).json({ error: true, message: "Hotel Not Added Please try Again" });
-    }
+  // Register the hotel
+  const response = await new HotelModel({
+    ...req.body,
+    vendorId: _is === "vendor" ? vendorId : null,
+    isAddedBy: _is,
+  }).save();
+  response.discription = defaultDetails(
+    response.hotelName,
+    `${response.city} ${response.state}`
+  );
+  response.save();
+  if (!response) {
+    return res
+      .status(400)
+      .json({ error: true, message: "Hotel Not Added Please try Again" });
+  }
 
-    // Find the user and update this hotel id
-    const Vendor = await VendorModel.findOneAndUpdate(
-        { _id: vendorId },
-        { $push: { hotels: response._id } },
-        { new: true, upsert: true }
-    );
-    if (!Vendor) {
-        // If the ID is not pushed into the customer's data, consider the hotel as unregistered
-        await response.remove();
-        return res.status(400).json({ error: true, message: "Hotel Not Registered. Try Again" });
-    }
+  // Find the user and update this hotel id
+  const Vendor = await VendorModel.findOneAndUpdate(
+    { _id: vendorId },
+    { $push: { hotels: response._id } },
+    { new: true, upsert: true }
+  );
+  if (!Vendor) {
+    // If the ID is not pushed into the customer's data, consider the hotel as unregistered
+    await response.remove();
+    return res
+      .status(400)
+      .json({ error: true, message: "Hotel Not Registered. Try Again" });
+  }
 
-    res.status(200).json({ error: false, data: response });
+  res.status(200).json({ error: false, data: response });
 };
 
-
-// Get all the data 
+// Get all the data
 const GetAllHotel = async (req, res) => {
-
-    try {
-        const AllData = await HotelModel.find({})
-        if (!AllData) return res.status(400).json({ error: true, message: "No Data Found" })
-        res.status(200).json({ error: true, data: AllData })
-    } catch (error) {
-        res.status(500).json({ error })
-    }
-
-}
+  try {
+    const AllData = await HotelModel.find({});
+    if (!AllData)
+      return res.status(400).json({ error: true, message: "No Data Found" });
+    res.status(200).json({ error: true, data: AllData });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
 
 const GetSingleHotel = async (req, res) => {
-    const Id = req.params.id
-    try {
-        // check the hotel with id 
-        const isHotel = await HotelModel.findById(Id)
-        if (!isHotel) return res.status(404).json({ error: true, message: "No Data Found" })
-        // return the response 
-        res.status(200).json({ error: false, data: isHotel });
-    } catch (error) {
-        res.status(500).json({ error })
-    }
-}
+  const Id = req.params.id;
+  try {
+    // check the hotel with id
+    const isHotel = await HotelModel.findById(Id).populate("rooms.roomType");
+    if (!isHotel)
+      return res.status(404).json({ error: true, message: "No Data Found" });
+    // return the response
+    res.status(200).json({ error: false, data: isHotel });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
 
-
-// Update the Hotel Data 
+// Update the Hotel Data
 const UpdateHotelData = async (req, res) => {
-    const id = req.params.id
+  const id = req.params.id;
 
-    try {
-        const isUser = await HotelModel.findById(id)
-        if (!isUser) return res.status(404).json({ error: true, message: "No Data Found" })
-        // Find the hotel  
-        const isFoundandUpdated = await HotelModel.findByIdAndUpdate(id, {
-            ...req.body,
-            hotelEmail: isUser.hotelEmail
-        }, { new: true });
-        if (!isFoundandUpdated) return res.status(400).json({ error: true, message: "No Updated" })
+  try {
+    const isUser = await HotelModel.findById(id);
+    if (!isUser)
+      return res.status(404).json({ error: true, message: "No Data Found" });
+    // Find the hotel
+    const isFoundandUpdated = await HotelModel.findByIdAndUpdate(
+      id,
+      {
+        ...req.body,
+        hotelEmail: isUser.hotelEmail,
+      },
+      { new: true }
+    );
+    if (!isFoundandUpdated)
+      return res.status(400).json({ error: true, message: "No Updated" });
 
-        res.status(200).json({ error: false, data: isFoundandUpdated, message: "Updated Successfully " })
-    } catch (error) {
-        res.status(500).json({ error })
-    }
-}
+    res.status(200).json({
+      error: false,
+      data: isFoundandUpdated,
+      message: "Updated Successfully ",
+    });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
 
 const DeleteSingleHotel = async (req, res) => {
-    // id of the user to delete
-    const id = req.params.id;
+  // id of the user to delete
+  const id = req.params.id;
 
-    try {
-        // Find the hotel by ID
-        const isHotel = await HotelModel.findById(id);
+  try {
+    // Find the hotel by ID
+    const isHotel = await HotelModel.findById(id);
 
-        // Check if the hotel exists
-        if (!isHotel) {
-            return res.status(404).json({ error: true, message: "Hotel not found" });
-        }
-
-        // Delete the hotel data from the Vendor Data
-        const deleteVendorHotel = await VendorModel.updateOne(
-            { _id: isHotel.vendorId },
-            { $pull: { hotels: { _id: isHotel._id } } }
-        );
-        if (!deleteVendorHotel) return res.status(400).json({ error: true, message: "no deleted try again" })
-
-        // Remove the hotel document
-        const deleteHotel = await HotelModel.findByIdAndDelete(id)
-        if (!deleteHotel) return res.status(400).json({ error: true, message: "hotel deletion faild ! try again" })
-
-        res.status(200).json({ error: false, message: "Deleted successfully" });
-    } catch (error) {
-        // Handle any errors that occur during the process
-        res.status(500).json({ error: true, message: "Internal server error" });
+    // Check if the hotel exists
+    if (!isHotel) {
+      return res.status(404).json({ error: true, message: "Hotel not found" });
     }
-}
 
-// delete all hotel of the single vendor 
+    // Delete the hotel data from the Vendor Data
+    const deleteVendorHotel = await VendorModel.updateOne(
+      { _id: isHotel.vendorId },
+      { $pull: { hotels: { _id: isHotel._id } } }
+    );
+    if (!deleteVendorHotel)
+      return res
+        .status(400)
+        .json({ error: true, message: "no deleted try again" });
+
+    // Remove the hotel document
+    const deleteHotel = await HotelModel.findByIdAndDelete(id);
+    if (!deleteHotel)
+      return res
+        .status(400)
+        .json({ error: true, message: "hotel deletion faild ! try again" });
+
+    res.status(200).json({ error: false, message: "Deleted successfully" });
+  } catch (error) {
+    // Handle any errors that occur during the process
+    res.status(500).json({ error: true, message: "Internal server error" });
+  }
+};
+
+// delete all hotel of the single vendor
 const DeleteSelectedVendorHotel = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    const result = await GetDeleteTheVendorHotel(id)
-    if (!result) return res.status(400).json({ error: true, message: "deleted successfully" })
+  const result = await GetDeleteTheVendorHotel(id);
+  if (!result)
+    return res
+      .status(400)
+      .json({ error: true, message: "deleted successfully" });
 
-    res.status(200).json({ error: false, message: "success", data: result })
-}
+  res.status(200).json({ error: false, message: "success", data: result });
+};
 
 // delete vendor single hotel
 const DeleteSigleHotel = async (req, res) => {
-    const { hotelId } = req.query;
+  const { hotelId } = req.query;
 
-    try {
-        // find the hotel data
-        const isHotel = await HotelModel.findById(hotelId)
-        if (!isHotel) return res.status(404).json({ error: true, message: "no hotel found" })
+  try {
+    // find the hotel data
+    const isHotel = await HotelModel.findById(hotelId);
+    if (!isHotel)
+      return res.status(404).json({ error: true, message: "no hotel found" });
 
-        // delete the hotel 
-        const isDeleted = await DeleteVendorSingleHotel(hotelId, isHotel.vendorId)
-        if (!isDeleted) return res.status(400).json({ error: true, message: "failed to deleted ! try again " })
+    // delete the hotel
+    const isDeleted = await DeleteVendorSingleHotel(hotelId, isHotel.vendorId);
+    if (!isDeleted)
+      return res
+        .status(400)
+        .json({ error: true, message: "failed to deleted ! try again " });
 
-        res.status(200).json({ error: false, message: "success deleted " })
-    } catch (error) {
-        res.status(500).json({ error: true, message: error.message })
-    }
-}
-
-
+    res.status(200).json({ error: false, message: "success deleted " });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
 
 // delet all the dat
 const DeleteAllHotelData = async (req, res) => {
-
-    // find the data and delete the data
-    HotelModel.deleteMany({}).then(() => {
-        res.status(200).json({ error: false, message: "Deleted Successfully" })
-    }).catch((err) => {
-        res.status(500).json(err)
+  // find the data and delete the data
+  HotelModel.deleteMany({})
+    .then(() => {
+      res.status(200).json({ error: false, message: "Deleted Successfully" });
     })
-}
-
-
-// Search Api for Hotel or location Search 
-const ReqHotelData = async (req, res) => {
-    const { searchLocation } = req.query;
-    // hotel data 
-    const requested = req.params.data.split(",")
-    try {
-        // Get all the data from the API
-        const allData = await HotelModel.find({}).select(requested);
-        let modifiedData;
-        if (searchLocation === true) {
-            // Concatenate the fields and create a new field called "concatenatedData"
-            modifiedData = allData.map((data) => ({
-                ...data._doc,
-                concatenatedData: `${data.hotelName} , ${data.hotelAddress}`,
-            }));
-        } else {
-            modifiedData = allData;
-        }
-
-        res.status(200).json({ error: false, data: modifiedData });
-    } catch (error) {
-        res.status(500).json({ error: true, message: error.message });
-    }
+    .catch((err) => {
+      res.status(500).json(err);
+    });
 };
 
+// Search Api for Hotel or location Search
+const ReqHotelData = async (req, res) => {
+  const { searchLocation } = req.query;
+  // hotel data
+  const requested = req.params.data.split(",");
+  try {
+    // Get all the data from the API
+    const allData = await HotelModel.find({}).select(requested);
+    let modifiedData;
+    if (searchLocation === true) {
+      // Concatenate the fields and create a new field called "concatenatedData"
+      modifiedData = allData.map((data) => ({
+        ...data._doc,
+        concatenatedData: `${data.hotelName} , ${data.hotelAddress}`,
+      }));
+    } else {
+      modifiedData = allData;
+    }
 
+    res.status(200).json({ error: false, data: modifiedData });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
 
 const FilterTheHotelData = async (req, res) => {
+  // filter parameter we get
+  const { location, roomType, checkIn, CheckOut, rooms, price } = req.query;
 
-    // filter parameter we get 
-    const { location, roomType, checkIn, CheckOut, rooms, price } = req.query;
+  // make the filter
+  const filter = {};
 
-    // make the filter 
-    const filter = {}
+  if (location) {
+    filter.hotelAddress = { $regex: location, $options: "i" };
+  }
+  if (checkIn && CheckOut) {
+    filter.$and = [
+      { checkInTime: { $gte: new Date(checkIn), $options: "i" } },
+      { checkOutTime: { $lte: new Date(CheckOut), $options: "i" } },
+    ];
+  }
+  // get the data by filter
+  try {
+    const result = await HotelModel.find(filter);
+    if (!result) return res.status(404).json({ message: "No date found" });
 
-    if (location) {
-        filter.hotelAddress = { $regex: location, $options: "i" }
-    }
-    if (checkIn && CheckOut) {
-        filter.$and = [
-            { checkInTime: { $gte: new Date(checkIn), $options: "i" } },
-            { checkOutTime: { $lte: new Date(CheckOut), $options: "i" } }
-        ]
-    }
-    // get the data by filter 
-    try {
-        const result = await HotelModel.find(filter);
-        if (!result) return res.status(404).json({ message: "No date found" });
-
-        res.status(200).json({ error: false, data: result })
-    } catch (error) {
-        res.status(500).json({ error })
-    }
-}
-
-
-const GetUsersHotel = async (req, res) => {
-    const Id = req.params.id
-    try {
-
-        // get the hotels  as per id  
-        const allHotels = await HotelList(Id)
-        if (allHotels === null) return res.status(400).json({ error: true, message: "no hotels found" })
-        // const result = await HotelModel.find({ vendorId: Id })
-        // if (!result) return res.status(404).json({ error: true, message: "No Hotels Registered" })
-
-        res.status(200).json({ error: false, data: allHotels })
-    } catch (error) {
-        res.status(500).json(error)
-    }
-}
-
-
-
-const fitlerDataCreate = async (req, res) => {
-    const { city, roomType, amenities, accomodationType } = req.query;
-    const filter = {};
-
-    // check the user is Verified or not 
-
-
-    // Filter with city
-    if (city) {
-        filter.city = { $regex: new RegExp(city, "i") };
-    }
-
-    // find the ammenities
-    if (amenities) {
-        const arrayAmenities = amenities.split(',').map((item) => item.trim());
-        filter.amenities = { $all: arrayAmenities };
-    }
-
-
-    // accomodation type
-    if (accomodationType) {
-        const accomodationArray = accomodationType.split(",").map((item) => item.trim());
-        filter.hotelType = { $in: accomodationArray };
-    }
-
-    try {
-        const result = await HotelModel.find(filter);
-        if (result.length === 0) {
-            return res.status(404).json({ message: "No data found" });
-        }
-
-        res.status(200).json({ error: false, data: result });
-    } catch (error) {
-        console.error("Error while filtering data:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
+    res.status(200).json({ error: false, data: result });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
 };
 
+const GetUsersHotel = async (req, res) => {
+  const Id = req.params.id;
+  const { role } = req.query;
+  if (!Id && !role)
+    return res
+      .status(401)
+      .json({ error: true, message: "missing credentials " });
+  try {
+    // get the hotels  as per id
+    const allHotels = await HotelList(Id, role);
+    if (allHotels === null)
+      return res.status(400).json({ error: true, message: "no hotels found" });
 
+    res.status(200).json({ error: false, data: allHotels });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
+const fitlerDataCreate = async (req, res) => {
+  const { city, roomType, amenities, accomodationType } = req.query;
+  const filter = {};
+
+  // check the user is Verified or not
+
+  // Filter with city
+  if (city) {
+    filter.city = { $regex: new RegExp(city, "i") };
+  }
+
+  // find the ammenities
+  if (amenities) {
+    const arrayAmenities = amenities.split(",").map((item) => item.trim());
+    filter.amenities = { $all: arrayAmenities };
+  }
+
+  // accomodation type
+  if (accomodationType) {
+    const accomodationArray = accomodationType
+      .split(",")
+      .map((item) => item.trim());
+    filter.hotelType = { $in: accomodationArray };
+  }
+
+  try {
+    const result = await HotelModel.find(filter);
+    if (result.length === 0) {
+      return res.status(404).json({ message: "No data found" });
+    }
+
+    res.status(200).json({ error: false, data: result });
+  } catch (error) {
+    console.error("Error while filtering data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 const GetSearchTheHotelList = async (req, res) => {
-    const { location, checkIn, checkOut, totalRooms, roomType, priceMin, priceMax, hotelType, amenities, facilities, payment, ratings, page, pageSize } = req.query;
-    const skip = (page - 1) * pageSize
+  const {
+    location,
+    checkIn,
+    checkOut,
+    totalRooms,
+    roomType,
+    priceMin,
+    priceMax,
+    hotelType,
+    amenities,
+    facilities,
+    payment,
+    ratings,
+    page,
+    pageSize,
+  } = req.query;
+  const skip = (page - 1) * pageSize;
 
-    const search = {}
+  const search = {};
 
-    // location
-    if (location) {
-        search.city = { $regex: location, $options: "i" }
-    }
+  // location
+  if (location) {
+    search.city = { $regex: location, $options: "i" };
+  }
 
-    // category 
-    if (hotelType) {
-        search.hotelType = { $regex: hotelType, $options: 'i' }
-    }
+  // category
+  if (hotelType) {
+    search.hotelType = { $regex: hotelType, $options: "i" };
+  }
 
-    if (ratings) {
-        search.hotelRatings = { $gte: ratings }
-    }
+  if (ratings) {
+    search.hotelRatings = { $gte: ratings };
+  }
 
-    if (roomType) {
-        search['rooms.roomType'] = { $regex: roomType, $options: 'i' }
-    }
+  if (roomType) {
+    search["rooms.roomType"] = { $regex: roomType, $options: "i" };
+  }
 
-    // price 
-    if (priceMin && priceMax) {
-        search['rooms.price'] = { $lte: parseInt(priceMax), $gte: parseInt(priceMin) }; 
-        // if (typeof priceMin === 'number' && typeof priceMax === 'number' && priceMin <= priceMax) {
-        //     
-        // }
-    }
-    // amaenities
-    if (amenities) {
-        const amenitiesArray = amenities.split(',').map(item => item.trim());
+  // price
+  if (priceMin && priceMax) {
+    search["rooms.price"] = {
+      $lte: parseInt(priceMax),
+      $gte: parseInt(priceMin),
+    };
+    // if (typeof priceMin === 'number' && typeof priceMax === 'number' && priceMin <= priceMax) {
+    //
+    // }
+  }
+  // amaenities
+  if (amenities) {
+    const amenitiesArray = amenities.split(",").map((item) => item.trim());
 
-        const allAmenities = await GetAllRoomWiseAmenities(amenitiesArray);
+    const allAmenities = await GetAllRoomWiseAmenities(amenitiesArray);
 
-        // Create an array to store the values from allAmenities
-        const enumValues = Object.values(allAmenities.keys);
+    // Create an array to store the values from allAmenities
+    const enumValues = Object.values(allAmenities.keys);
 
-        console.log(enumValues)
+    console.log(enumValues);
 
-        // Create a query to check if "rooms.roomType" is in any of the enumValues arrays
-        search["rooms.roomType"] = { $in: enumValues[0] };
-    }
+    // Create a query to check if "rooms.roomType" is in any of the enumValues arrays
+    search["rooms.roomType"] = { $in: enumValues[0] };
+  }
 
+  // checkin checkout
+  if (checkIn && checkOut) {
+    search.checkIn = { $lte: checkIn };
+    search.checkOut = { $gte: checkOut };
+  }
 
+  // room mangement
+  if (totalRooms) {
+    search["rooms.counts"] = { $gte: parseInt(totalRooms) };
+  }
 
-    // checkin checkout
-    if (checkIn && checkOut) {
-        search.checkIn = { $lte: checkIn };
-        search.checkOut = { $gte: checkOut };
-    }
+  try {
+    const response = await HotelModel.find(search)
+      .skip(skip)
+      .limit(Number(pageSize));
+    if (!response)
+      return res
+        .status(400)
+        .json({ error: true, message: "No Hotels Found At this Location" });
 
+    res.status(200).json({ error: false, data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, error });
+  }
+};
 
-    // room mangement 
-    if (totalRooms) {
-        search['rooms.counts'] = { $gte: parseInt(totalRooms) }
-    }
-
-
-    try {
-        const response = await HotelModel.find(search).skip(skip).limit(Number(pageSize))
-        if (!response) return res.status(400).json({ error: true, message: "No Hotels Found At this Location" })
-
-        res.status(200).json({ error: false, data: response })
-    } catch (error) {
-        res.status(500).json({ error: true, error })
-    }
-}
-
-
-
-// get list of the field 
+// get list of the field
 const GetFieldList = async (req, res) => {
-    const { field } = req.params;
+  const { field } = req.params;
 
-    try {
-        const result = await HotelModel.distinct(field)
-        if (!result) return res.status(404).json({ error: true, message: "Invalid Request" })
+  try {
+    const result = await HotelModel.distinct(field);
+    if (!result)
+      return res.status(404).json({ error: true, message: "Invalid Request" });
 
-        // Make the data not repeatable (remove duplicates and format each word's first letter to uppercase)
-        const uniqueValues = [...new Set(result.map(item => capitalizeFirstLetter(item)))];
+    // Make the data not repeatable (remove duplicates and format each word's first letter to uppercase)
+    const uniqueValues = [
+      ...new Set(result.map((item) => capitalizeFirstLetter(item))),
+    ];
 
-        res.status(200).json({ error: false, data: uniqueValues });
-    } catch (error) {
-        res.status(500).json({ error })
-    }
-}
-
+    res.status(200).json({ error: false, data: uniqueValues });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
 
 // Function to capitalize the first letter of each word and make the rest lowercase
 function capitalizeFirstLetter(str) {
-    return str.replace(/\b\w+/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+  return str.replace(
+    /\b\w+/g,
+    (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  );
 }
 
-
-
-// Delete the single Vendor  
+// Delete the single Vendor
 const pagination = async (req, res) => {
-
-    try {
-        const items = await HotelModel.find()
-            .skip(skip)
-            .limit(Number(pageSize));
-        res.json(items);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Server error' });
-    }
-}
-
-
-
-// delete all hoteles and also the data from the vendor hotels data 
-const DeleteAllHotel = async (req, res) => {
-    try {
-        const AllHotelIdAndVendorIdList = await HotelModel.find({}, { _id: 1, vendorId: 1 });
-        if (!AllHotelIdAndVendorIdList || AllHotelIdAndVendorIdList.length === 0) {
-            return res.status(404).json({ error: true, message: "No hotels data found" });
-        }
-
-        // Use Promise.all to await all the delete operations
-        const deletePromises = AllHotelIdAndVendorIdList.map(async element => {
-            const [hotelDeleted, vendorHotelRemoved] = await Promise.all([
-                HotelModel.deleteOne({ _id: element._id }),
-                VendorModel.findByIdAndUpdate(element.vendorId, { $pull: { hotels: element._id } })
-            ]);
-            if (!hotelDeleted || !vendorHotelRemoved) {
-                throw new Error("Failed to delete hotel or remove from vendor");
-            }
-        });
-
-        // Wait for all the delete operations to complete
-        await Promise.all(deletePromises);
-
-        res.status(200).json({ error: false, message: "Success" });
-    } catch (error) {
-        res.status(500).json({ error: true, message: error.message });
-    }
+  try {
+    const items = await HotelModel.find().skip(skip).limit(Number(pageSize));
+    res.json(items);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
 };
 
+// delete all hoteles and also the data from the vendor hotels data
+const DeleteAllHotel = async (req, res) => {
+  try {
+    const AllHotelIdAndVendorIdList = await HotelModel.find(
+      {},
+      { _id: 1, vendorId: 1 }
+    );
+    if (!AllHotelIdAndVendorIdList || AllHotelIdAndVendorIdList.length === 0) {
+      return res
+        .status(404)
+        .json({ error: true, message: "No hotels data found" });
+    }
 
+    // Use Promise.all to await all the delete operations
+    const deletePromises = AllHotelIdAndVendorIdList.map(async (element) => {
+      const [hotelDeleted, vendorHotelRemoved] = await Promise.all([
+        HotelModel.deleteOne({ _id: element._id }),
+        VendorModel.findByIdAndUpdate(element.vendorId, {
+          $pull: { hotels: element._id },
+        }),
+      ]);
+      if (!hotelDeleted || !vendorHotelRemoved) {
+        throw new Error("Failed to delete hotel or remove from vendor");
+      }
+    });
 
+    // Wait for all the delete operations to complete
+    await Promise.all(deletePromises);
+
+    res.status(200).json({ error: false, message: "Success" });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
 
 // ------Room Api's ----------------------------------------------------
 
-
-
-module.exports = { RegisterHotel, GetAllHotel, GetSingleHotel, UpdateHotelData, DeleteSingleHotel, DeleteAllHotelData, FilterTheHotelData, ReqHotelData, GetUsersHotel, fitlerDataCreate, GetSearchTheHotelList, GetFieldList, pagination, DeleteSelectedVendorHotel, DeleteSigleHotel, DeleteAllHotel };
+module.exports = {
+  RegisterHotel,
+  GetAllHotel,
+  GetSingleHotel,
+  UpdateHotelData,
+  DeleteSingleHotel,
+  DeleteAllHotelData,
+  FilterTheHotelData,
+  ReqHotelData,
+  GetUsersHotel,
+  fitlerDataCreate,
+  GetSearchTheHotelList,
+  GetFieldList,
+  pagination,
+  DeleteSelectedVendorHotel,
+  DeleteSigleHotel,
+  DeleteAllHotel,
+};
