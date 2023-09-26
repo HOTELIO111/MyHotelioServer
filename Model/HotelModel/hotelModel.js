@@ -6,7 +6,10 @@ const roomSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
-    roomType: String,
+    roomType: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "room-category",
+    },
     price: Number,
     prevPrice: String,
     status: {
