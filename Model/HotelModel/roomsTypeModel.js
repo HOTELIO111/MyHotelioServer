@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 
 const schema = new Schema(
   {
-    roomType: {
+    title: {
       type: String,
     },
     personAllowed: {

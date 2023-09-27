@@ -1,27 +1,25 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model } = require("mongoose");
 
-const schema = new Schema({
+const schema = new Schema(
+  {
     title: {
-        type: String,
+      type: String,
     },
     icon: {
-        type: String
+      type: String,
     },
-    
     isPaid: {
-        type: Boolean,
-        default: false
-    },
-    isMandatory: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
     price: {
-        type: String,
-    }
-}, {
+      type: String,
+    },
+  },
+  {
     timestamps: true,
-});
+  }
+);
 
 const FacilitiesModel = model("facilities", schema);
 

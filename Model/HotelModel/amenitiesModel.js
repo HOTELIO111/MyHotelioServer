@@ -1,7 +1,7 @@
 const { Schema, model } = require('mongoose');
 
 const schema = new Schema({
-    amenity: {
+    title: {
         type: String,
         required: true
     },
