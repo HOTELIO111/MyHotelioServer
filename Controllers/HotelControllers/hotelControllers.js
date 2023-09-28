@@ -68,7 +68,15 @@ const GetSingleHotel = async (req, res) => {
   const Id = req.params.id;
   try {
     // check the hotel with id
-    const isHotel = await HotelModel.findById(Id).populate("rooms.roomType");
+    const isHotel = await HotelModel.findById(Id)
+      .populate({
+        path: "rooms.roomType",
+        populate: [
+          { path: "amenties", select: "_id title" },
+          { path: "includeFacilities", select: "_id title" },
+        ],
+      })
+      .exec();
     if (!isHotel)
       return res.status(404).json({ error: true, message: "No Data Found" });
     // return the response
