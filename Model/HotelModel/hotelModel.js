@@ -75,9 +75,9 @@ const schema = new mongoose.Schema(
     discription: {
       type: String,
     },
-    geoLoc: {
-      lang: String,
-      lat: String,
+    location: {
+      type: { type: String, default: "Point" },
+      coordinates: { type: [Number], default: [0, 0] },
     },
     // Hotel rooms info
     rooms: [roomSchema],
@@ -155,6 +155,8 @@ const schema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+schema.index({ location: "2dsphere" });
 
 const HotelModel = mongoose.model("Hotels", schema);
 

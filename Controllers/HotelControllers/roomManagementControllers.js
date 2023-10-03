@@ -5,9 +5,18 @@ const {
 
 const UpdateRoomData = async (req, res) => {
   const { hotelid, roomid } = req.params;
+  const { hotelId, roomId } = req.query;
 
+  if ((!hotelid || !roomid) && (!hotelId || !roomId))
+    return res
+      .status(401)
+      .json({ error: true, message: "invalid credentials" });
   try {
-    const isUpdated = await UpdatetheRoomData(hotelid, roomid, req.body);
+
+    
+    const hId = hotelid ? hotelid : hotelId;
+    const rId = roomid ? roomid : roomId;
+    const isUpdated = await UpdatetheRoomData(hId, rId, req.body);
 
     if (isUpdated.error === true)
       return res.status(400).json({
@@ -66,9 +75,13 @@ const AddRoomType = async (req, res) => {
 
 const GetAllRoomOfSingleHotel = async (req, res) => {
   const { hotelid } = req.params;
-
+  const { hotelId } = req.query;
+  if (!hotelid && !hotelId)
+    return res
+      .status(401)
+      .json({ error: true, message: "Invalid Credentials" });
   try {
-    const data = await HotelModel.findById(hotelid);
+    const data = await HotelModel.findById(hotelid ? hotelid : hotelId);
     if (!data)
       return res.status(404).json({ error: true, message: "hotel not found" });
 
@@ -84,11 +97,18 @@ const GetAllRoomOfSingleHotel = async (req, res) => {
 
 const DeleteRoomDataFromHotel = async (req, res) => {
   const { hotelid, roomid } = req.params;
-  console.log(hotelid, roomid);
+  const { hotelId, roomId } = req.query;
+
+  if ((!hotelid || !roomid) && (!hotelId || !roomId))
+    return res
+      .status(401)
+      .json({ error: true, message: "invalid credentials" });
   try {
+    const hId = hotelid ? hotelid : hotelId;
+    const rId = roomid ? roomid : roomId;
     const isDeleted = await HotelModel.findOneAndUpdate(
-      { _id: hotelid },
-      { $pull: { rooms: { _id: roomid } } }
+      { _id: hId },
+      { $pull: { rooms: { _id: rId } } }
     );
 
     if (!isDeleted) {

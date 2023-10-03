@@ -5,6 +5,7 @@ const { createTheKycRequest, DeleteTheKycRequest, GetAllKyc, IsVerifiedActions }
 
 
 // register the kyc req 
+
 const RegisterKyc = async (req, res) => {
     try {
         // Request validation

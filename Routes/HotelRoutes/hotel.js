@@ -46,16 +46,20 @@ router.get("/get/:field", GetFieldList);
 router.get("/page", pagination);
 
 // rooms APi
+
 // room added
 router.post("/room/add/:hotelid", AddRoomType);
 // update the room data
 router.post("/room/update/:hotelid/:roomid", UpdateRoomData);
+router.post("/room/update", UpdateRoomData);
 
 // get all rooms typee of a single hotel by hotel id
 router.get("/room/getall/:hotelid", GetAllRoomOfSingleHotel);
+router.get("/room/getall", GetAllRoomOfSingleHotel);
 
 // delete the hotel rooom
 router.get("/room/delete/:hotelid/:roomid", DeleteRoomDataFromHotel);
+router.get("/room/delete", DeleteRoomDataFromHotel);
 
 // new filter api
 router.get("/filter", fitlerDataCreate);

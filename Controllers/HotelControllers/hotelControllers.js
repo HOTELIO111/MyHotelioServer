@@ -315,6 +315,8 @@ const GetSearchTheHotelList = async (req, res) => {
     location,
     checkIn,
     checkOut,
+    lat,
+    lng,
     totalRooms,
     roomType,
     priceMin,
@@ -323,30 +325,43 @@ const GetSearchTheHotelList = async (req, res) => {
     amenities,
     facilities,
     payment,
-    ratings,
+    kmRadius,
     page,
     pageSize,
   } = req.query;
   const skip = (page - 1) * pageSize;
 
   const search = {};
+  const pipeLine = [];
 
-  // location
+  // with longitude and latitude
+  if (lat && lng) {
+    search.location = {
+      $nearSphere: {
+        $geometry: {
+          type: "Point",
+          coordinates: [parseFloat(lat), parseFloat(lng)],
+        },
+        $maxDistance: parseInt(kmRadius) * 1000, // Convert to meters
+      },
+    };
+  }
+
   if (location) {
+    console.log(location);
     search.city = { $regex: location, $options: "i" };
   }
-
   // category
   if (hotelType) {
-    search.hotelType = { $regex: hotelType, $options: "i" };
+    const hotelTypeArray = hotelType.split(",").map((item) => item.trim());
+    search.hotelType = { $in: hotelTypeArray };
   }
 
-  if (ratings) {
-    search.hotelRatings = { $gte: ratings };
-  }
 
+  // Roomtype filter 
   if (roomType) {
-    search["rooms.roomType"] = { $regex: roomType, $options: "i" };
+    const roomArray = roomType.split(",").map((item) => item.trim());
+    search["rooms.roomType"] = { $in: roomArray };
   }
 
   // price
@@ -355,9 +370,6 @@ const GetSearchTheHotelList = async (req, res) => {
       $lte: parseInt(priceMax),
       $gte: parseInt(priceMin),
     };
-    // if (typeof priceMin === 'number' && typeof priceMax === 'number' && priceMin <= priceMax) {
-    //
-    // }
   }
   // amaenities
   if (amenities) {
@@ -367,8 +379,6 @@ const GetSearchTheHotelList = async (req, res) => {
 
     // Create an array to store the values from allAmenities
     const enumValues = Object.values(allAmenities.keys);
-
-    console.log(enumValues);
 
     // Create a query to check if "rooms.roomType" is in any of the enumValues arrays
     search["rooms.roomType"] = { $in: enumValues[0] };
