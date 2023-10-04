@@ -357,8 +357,7 @@ const GetSearchTheHotelList = async (req, res) => {
     search.hotelType = { $in: hotelTypeArray };
   }
 
-
-  // Roomtype filter 
+  // Roomtype filter
   if (roomType) {
     const roomArray = roomType.split(",").map((item) => item.trim());
     search["rooms.roomType"] = { $in: roomArray };
@@ -396,9 +395,7 @@ const GetSearchTheHotelList = async (req, res) => {
   }
 
   try {
-    const response = await HotelModel.find(search)
-      .skip(skip)
-      .limit(Number(pageSize));
+    const response = await HotelModel.find(search);
     if (!response)
       return res
         .status(400)
