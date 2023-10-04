@@ -395,7 +395,19 @@ const GetSearchTheHotelList = async (req, res) => {
   }
 
   try {
-    const response = await HotelModel.find(search);
+    const response = await HotelModel.find(search)
+      .select(
+        "_id hotelCoverImg hotelName hotelType locality city country zipCode hotelRatings rooms"
+      )
+      .populate({
+        path: "rooms.roomType",
+        select: "amenties includeFacilities title",
+        populate: [
+          { path: "amenties", select: "_id title" },
+          { path: "includeFacilities", select: "_id title" },
+        ],
+      });
+
     if (!response)
       return res
         .status(400)
