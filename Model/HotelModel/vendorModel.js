@@ -1,54 +1,53 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose")
 
-const schema = new mongoose.Schema(
-  {
+const schema = new mongoose.Schema({
     name: {
-      type: String,
+        type: String,
     },
     email: {
-      type: String,
-      required: true,
+        type: String,
+        required: true,
     },
     mobileNo: {
-      type: String,
-      required: true,
+        type: String,
+        required: true,
     },
     img: String,
     kycVerified: {
-      type: Boolean,
-      default: false,
+        type: Boolean,
+        default: false,
     },
     role: String,
     aadharNo: {
-      type: Number,
+        type: Number,
     },
     panNo: {
-      type: String,
+        type: String,
     },
-    // document upload
+    // document upload 
     panImg: {
-      type: String,
+        type: String,
     },
     aadharImg: [],
     status: {
-      type: Boolean,
+        type: Boolean,
     },
     password: String,
-    hotels: [{ type: mongoose.Schema.Types.ObjectId, ref: "Hotels" }],
-    // password secretkey to encode or decode
+    hotels: [],
+    // password secretkey to encode or decode 
     secretKey: String,
     // password reset link
     resetLink: String,
     resetDateExpire: Date,
 
-    // verify the email or number or kyc
+    // verify the email or number or kyc 
     isNumberVarified: Boolean,
     isEmailVerified: Boolean,
-  },
-  {
-    timestamps: true,
-  }
-);
+}, {
+    timestamps: true
+})
+
+
 
 const VendorModel = mongoose.model("hotel-partners", schema);
 
