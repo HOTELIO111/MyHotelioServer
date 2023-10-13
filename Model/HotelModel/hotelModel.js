@@ -145,6 +145,10 @@ const schema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    status: {
+      type: Boolean,
+      default: true,
+    },
     hotelRatings: {
       type: Number,
       enum: [0, 1, 2, 3, 4, 5],

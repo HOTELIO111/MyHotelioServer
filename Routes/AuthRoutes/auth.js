@@ -100,6 +100,10 @@ router.patch("/vendor/update/:id", GetVendorUpdate);
 // verify the email and update the data
 router.patch("/vendor/verified", GetVendorDataUpdate);
 
+
+
+
+
 // admin SOme Routes
 router.post("/admin/signup", GetAddTheAdmin);
 // admin login
