@@ -130,8 +130,8 @@ const schema = new mongoose.Schema(
     },
 
     // Hotel Bookings
-    hotelBookings: {
-      type: Array,
+    bookings: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Booking" }],
     },
     // Sir hi jane
     hotelMapLink: {

@@ -19,6 +19,10 @@ const {
   DeleteRoomDataFromHotel,
 } = require("../../Controllers/HotelControllers/roomManagementControllers");
 const router = require("express").Router();
+const BookingRoutes = require("./../booking/bookingRoutes");
+
+// add the booking route
+router.use("/book", BookingRoutes);
 
 // add the hotel
 router.post("/register/:id", RegisterHotel);
