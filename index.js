@@ -13,6 +13,7 @@ const kycRoutes = require("./Routes/HotelRoutes/kycroutes");
 const PropertyCateRoutes = require("./Routes/HotelRoutes/propertyTypesRoutes");
 const NotificationRoutes = require("./Routes/notifications/notificationsRoutes");
 const MultiTableRoutes = require("./Routes/multiTableDataApi");
+const AgentRouters = require("./Routes/Agentroutes/index");
 // database
 require("./config/connection");
 const app = express();
@@ -24,20 +25,18 @@ const app = express();
 //     next();
 // });
 
-app.use(
-  cors({
-    origin: [
-      "https://admin.hoteliorooms.com",
-      "https://www.hoteliorooms.com",
-      "https://hotelio-dashboard-trickle.netlify.app",
-      "https://hotelio-rooms.netlify.app",
-      "http://localhost:3000",
-      "http://localhost:3001",
-    ],
-  })
-);
+// app.use(cors({
+//     origin: [
+//         "https://admin.hoteliorooms.com",
+//         "https://www.hoteliorooms.com",
+//         "https://hotelio-dashboard-trickle.netlify.app",
+//         "https://hotelio-rooms.netlify.app",
+//         "http://localhost:3000",
+//         "http://localhost:3001",
+//     ]
+// }))
 
-// app.use(cors());
+app.use(cors());
 
 // some middlewares
 app.use(express.json());
@@ -49,6 +48,7 @@ app.use(express.static("./static"));
 // routes
 app.use("/util", Utils);
 app.use("/api", CustomerRoutes);
+app.use("/api/agent", AgentRouters);
 app.use("/hotel", HotelRoutes);
 app.use("/admin", AdminRoutes);
 // verfication related apis

@@ -31,11 +31,10 @@ const roomSchema = new mongoose.Schema(
 const schema = new mongoose.Schema(
   {
     vendorId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: function () {
         return this.isAddedBy === "vendor";
       },
-      ref: "hotel-partners",
     },
     isAddedBy: {
       type: String,
@@ -47,8 +46,7 @@ const schema = new mongoose.Schema(
       type: String,
     },
     hotelType: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "property-types",
+      type: String,
     },
     hotelEmail: {
       type: String,
@@ -132,8 +130,8 @@ const schema = new mongoose.Schema(
     },
 
     // Hotel Bookings
-    hotelBookings: {
-      type: Array,
+    bookings: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Booking" }],
     },
     // Sir hi jane
     hotelMapLink: {
@@ -146,6 +144,10 @@ const schema = new mongoose.Schema(
     isPostpaidAllowed: {
       type: Boolean,
       default: false,
+    },
+    status: {
+      type: Boolean,
+      default: true,
     },
     hotelRatings: {
       type: Number,

@@ -1,34 +1,40 @@
-
 const mongoose = require("mongoose");
 
-const schema = new mongoose.Schema({
+const schema = new mongoose.Schema(
+  {
     avatar: {
-        type: String,
+      type: String,
     },
     name: {
-        type: String,
-        // required: true
+      type: String,
+      // required: true
     },
     email: {
-        type: String,
+      type: String,
     },
     mobileNo: {
-        type: String,
+      type: String,
     },
     location: {
-        lang: String,
-        lat: String
+      lang: String,
+      lat: String,
     },
     password: {
-        type: String,
+      type: String,
     },
     googleId: {
-        type: String
+      type: String,
     },
     isVerified: {
-        type: Array,
+      type: Array,
     },
     birthday: Date,
+    bookings: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Booking",
+      },
+    ],
     address: String,
     gender: String,
     maritialStatus: String,
@@ -37,10 +43,11 @@ const schema = new mongoose.Schema({
     resetLink: String,
     resetDateExpires: Date,
     secretKey: String,
-}, {
-    timestamps: true
-})
-
+  },
+  {
+    timestamps: true,
+  }
+);
 
 const CustomerAuthModel = mongoose.model("customers", schema);
 
