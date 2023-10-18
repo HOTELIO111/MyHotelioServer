@@ -10,6 +10,7 @@ const {
   GetFieldList,
   pagination,
   DeleteSelectedVendorHotel,
+  GetCheckInCheckOut,
   DeleteSigleHotel,
 } = require("../../Controllers/HotelControllers/hotelControllers");
 const {
@@ -68,5 +69,6 @@ router.get("/room/delete", DeleteRoomDataFromHotel);
 // new filter api
 router.get("/filter", fitlerDataCreate);
 router.get("/search", GetSearchTheHotelList);
+router.get('/testing' , GetCheckInCheckOut)
 
 module.exports = router;

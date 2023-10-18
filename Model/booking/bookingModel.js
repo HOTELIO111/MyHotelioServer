@@ -2,9 +2,17 @@ const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
   {
-    bookingId: String,
+    bookingId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     room: {
       type: String,
+    },
+    numberOfRoom: {
+      type: Number,
+      default: 1,
     },
     hotel: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,6 +38,12 @@ const bookingSchema = new mongoose.Schema(
       checkOut: {
         type: Date,
         required: true,
+        validate: {
+          validator: function (checkOut) {
+            return checkOut > this.bookingDate.checkIn;
+          },
+          message: "Check-out date must be after check-in date",
+        },
       },
     },
     amount: {
@@ -61,7 +75,11 @@ const bookingSchema = new mongoose.Schema(
       default: "pending",
       required: true,
     },
-    additionalCharges: Number,
+    additionalCharges: {
+      gst: Number,
+      cancelationCharge: Number,
+      serviceFee: Number,
+    },
     promoCode: String,
     discountAmount: Number,
     numberOfGuests: {
@@ -75,6 +93,25 @@ const bookingSchema = new mongoose.Schema(
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "customers", // Reference to the User model if users are registered
+    },
+    cancellation: {
+      status: {
+        type: String,
+        enum: ["requested", "approved", "pending", "rejected", "canceled"],
+      },
+      requestedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Customer",
+      },
+      requestedDate: Date,
+      reason: String,
+      processedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Customer",
+      },
+      processedDate: Date,
+      notes: String,
+      refundAmount: Number, // Store the refund amount when a cancellation is approved
     },
   },
   {

@@ -7,6 +7,7 @@ const {
   DeleteVendorSingleHotel,
   IsWho,
   GetAllRoomWiseAmenities,
+  GetRoomAvaliable,
 } = require("../../helper/hotel/hotel_helper");
 
 const RegisterHotel = async (req, res) => {
@@ -383,16 +384,21 @@ const GetSearchTheHotelList = async (req, res) => {
     search["rooms.roomType"] = { $in: enumValues[0] };
   }
 
-  // checkin checkout
+  // Check-in and checkout
   if (checkIn && checkOut) {
-    search.checkIn = { $lte: checkIn };
-    search.checkOut = { $gte: checkOut };
+    const isRoom = await GetRoomAvaliable(checkIn, checkOut);
+    if (isRoom !== null) {
+      const roombookedId = Object.keys(isRoom);
+      if (roombookedId.includes(search["rooms._id"])) {
+        search["rooms.counts"] = {
+          $gte: isRoom[search["rooms._id"]] + totalRooms,
+        };
+      } else {
+        search["rooms.counts"] = { $gte: parseInt(totalRooms) };
+      }
+    }
   }
 
-  // room mangement
-  if (totalRooms) {
-    search["rooms.counts"] = { $gte: parseInt(totalRooms) };
-  }
 
   try {
     const response = await HotelModel.find(search)
@@ -416,6 +422,17 @@ const GetSearchTheHotelList = async (req, res) => {
     res.status(200).json({ error: false, data: response });
   } catch (error) {
     res.status(500).json({ error: true, error });
+  }
+};
+
+const GetCheckInCheckOut = async (req, res) => {
+  const { checkIn, checkOut } = req.query;
+
+  try {
+    const response = await GetRoomAvaliable(checkIn, checkOut);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
   }
 };
 
@@ -512,4 +529,5 @@ module.exports = {
   DeleteSelectedVendorHotel,
   DeleteSigleHotel,
   DeleteAllHotel,
+  GetCheckInCheckOut,
 };
