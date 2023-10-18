@@ -4,6 +4,7 @@ const AdminModel = require("../../Model/AdminModel/adminModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
+const Booking = require("../../Model/booking/bookingModel");
 
 const HotelList = async (id, role) => {
   // Find the user by id
@@ -123,6 +124,41 @@ const GetAllFacilitiesRoomWise = async () => {
   return allamenities;
 };
 
+// Get all the Room availibility
+const GetRoomAvaliable = async (checkIn, checkOut) => {
+  try {
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+
+    const bookings = await Booking.find({
+      $or: [
+        {
+          "bookingDate.checkIn": { $gte: checkInDate, $lte: checkOutDate },
+        },
+        {
+          "bookingDate.checkOut": { $gte: checkInDate, $lte: checkOutDate },
+        },
+      ],
+    }).populate("hotel");
+    if (bookings.length === 0) return null;
+    const report = {};
+
+    bookings.forEach((booking) => {
+      const roomId = booking?.room;
+      const numberOfRooms = booking?.numberOfRooms || 0;
+
+      if (roomId in report) {
+        report[roomId] += numberOfRooms;
+      } else {
+        report[roomId] = numberOfRooms;
+      }
+    });
+    return report;
+  } catch (error) {
+    return error;
+  }
+};
+
 module.exports = {
   HotelList,
   IsWho,
@@ -130,4 +166,5 @@ module.exports = {
   DeleteVendorSingleHotel,
   GetAllRoomWiseAmenities,
   GetAllFacilitiesRoomWise,
+  GetRoomAvaliable,
 };
