@@ -14,6 +14,7 @@ const PropertyCateRoutes = require("./Routes/HotelRoutes/propertyTypesRoutes");
 const NotificationRoutes = require("./Routes/notifications/notificationsRoutes");
 const MultiTableRoutes = require("./Routes/multiTableDataApi");
 const AgentRouters = require("./Routes/Agentroutes/index");
+const StripeGateway = require("./Routes/stripe");
 // database
 require("./config/connection");
 const app = express();
@@ -48,6 +49,7 @@ app.use(express.static("./static"));
 // routes
 app.use("/util", Utils);
 app.use("/api", CustomerRoutes);
+app.use("/api", StripeGateway);
 app.use("/api/agent", AgentRouters);
 app.use("/hotel", HotelRoutes);
 app.use("/admin", AdminRoutes);

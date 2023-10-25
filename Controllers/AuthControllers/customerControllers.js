@@ -132,10 +132,12 @@ const GetAuthWIthGoogle = async (req, res) => {
     id: finalUser._id,
   };
   const token = jwt.sign(jwtModel, process.env.SECRET_CODE);
-  res
-    .status(200)
-    .json({ error: false, data: finalUser, message: "login successfully" })
-    .header("Authorization", `Bearer ${token}`);
+  res.status(200).json({
+    error: false,
+    data: finalUser,
+    message: "login successfully",
+    token,
+  });
 };
 
 // const Authentication = async (req, res) => {
