@@ -69,6 +69,6 @@ router.get("/room/delete", DeleteRoomDataFromHotel);
 // new filter api
 router.get("/filter", fitlerDataCreate);
 router.get("/search", GetSearchTheHotelList);
-router.get('/testing' , GetCheckInCheckOut)
+router.get("/testing", GetCheckInCheckOut);
 
 module.exports = router;

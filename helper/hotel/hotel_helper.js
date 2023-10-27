@@ -11,13 +11,18 @@ const HotelList = async (id, role) => {
   let hotels;
   if (role.toLowerCase() === "vendor") {
     hotels = await HotelModel.find({ vendorId: id, isAddedBy: role })
-      .populate({
-        path: "rooms.roomType",
-        populate: [
-          { path: "amenties", select: "_id title" },
-          { path: "includeFacilities", select: "_id title" },
-        ],
-      })
+      .populate([
+        {
+          path: "rooms.roomType",
+          populate: [
+            { path: "amenties", select: "_id title" },
+            { path: "includeFacilities", select: "_id title" },
+          ],
+        },
+        { path: "hotelType", select: "_id title" },
+        { path: "bookings" },
+        { path: "vendorId" },
+      ])
       .exec();
   } else if (role.toLowerCase() === "admin") {
     hotels = await HotelModel.find({}).populate("rooms.roomType").exec();
@@ -129,6 +134,10 @@ const GetRoomAvaliable = async (checkIn, checkOut) => {
   try {
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
+
+    if (isNaN(checkInDate) || isNaN(checkOutDate)) {
+      throw new Error("Invalid date format");
+    }
 
     const bookings = await Booking.find({
       $or: [
