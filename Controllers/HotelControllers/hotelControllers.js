@@ -70,13 +70,18 @@ const GetSingleHotel = async (req, res) => {
   try {
     // check the hotel with id
     const isHotel = await HotelModel.findById(Id)
-      .populate({
-        path: "rooms.roomType",
-        populate: [
-          { path: "amenties", select: "_id title" },
-          { path: "includeFacilities", select: "_id title" },
-        ],
-      })
+      .populate([
+        {
+          path: "rooms.roomType",
+          populate: [
+            { path: "amenties", select: "_id title" },
+            { path: "includeFacilities", select: "_id title" },
+          ],
+        },
+        { path: "hotelType", select: "_id title" },
+        { path: "bookings" },
+        { path: "vendorId" },
+      ])
       .exec();
     if (!isHotel)
       return res.status(404).json({ error: true, message: "No Data Found" });
@@ -399,20 +404,19 @@ const GetSearchTheHotelList = async (req, res) => {
     }
   }
 
-
   try {
-    const response = await HotelModel.find(search)
-      .select(
-        "_id hotelCoverImg hotelName hotelType locality city country zipCode hotelRatings rooms"
-      )
-      .populate({
+    const response = await HotelModel.find(search).populate([
+      {
         path: "rooms.roomType",
-        select: "amenties includeFacilities title",
         populate: [
           { path: "amenties", select: "_id title" },
           { path: "includeFacilities", select: "_id title" },
         ],
-      });
+      },
+      { path: "hotelType", select: "_id title" },
+      { path: "bookings" },
+      { path: "vendorId" },
+    ]);
 
     if (!response)
       return res
@@ -422,17 +426,6 @@ const GetSearchTheHotelList = async (req, res) => {
     res.status(200).json({ error: false, data: response });
   } catch (error) {
     res.status(500).json({ error: true, error });
-  }
-};
-
-const GetCheckInCheckOut = async (req, res) => {
-  const { checkIn, checkOut } = req.query;
-
-  try {
-    const response = await GetRoomAvaliable(checkIn, checkOut);
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
   }
 };
 
@@ -512,6 +505,11 @@ const DeleteAllHotel = async (req, res) => {
 
 // ------Room Api's ----------------------------------------------------
 
+// Testing purposeFunction
+const GetCheckInCheckOut = async (req, res) => {
+  const Vendors = await VendorModel.updateMany({ hotels: [] });
+  res.json(Vendors);
+};
 module.exports = {
   RegisterHotel,
   GetAllHotel,

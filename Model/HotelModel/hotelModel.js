@@ -31,7 +31,8 @@ const roomSchema = new mongoose.Schema(
 const schema = new mongoose.Schema(
   {
     vendorId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "hotel-partners",
       required: function () {
         return this.isAddedBy === "vendor";
       },
@@ -46,7 +47,8 @@ const schema = new mongoose.Schema(
       type: String,
     },
     hotelType: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "property-types",
     },
     hotelEmail: {
       type: String,

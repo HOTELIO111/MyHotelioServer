@@ -30,4 +30,34 @@ const CancleBooking = async (req, res) => {
   }
 };
 
-module.exports = { RegisterBooking, CancleBooking };
+// Get all the booking
+const GetBookings = async (req, res) => {
+  const queryFields = req.query;
+
+  try {
+    let filter = {}; // Initialize an empty filter object
+
+    // Check if there are any fields in req.query with values
+    for (const field in queryFields) {
+      if (queryFields[field]) {
+        filter[field] = queryFields[field];
+      }
+    }
+
+    let response;
+
+    if (Object.keys(filter).length > 0) {
+      // If filter has fields, use it to filter the results
+      response = await Booking.find(filter);
+    } else {
+      // If no specific fields are provided, fetch all data
+      response = await Booking.find({});
+    }
+
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred" });
+  }
+};
+
+module.exports = { RegisterBooking, CancleBooking, GetBookings };

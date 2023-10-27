@@ -1,6 +1,7 @@
 const {
   RegisterBooking,
   CancleBooking,
+  GetBookings,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
@@ -12,5 +13,7 @@ const router = require("express").Router();
 router.post("/create", CheckBookingAvailability, RegisterBooking);
 // cancel booking
 router.get("/cancel", CancleBooking);
+
+router.get("/get-booking", GetBookings);
 
 module.exports = router;
