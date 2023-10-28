@@ -15,7 +15,7 @@ router.post("/create-checkout-session", async (req, res) => {
         name: hotel.hotelName,
         images: hotel.hotelImages,
       },
-      unit_amount: hotel.price * 100,
+      unit_amount: Math.round(hotel.price) * 100,
     },
     quantity: hotel.quantity,
   }));

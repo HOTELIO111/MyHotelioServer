@@ -1,5 +1,6 @@
 // give the hotel listing as per the role of the user
-
+require("dotenv").config();
+const { default: axios } = require("axios");
 const AdminModel = require("../../Model/AdminModel/adminModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
@@ -168,6 +169,52 @@ const GetRoomAvaliable = async (checkIn, checkOut) => {
   }
 };
 
+// Get the place id and  generate the url link
+// const GetTheGoogleSpecification = async (latitude, longitude, hotelName) => {
+//   const GoogleApiKey = process.env.GOOGLEMAPAPIKEY;
+//   try {
+//     const response = await axios.get(
+//       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GoogleApiKey}`
+//     );
+//     if (response.status === 200) {
+//       const placeId = await response.data.results[0].place_id;
+//       const mapUrl = `https://www.google.com/maps/place/?q=place_id:${placeId}`;
+//       return {
+//         palceId: response.data.results[0].place_id,
+//         data: response.data,
+//         mapUrl: mapUrl,
+//       };
+//     }
+//   } catch (error) {
+//     return error;
+//   }
+// };
+
+// Get the place id and generate the URL link
+const GetTheGoogleSpecification = async (latitude, longitude, hotelName) => {
+  const GoogleApiKey = process.env.GOOGLEMAPAPIKEY;
+  try {
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GoogleApiKey}`
+    );
+    if (response.status === 200) {
+      const placeId = response.data.results[0].place_id;
+      // const mapUrl = `https://www.google.com/maps/place?q=place_id:${placeId}`;
+      const mapUrl = `https://www.google.com/maps/place?q=place_id:${placeId}`;
+      // https://maps.googleapis.com/maps/api/geocode/json?latlng=26.8337152,80.93696&key=AIzaSyD_kgE_S3Nwf1IAamPa6D6ZyyazleBTrhI
+      // https://www.google.com/maps?q=26.8337152,80.93696
+
+      return {
+        placeId: placeId,
+        data: response.data,
+        mapUrl: mapUrl,
+      };
+    }
+  } catch (error) {
+    return error;
+  }
+};
+
 module.exports = {
   HotelList,
   IsWho,
@@ -176,4 +223,5 @@ module.exports = {
   GetAllRoomWiseAmenities,
   GetAllFacilitiesRoomWise,
   GetRoomAvaliable,
+  GetTheGoogleSpecification,
 };
