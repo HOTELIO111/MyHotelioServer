@@ -215,6 +215,22 @@ const GetTheGoogleSpecification = async (latitude, longitude, hotelName) => {
   }
 };
 
+function generateGoogleMapsURL(
+  latitude,
+  longitude,
+  zoomLevel = 10,
+  address = ""
+) {
+  const timestamp = Date.now();
+  const iframeURL = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d${latitude}!2d${longitude}!3d${zoomLevel}!4s${encodeURIComponent(
+    address
+  )}!5e0!3m2!1sen!2sus!4v${timestamp}`;
+  return {
+    mapUrl: `https://www.google.com/maps?q=${latitude},${longitude}`,
+    iframeURL: iframeURL,
+  };
+}
+
 module.exports = {
   HotelList,
   IsWho,
@@ -224,4 +240,5 @@ module.exports = {
   GetAllFacilitiesRoomWise,
   GetRoomAvaliable,
   GetTheGoogleSpecification,
+  generateGoogleMapsURL,
 };

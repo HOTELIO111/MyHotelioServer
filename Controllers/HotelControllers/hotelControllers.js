@@ -10,6 +10,7 @@ const {
   GetAllRoomWiseAmenities,
   GetRoomAvaliable,
   GetTheGoogleSpecification,
+  generateGoogleMapsURL,
 } = require("../../helper/hotel/hotel_helper");
 
 const RegisterHotel = async (req, res) => {
@@ -21,12 +22,20 @@ const RegisterHotel = async (req, res) => {
       .status(401)
       .json({ error: true, message: "Invalid Hotel Partner Id " });
 
+  // generate Map rl
+  const { mapUrl, iframeURL } = await generateGoogleMapsURL(
+    req.body.location.coordinates[0],
+    req.body.location.coordinates[1],
+    100,
+    req.body.address
+  );
+
   // Register the hotel
   const response = await new HotelModel({
     ...req.body,
     vendorId: _is === "vendor" ? vendorId : null,
     isAddedBy: _is,
-    hotelMapLink: `https://www.google.com/maps?q=${req.body.location.coordinates[0]},${req.body.location.coordinates[1]}`,
+    hotelMapLink: iframeURL,
   }).save();
   response.discription = defaultDetails(
     response.hotelName,
