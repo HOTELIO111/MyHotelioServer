@@ -12,6 +12,7 @@ const {
   DeleteSelectedVendorHotel,
   GetCheckInCheckOut,
   DeleteSigleHotel,
+  MapAPi,
 } = require("../../Controllers/HotelControllers/hotelControllers");
 const {
   UpdateRoomData,
@@ -70,5 +71,6 @@ router.get("/room/delete", DeleteRoomDataFromHotel);
 router.get("/filter", fitlerDataCreate);
 router.get("/search", GetSearchTheHotelList);
 router.get("/testing", GetCheckInCheckOut);
+router.get("/google-maps", MapAPi);
 
 module.exports = router;

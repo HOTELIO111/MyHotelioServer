@@ -1,3 +1,4 @@
+const { default: axios } = require("axios");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
@@ -8,6 +9,7 @@ const {
   IsWho,
   GetAllRoomWiseAmenities,
   GetRoomAvaliable,
+  GetTheGoogleSpecification,
 } = require("../../helper/hotel/hotel_helper");
 
 const RegisterHotel = async (req, res) => {
@@ -24,6 +26,7 @@ const RegisterHotel = async (req, res) => {
     ...req.body,
     vendorId: _is === "vendor" ? vendorId : null,
     isAddedBy: _is,
+    hotelMapLink: `https://www.google.com/maps?q=${req.body.location.coordinates[0]},${req.body.location.coordinates[1]}`,
   }).save();
   response.discription = defaultDetails(
     response.hotelName,
@@ -510,6 +513,71 @@ const GetCheckInCheckOut = async (req, res) => {
   const Vendors = await VendorModel.updateMany({ hotels: [] });
   res.json(Vendors);
 };
+
+// const MapAPi = async (req, res) => {
+//   const { key, place_id } = req.query;
+//   console.log(key, place_id);
+
+//   try {
+//     const response = await axios.get(
+//       "https://maps.googleapis.com/maps/api/place/details/json",
+//       {
+//         params: {
+//           place_id: place_id,
+//           key: key,
+//         },
+//       }
+//     );
+
+//     res.json(response.data);
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ error: "An error occurred", message: error.message });
+//   }
+// };
+
+// const MapAPi = async (req, res) => {
+//   const { key, place_id, query } = req.query;
+//   console.log(key, place_id);
+
+//   try {
+//     // const response = await axios.get(
+//     //   "https://maps.googleapis.com/maps/api/place/details/json",
+//     //   {
+//     //     params: {
+//     //       place_id: place_id,
+//     //       key: key,
+//     //     },
+//     //   }
+//     // );
+//     const response = await axios.get(
+//       "https://maps.googleapis.com/maps/api/place/details/json",
+//       {
+//         params: {
+//           place_id: place_id,
+//           key: key,
+//         },
+//       }
+//     );
+
+//     res.json(response.data);
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ error: "An error occurred", message: error.message });
+//   }
+// };
+
+const MapAPi = async (req, res) => {
+  const { lng, ltd } = req.query;
+  try {
+    const response = await GetTheGoogleSpecification(ltd, lng);
+    res.json(response);
+  } catch (error) {
+    res.json(error);
+  }
+};
 module.exports = {
   RegisterHotel,
   GetAllHotel,
@@ -528,4 +596,5 @@ module.exports = {
   DeleteSigleHotel,
   DeleteAllHotel,
   GetCheckInCheckOut,
+  MapAPi,
 };

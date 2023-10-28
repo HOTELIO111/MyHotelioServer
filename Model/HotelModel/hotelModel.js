@@ -139,8 +139,6 @@ const schema = new mongoose.Schema(
     hotelMapLink: {
       type: String,
       required: true,
-      default:
-        "https://www.google.com/maps/d/embed?mid=1nxxfsdOOs2x2HPEsNV-YlJDLFzM&hl=en&ehbc=2E312F",
     },
     isAdminApproved: Boolean,
     isPostpaidAllowed: {
