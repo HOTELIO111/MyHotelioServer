@@ -15,35 +15,29 @@ const NotificationRoutes = require("./Routes/notifications/notificationsRoutes")
 const MultiTableRoutes = require("./Routes/multiTableDataApi");
 const AgentRouters = require("./Routes/Agentroutes/index");
 const StripeGateway = require("./Routes/stripe");
+const port = process.env.PORT || 8080;
 // database
 require("./config/connection");
 const app = express();
-
-// app.use((req, res, next) => {
-//     res.header('Access-Control-Allow-Origin', 'http://www.hoteliorooms.com');
-//     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-//     next();
-// });
-
-// app.use(cors({
-//     origin: [
-//         "https://admin.hoteliorooms.com",
-//         "https://www.hoteliorooms.com",
-//         "https://hotelio-dashboard-trickle.netlify.app",
-//         "https://hotelio-rooms.netlify.app",
-//         "http://localhost:3000",
-//         "http://localhost:3001",
-//     ]
-// }))
-
-app.use(cors());
-
-// some middlewares
 app.use(express.json());
 
+app.use(
+  cors({
+    origin: [
+      "https://admin.hoteliorooms.com",
+      "https://www.hoteliorooms.com",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+    ],
+  })
+);
+
+// app.use(cors());
+
+// some middlewares
+
 // variable Define
-const port = process.env.PORT || 8080;
 app.use(express.static("./static"));
 
 // routes
