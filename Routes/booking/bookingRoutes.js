@@ -2,6 +2,7 @@ const {
   RegisterBooking,
   CancleBooking,
   GetBookings,
+  GetDeleteBooking,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
@@ -15,5 +16,8 @@ router.post("/create", CheckBookingAvailability, RegisterBooking);
 router.get("/cancel", CancleBooking);
 
 router.get("/get-booking", GetBookings);
+
+// delete all the booking
+router.get("/delete", GetDeleteBooking);
 
 module.exports = router;

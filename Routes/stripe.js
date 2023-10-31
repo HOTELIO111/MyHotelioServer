@@ -6,7 +6,7 @@ const router = require("express").Router();
 const YOUR_DOMAIN = "http://localhost:3001";
 
 router.post("/create-checkout-session", async (req, res) => {
-  const { hotelData } = req.body;
+  const { hotelData, bookingData } = req.body;
 
   const lineItems = hotelData.map((hotel) => ({
     price_data: {
