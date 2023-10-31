@@ -1,3 +1,6 @@
+const CustomerAuthModel = require("../../Model/CustomerModels/customerModel");
+const HotelModel = require("../../Model/HotelModel/hotelModel");
+const VendorModel = require("../../Model/HotelModel/vendorModel");
 const Booking = require("../../Model/booking/bookingModel");
 const {
   CreateBooking,
@@ -60,4 +63,25 @@ const GetBookings = async (req, res) => {
   }
 };
 
-module.exports = { RegisterBooking, CancleBooking, GetBookings };
+const GetDeleteBooking = async (req, res) => {
+  const { id } = req.query;
+  const credentials = id ? { _id: id } : {};
+
+  try {
+    const response = await Booking.deleteMany(credentials);
+    if (response) {
+      HotelModel.updateMany({ bookings: [] });
+      CustomerAuthModel.updateMany({ bookings: [] });
+      res.status(200).json("every data deleted");
+    }
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};
+
+module.exports = {
+  RegisterBooking,
+  CancleBooking,
+  GetBookings,
+  GetDeleteBooking,
+};

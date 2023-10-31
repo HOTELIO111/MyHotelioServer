@@ -19,6 +19,22 @@ const port = process.env.PORT || 8080;
 // database
 require("./config/connection");
 const app = express();
+
+// app.use(
+//   cors({
+//     origin: [
+//       "https://admin.hoteliorooms.com",
+//       "https://www.hoteliorooms.com",
+//       "http://localhost:3000",
+//       "http://localhost:3001",
+//       "http://localhost:3002",
+//     ],
+//   })
+// );
+
+app.use(cors());
+
+// some middlewares
 app.use(express.json());
 
 app.use(
