@@ -15,6 +15,7 @@ const NotificationRoutes = require("./Routes/notifications/notificationsRoutes")
 const MultiTableRoutes = require("./Routes/multiTableDataApi");
 const AgentRouters = require("./Routes/Agentroutes/index");
 const StripeGateway = require("./Routes/stripe");
+const CCAvenue = require("./Routes/CcAvenue");
 const port = process.env.PORT || 8080;
 // database
 require("./config/connection");
@@ -72,6 +73,7 @@ app.use("/property-type", PropertyCateRoutes);
 app.use("/kyc", kycRoutes);
 app.use("/notify", NotificationRoutes);
 app.use("/api", MultiTableRoutes);
+app.use("/ccav", CCAvenue);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Hotelio Backend");
