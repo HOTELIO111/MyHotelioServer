@@ -330,7 +330,7 @@ const fitlerDataCreate = async (req, res) => {
 
 const GetSearchTheHotelList = async (req, res) => {
   const {
-    location,
+    // location,
     checkIn,
     checkOut,
     lat,
@@ -346,11 +346,12 @@ const GetSearchTheHotelList = async (req, res) => {
     kmRadius,
     page,
     pageSize,
+    sort,
   } = req.query;
   const skip = (page - 1) * pageSize;
 
   const search = {};
-  const pipeLine = [];
+  let sortFilter = {};
 
   // with longitude and latitude
   if (lat && lng) {
@@ -365,10 +366,10 @@ const GetSearchTheHotelList = async (req, res) => {
     };
   }
 
-  if (location) {
-    console.log(location);
-    search.city = { $regex: location, $options: "i" };
-  }
+  // if (location) {
+  //   console.log(location);
+  //   search.city = { $regex: location, $options: "i" };
+  // }
   // category
   if (hotelType) {
     const hotelTypeArray = hotelType.split(",").map((item) => item.trim());
@@ -416,26 +417,54 @@ const GetSearchTheHotelList = async (req, res) => {
     }
   }
 
+  // Some sortBy
+  if (sort) {
+    switch (sort) {
+      case "popularity":
+        sortFilter = { hotelRating: -1 };
+        break;
+      case "ratings":
+        sortFilter = { hotelRating: -1 };
+        break;
+      case "l2h":
+        sortFilter = { "rooms.price": 1 };
+        break;
+      case "h2l":
+        sortFilter = { "rooms.price": -1 };
+        break;
+      default:
+        break;
+    }
+  }
+
   try {
-    const response = await HotelModel.find(search).populate([
-      {
-        path: "rooms.roomType",
-        populate: [
-          { path: "amenties", select: "_id title" },
-          { path: "includeFacilities", select: "_id title" },
-        ],
-      },
-      { path: "hotelType", select: "_id title" },
-      { path: "bookings" },
-      { path: "vendorId" },
-    ]);
+    const totalCount = await HotelModel.count(search);
+
+    const response = await HotelModel.find(search)
+      .populate([
+        {
+          path: "rooms.roomType",
+          populate: [
+            { path: "amenties", select: "_id title" },
+            { path: "includeFacilities", select: "_id title" },
+          ],
+        },
+        { path: "hotelType", select: "_id title" },
+        { path: "bookings" },
+        { path: "vendorId" },
+      ])
+      .sort(sortFilter)
+      .skip(skip)
+      .limit(pageSize);
 
     if (!response)
       return res
         .status(400)
         .json({ error: true, message: "No Hotels Found At this Location" });
-
-    res.status(200).json({ error: false, data: response });
+    // console.log(totalCount);
+    res
+      .status(200)
+      .json({ error: false, data: response, totalCount: totalCount });
   } catch (error) {
     res.status(500).json({ error: true, error });
   }
