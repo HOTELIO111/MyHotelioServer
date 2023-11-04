@@ -1,4 +1,3 @@
-const { default: axios } = require("axios");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
@@ -350,28 +349,40 @@ const GetSearchTheHotelList = async (req, res) => {
   } = req.query;
   const skip = (page - 1) * pageSize;
 
-  const search = {};
-  let sortFilter = {};
+  let search = {};
+  const sortFilter = {};
+
+  // location split =
+
+  // const newLocation = location.split(",");
+  // const locationRegexPatter = new RegExp(
+  //   newLocation.map((key) => `\\b${key}\\b`).join("|"),
+  //   "i"
+  // );
 
   // with longitude and latitude
   if (lat && lng) {
-    search.location = {
-      $nearSphere: {
-        $geometry: {
-          type: "Point",
-          coordinates: [parseFloat(lat), parseFloat(lng)],
+    search = {
+      location: {
+        $nearSphere: {
+          $geometry: {
+            type: "Point",
+            coordinates: [parseFloat(lat), parseFloat(lng)],
+          },
+          $maxDistance: parseInt(kmRadius) * 1000,
         },
-        $maxDistance: parseInt(kmRadius) * 1000, // Convert to meters
       },
+      // address: {
+      //   $regex: locationRegexPatter,
+      // },
     };
-  }
+  } else
+    return res
+      .status(404)
+      .json({ error: true, message: "missing location credentials " });
 
-  // if (location) {
-  //   console.log(location);
-  //   search.city = { $regex: location, $options: "i" };
-  // }
-  // category
   if (hotelType) {
+    // category
     const hotelTypeArray = hotelType.split(",").map((item) => item.trim());
     search.hotelType = { $in: hotelTypeArray };
   }
@@ -392,13 +403,8 @@ const GetSearchTheHotelList = async (req, res) => {
   // amaenities
   if (amenities) {
     const amenitiesArray = amenities.split(",").map((item) => item.trim());
-
     const allAmenities = await GetAllRoomWiseAmenities(amenitiesArray);
-
-    // Create an array to store the values from allAmenities
     const enumValues = Object.values(allAmenities.keys);
-
-    // Create a query to check if "rooms.roomType" is in any of the enumValues arrays
     search["rooms.roomType"] = { $in: enumValues[0] };
   }
 
@@ -421,16 +427,16 @@ const GetSearchTheHotelList = async (req, res) => {
   if (sort) {
     switch (sort) {
       case "popularity":
-        sortFilter = { hotelRating: -1 };
+        sortFilter["hotelRating"] = -1;
         break;
       case "ratings":
-        sortFilter = { hotelRating: -1 };
+        sortFilter["hotelRating"] = -1;
         break;
       case "l2h":
-        sortFilter = { "rooms.price": 1 };
+        sortFilter["rooms.price"] = 1; // Sort rooms by price in ascending order
         break;
       case "h2l":
-        sortFilter = { "rooms.price": -1 };
+        sortFilter["rooms.price"] = -1;
         break;
       default:
         break;
@@ -441,17 +447,18 @@ const GetSearchTheHotelList = async (req, res) => {
     const totalCount = await HotelModel.count(search);
 
     const response = await HotelModel.find(search)
+      .select(
+        "_id hotelName  hotelType locality address rooms hotelCoverImg  checkOut checkIn hotelRatings isPostpaidAllowed"
+      )
       .populate([
         {
           path: "rooms.roomType",
           populate: [
-            { path: "amenties", select: "_id title" },
-            { path: "includeFacilities", select: "_id title" },
+            { path: "amenties", select: "title" },
+            { path: "includeFacilities", select: "title" },
           ],
         },
-        { path: "hotelType", select: "_id title" },
-        { path: "bookings" },
-        { path: "vendorId" },
+        { path: "hotelType", select: "title" },
       ])
       .sort(sortFilter)
       .skip(skip)
@@ -461,14 +468,15 @@ const GetSearchTheHotelList = async (req, res) => {
       return res
         .status(400)
         .json({ error: true, message: "No Hotels Found At this Location" });
-    // console.log(totalCount);
     res
       .status(200)
       .json({ error: false, data: response, totalCount: totalCount });
   } catch (error) {
-    res.status(500).json({ error: true, error });
+    res.status(500).json({ error: true, error: error.message });
   }
 };
+
+// Get Searcch Hotel by aggregate
 
 // get list of the field
 const GetFieldList = async (req, res) => {
@@ -552,61 +560,6 @@ const GetCheckInCheckOut = async (req, res) => {
   res.json(Vendors);
 };
 
-// const MapAPi = async (req, res) => {
-//   const { key, place_id } = req.query;
-//   console.log(key, place_id);
-
-//   try {
-//     const response = await axios.get(
-//       "https://maps.googleapis.com/maps/api/place/details/json",
-//       {
-//         params: {
-//           place_id: place_id,
-//           key: key,
-//         },
-//       }
-//     );
-
-//     res.json(response.data);
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ error: "An error occurred", message: error.message });
-//   }
-// };
-
-// const MapAPi = async (req, res) => {
-//   const { key, place_id, query } = req.query;
-//   console.log(key, place_id);
-
-//   try {
-//     // const response = await axios.get(
-//     //   "https://maps.googleapis.com/maps/api/place/details/json",
-//     //   {
-//     //     params: {
-//     //       place_id: place_id,
-//     //       key: key,
-//     //     },
-//     //   }
-//     // );
-//     const response = await axios.get(
-//       "https://maps.googleapis.com/maps/api/place/details/json",
-//       {
-//         params: {
-//           place_id: place_id,
-//           key: key,
-//         },
-//       }
-//     );
-
-//     res.json(response.data);
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ error: "An error occurred", message: error.message });
-//   }
-// };
-
 const MapAPi = async (req, res) => {
   const { lng, ltd } = req.query;
   try {
@@ -616,6 +569,7 @@ const MapAPi = async (req, res) => {
     res.json(error);
   }
 };
+
 module.exports = {
   RegisterHotel,
   GetAllHotel,
