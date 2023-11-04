@@ -7,9 +7,11 @@ const schema = new Schema(
     },
     email: {
       type: String,
+      unique: true,
     },
     mobileNo: {
       type: Number,
+      unique: true,
     },
     bookings: {
       type: Array,
@@ -22,9 +24,11 @@ const schema = new Schema(
     },
     gstNo: {
       type: String,
+      unique: true,
     },
     panNo: {
       type: String,
+      unique: true,
     },
     password: {
       type: String,

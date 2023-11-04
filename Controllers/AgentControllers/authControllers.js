@@ -1,3 +1,4 @@
+require("dotenv").config();
 const AgentModel = require("../../Model/AgentModel/agentModel");
 const {
   CreateAgent,
@@ -10,24 +11,24 @@ const {
   VerifyOtp,
 } = require("../VerificationController/VerificationControllers");
 const { verifyInput } = require("../utils");
+const jwt = require("jsonwebtoken");
 
 const RegisterAgent = async (req, res) => {
   const data = req.body;
   try {
     // check the user already exist with this or not
-    const isFound = await AgentAlreadyRegistered(data);
-    if (isFound.found)
-      return res.status(409).json({
-        error: true,
-        message: { ...isFound.message },
-      });
+    // const isFound = await AgentAlreadyRegistered(data);
+    // if (isFound.found)
+    //   return res.status(409).json({
+    //     error: true,
+    //     message: { ...isFound.message },
+    //   });
 
     const isReg = await CreateAgent(data);
-    if (!isReg.error)
+    if (isReg.success === false)
       return res.status(400).json({
         error: true,
-        message: "failed to add ! try again",
-        data: isReg.payload,
+        message: isReg.error,
       });
     res
       .status(200)
@@ -72,21 +73,31 @@ const AgentLogin = async (req, res) => {
         .status(400)
         .json({ error: true, message: "invalid password or otp" });
 
+    const JwtData = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    };
+
+    const token = jwt.sign(JwtData, process.env.SECRET_CODE);
+
     // If login is successful, you can respond with a success message
     res
+      .setHeader("Authorization", "Bearer " + token)
       .status(200)
-      .json({ error: false, message: "Login successful", data: user });
+      .json({
+        error: false,
+        message: "Login successful",
+        data: user,
+        token: token,
+      });
   } catch (error) {
     // If an error occurs during the login process, handle it here
     res.status(500).json({ error: true, message: error.message });
   }
 };
 
-
-
-// Update the Hotelio agent profile 
-const UpdateProfileAgent = () => {
-    
-}
+// Update the Hotelio agent profile
+const UpdateProfileAgent = () => {};
 
 module.exports = { RegisterAgent, AgentLogin };
