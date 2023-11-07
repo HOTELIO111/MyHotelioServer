@@ -9,6 +9,7 @@ const {
   GetSearchTheHotelList,
   GetFieldList,
   pagination,
+  GetSearch,
   DeleteSelectedVendorHotel,
   GetCheckInCheckOut,
   DeleteSigleHotel,
@@ -22,9 +23,11 @@ const {
 } = require("../../Controllers/HotelControllers/roomManagementControllers");
 const router = require("express").Router();
 const BookingRoutes = require("./../booking/bookingRoutes");
+const CreateIndexRoute = require("./../createIndex");
 
 // add the booking route
 router.use("/book", BookingRoutes);
+router.use("/index", CreateIndexRoute);
 
 // add the hotel
 router.post("/register/:id", RegisterHotel);
@@ -70,7 +73,6 @@ router.get("/room/delete", DeleteRoomDataFromHotel);
 // new filter api
 router.get("/filter", fitlerDataCreate);
 router.get("/search", GetSearchTheHotelList);
-router.get("/testing", GetCheckInCheckOut);
-router.get("/google-maps", MapAPi);
+router.get("/search-it" ,GetSearch)
 
 module.exports = router;

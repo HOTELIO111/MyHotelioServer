@@ -16,14 +16,6 @@ const jwt = require("jsonwebtoken");
 const RegisterAgent = async (req, res) => {
   const data = req.body;
   try {
-    // check the user already exist with this or not
-    // const isFound = await AgentAlreadyRegistered(data);
-    // if (isFound.found)
-    //   return res.status(409).json({
-    //     error: true,
-    //     message: { ...isFound.message },
-    //   });
-
     const isReg = await CreateAgent(data);
     if (isReg.success === false)
       return res.status(400).json({
