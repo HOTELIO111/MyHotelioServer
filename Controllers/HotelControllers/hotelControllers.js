@@ -30,7 +30,7 @@ const RegisterHotel = async (req, res) => {
   );
 
   // Register the hotel
-  const response = await new HotelModel({
+  const response = await new dsdHotelModel({
     ...req.body,
     vendorId: _is === "vendor" ? vendorId : null,
     isAddedBy: _is,
@@ -570,6 +570,49 @@ const MapAPi = async (req, res) => {
   }
 };
 
+const GetSearch = async (req, res) => {
+  const {
+    lat,
+    lng,
+    kmRadius,
+    checkIn,
+    checkOut,
+    totalRooms,
+    roomType,
+    priceMin,
+    priceMax,
+    hotelType,
+    amenities,
+    facilities,
+    payment,
+    page,
+    pageSize,
+    sort,
+  } = req.query;
+  try {
+    let search = {};
+    let projection = {}; // Change from const to let
+
+    if (lat && lng && kmRadius) {
+      search = {
+        location: {
+          $nearSphere: {
+            $geometry: {
+              type: "Point",
+              coordinates: [parseFloat(lat), parseFloat(lng)],
+            },
+            $maxDistance: parseInt(kmRadius) * 1000,
+          },
+        },
+      };
+    }
+    const response = await HotelModel.find(search);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   RegisterHotel,
   GetAllHotel,
@@ -583,6 +626,7 @@ module.exports = {
   fitlerDataCreate,
   GetSearchTheHotelList,
   GetFieldList,
+  GetSearch,
   pagination,
   DeleteSelectedVendorHotel,
   DeleteSigleHotel,
