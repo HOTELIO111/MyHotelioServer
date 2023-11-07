@@ -6,7 +6,7 @@ const qs = require("querystring");
 module.exports = (request, response) => {
   let ccavEncResponse = "";
   let ccavResponse = "";
-  const workingKey = "282763039E883865B27B93BA9C314D5B"; // Put in the 32-Bit key shared by CCAvenues.
+  const workingKey = "D946555C26954295EFAB0BF6151B8270"; // Put in the 32-Bit key shared by CCAvenues.
   let ccavPOST = "";
 
   request.on("data", function (data) {
