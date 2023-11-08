@@ -1,5 +1,6 @@
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
+const Booking = require("../../Model/booking/bookingModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
 const {
   HotelList,
@@ -590,23 +591,40 @@ const GetSearch = async (req, res) => {
     sort,
   } = req.query;
   try {
-    let search = {};
-    let projection = {}; // Change from const to let
+    // let search = {};
+    // let projection = {}; // Change from const to let
 
-    if (lat && lng && kmRadius) {
-      search = {
-        location: {
-          $nearSphere: {
-            $geometry: {
-              type: "Point",
-              coordinates: [parseFloat(lat), parseFloat(lng)],
-            },
-            $maxDistance: parseInt(kmRadius) * 1000,
-          },
+    // if (lat && lng && kmRadius) {
+    //   search = {
+    //     location: {
+    //       $nearSphere: {
+    //         $geometry: {
+    //           type: "Point",
+    //           coordinates: [parseFloat(lat), parseFloat(lng)],
+    //         },
+    //         $maxDistance: parseInt(kmRadius) * 1000,
+    //       },
+    //     },
+    //   };
+    // }
+
+    // if (checkIn && checkOut) {
+    //   const checkInDate = new Date(checkIn);
+    //   const checkOutDate = new Date(checkOut);
+    // }
+    const response = await HotelModel.aggregate([
+      {
+        $lookup: {
+          from: "bookings", 
+          localField: "_id", 
+          foreignField: "hotel._id", 
+          as: "bookingsData", 
         },
-      };
-    }
-    const response = await HotelModel.find(search);
+        $match: {
+          
+        },
+      },
+    ]);
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });
