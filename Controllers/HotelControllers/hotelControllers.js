@@ -22,47 +22,42 @@ const RegisterHotel = async (req, res) => {
       .status(401)
       .json({ error: true, message: "Invalid Hotel Partner Id " });
 
-  // generate Map rl
-  const { mapUrl, iframeURL } = await generateGoogleMapsURL(
-    req.body.location.coordinates[0],
-    req.body.location.coordinates[1],
-    100,
-    req.body.address
-  );
+  try {
+    // Register the hotel
+    const response = await new HotelModel({
+      ...req.body,
+      vendorId: _is === "vendor" ? vendorId : null,
+      isAddedBy: _is,
+    }).save();
+    response.discription = defaultDetails(
+      response.hotelName,
+      `${response.city} ${response.state}`
+    );
+    response.save();
+    if (!response) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Hotel Not Added Please try Again" });
+    }
 
-  // Register the hotel
-  const response = await new dsdHotelModel({
-    ...req.body,
-    vendorId: _is === "vendor" ? vendorId : null,
-    isAddedBy: _is,
-    hotelMapLink: iframeURL,
-  }).save();
-  response.discription = defaultDetails(
-    response.hotelName,
-    `${response.city} ${response.state}`
-  );
-  response.save();
-  if (!response) {
-    return res
-      .status(400)
-      .json({ error: true, message: "Hotel Not Added Please try Again" });
+    // Find the user and update this hotel id
+    const Vendor = await VendorModel.findOneAndUpdate(
+      { _id: vendorId },
+      { $push: { hotels: response._id } },
+      { new: true, upsert: true }
+    );
+    if (!Vendor) {
+      // If the ID is not pushed into the customer's data, consider the hotel as unregistered
+      await response.remove();
+      return res
+        .status(400)
+        .json({ error: true, message: "Hotel Not Registered. Try Again" });
+    }
+
+    res.status(200).json({ error: false, data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
   }
-
-  // Find the user and update this hotel id
-  const Vendor = await VendorModel.findOneAndUpdate(
-    { _id: vendorId },
-    { $push: { hotels: response._id } },
-    { new: true, upsert: true }
-  );
-  if (!Vendor) {
-    // If the ID is not pushed into the customer's data, consider the hotel as unregistered
-    await response.remove();
-    return res
-      .status(400)
-      .json({ error: true, message: "Hotel Not Registered. Try Again" });
-  }
-
-  res.status(200).json({ error: false, data: response });
 };
 
 // Get all the data
@@ -615,14 +610,12 @@ const GetSearch = async (req, res) => {
     const response = await HotelModel.aggregate([
       {
         $lookup: {
-          from: "bookings", 
-          localField: "_id", 
-          foreignField: "hotel._id", 
-          as: "bookingsData", 
+          from: "bookings",
+          localField: "_id",
+          foreignField: "hotel._id",
+          as: "bookingsData",
         },
-        $match: {
-          
-        },
+        $match: {},
       },
     ]);
     res.status(200).json(response);
