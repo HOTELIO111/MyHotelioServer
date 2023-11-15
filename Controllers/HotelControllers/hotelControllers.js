@@ -62,8 +62,13 @@ const RegisterHotel = async (req, res) => {
 
 // Get all the data
 const GetAllHotel = async (req, res) => {
+  const { limit, page, fields } = req.query;
+  const skip = limit * page;
   try {
-    const AllData = await HotelModel.find({});
+    const AllData = await HotelModel.find({})
+      .select(fields)
+      .skip(skip)
+      .limit(limit);
     if (!AllData)
       return res.status(400).json({ error: true, message: "No Data Found" });
     res.status(200).json({ error: true, data: AllData });
@@ -90,6 +95,7 @@ const GetSingleHotel = async (req, res) => {
         { path: "vendorId" },
       ])
       .exec();
+
     if (!isHotel)
       return res.status(404).json({ error: true, message: "No Data Found" });
     // return the response
@@ -104,7 +110,7 @@ const UpdateHotelData = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const isUser = await HotelModel.findById(id);
+    const isUser = await HotelModel.find({ _id: id });
     if (!isUser)
       return res.status(404).json({ error: true, message: "No Data Found" });
     // Find the hotel
@@ -112,7 +118,7 @@ const UpdateHotelData = async (req, res) => {
       id,
       {
         ...req.body,
-        hotelEmail: isUser.hotelEmail,
+        hotelEmail: isUser[0].hotelEmail,
       },
       { new: true }
     );
@@ -368,9 +374,6 @@ const GetSearchTheHotelList = async (req, res) => {
           $maxDistance: parseInt(kmRadius) * 1000,
         },
       },
-      // address: {
-      //   $regex: locationRegexPatter,
-      // },
     };
   } else
     return res
@@ -502,17 +505,6 @@ function capitalizeFirstLetter(str) {
   );
 }
 
-// Delete the single Vendor
-const pagination = async (req, res) => {
-  try {
-    const items = await HotelModel.find().skip(skip).limit(Number(pageSize));
-    res.json(items);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
 // delete all hoteles and also the data from the vendor hotels data
 const DeleteAllHotel = async (req, res) => {
   try {
@@ -638,7 +630,6 @@ module.exports = {
   GetSearchTheHotelList,
   GetFieldList,
   GetSearch,
-  pagination,
   DeleteSelectedVendorHotel,
   DeleteSigleHotel,
   DeleteAllHotel,

@@ -82,35 +82,45 @@ const VendorLogin = async (req, res) => {
   const credential = { [isLoginwith]: req.body.email };
 
   try {
-    const result = await VendorModel.findOne(credential);
-    if (!result)
+    const result = await VendorModel.aggregate([
+      { $match: credential },
+      {
+        $lookup: {
+          from: "kyc-requests",
+          localField: "email",
+          foreignField: "email",
+          as: "kyc",
+        },
+      },
+    ]);
+    if (!result[0])
       return res.status(404).json({ error: true, message: "No User Found" });
-    const { passsword, ...rest } = result;
+    const { passsword, ...rest } = result[0];
     // compare the password
     const isPasswordCorrect = comparePassword(
       req.body.password,
-      result.password,
-      result.secretKey
+      result[0].password,
+      result[0].secretKey
     );
     if (!isPasswordCorrect)
       return res
         .status(400)
         .json({ error: true, message: "Password is Incorrect" });
 
-    // check any kyc reqest have
-    const isKycReq = await _isUserKyc(result._id);
     // access token generate and store
     const jwtTokenValue = {
-      _id: result._id,
-      name: result.name,
+      _id: result[0]._id,
+      name: result[0].name,
     };
     const accesstoken = jwt.sign(jwtTokenValue, process.env.SECRET_CODE);
     res.header("Authorization", `Bearer ${accesstoken}`);
-    res
-      .status(200)
-      .json({ error: false, data: result, token: accesstoken, kyc: isKycReq });
+    res.status(200).json({
+      error: false,
+      data: result[0],
+      token: accesstoken,
+    });
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json(error.message);
   }
 };
 
@@ -209,11 +219,7 @@ const DeleteVendors = async (req, res) => {
     res.status(500).json({ error: true, message: error.message });
   }
 
-  // VendorModel.deleteMany({}).then(() => {
-  //     res.status(200).json({ error: false, message: "Every thing deleted" })
-  // }).catch((error) => {
-  //     console.log(error)
-  // })
+
 };
 
 // make kyc request
