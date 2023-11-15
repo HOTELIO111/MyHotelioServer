@@ -15,6 +15,7 @@ const NotificationRoutes = require("./Routes/notifications/notificationsRoutes")
 const MultiTableRoutes = require("./Routes/multiTableDataApi");
 const AgentRouters = require("./Routes/Agentroutes/index");
 const StripeGateway = require("./Routes/stripe");
+const GoogleRoutes = require("./Routes/MiscellaneousRoutes/GoogleRoutes");
 const CCAvenue = require("./Routes/CcAvenue");
 const port = process.env.PORT || 8080;
 // database
@@ -67,6 +68,7 @@ app.use("/admin", AdminRoutes);
 // verfication related apis
 app.use("/verify", VerifyRoutes);
 app.use("/roomtype", RoomTypeRoutes);
+app.use("/google", GoogleRoutes);
 app.use("/amenity", AmenitiesRoutes);
 app.use("/facility", FacilitiesRoutes);
 app.use("/property-type", PropertyCateRoutes);
