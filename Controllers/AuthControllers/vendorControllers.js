@@ -295,11 +295,8 @@ const GetVendorDataUpdate = async (req, res) => {
 
 // get all the vendor
 const GetAllVendor = async (req, res) => {
-  const { fields } = req.query;
   try {
-    const alldata = await VendorModel.find({})
-      .select(fields)
-      .sort({ createdAt: -1 });
+    const alldata = await VendorModel.find({});
     if (!alldata)
       return res.status(404).json({ error: true, message: "No data Found" });
     res.status(200).json({ error: false, data: alldata });
