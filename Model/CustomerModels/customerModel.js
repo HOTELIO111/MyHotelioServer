@@ -28,6 +28,16 @@ const schema = new mongoose.Schema(
     isVerified: {
       type: Array,
     },
+    wallet: {
+      amount: {
+        type: Number,
+        default: 999,
+      },
+      expire: {
+        type: Date,
+        default: () => new Date().setMonth(new Date().getMonth() + 6),
+      },
+    },
     birthday: Date,
     bookings: [
       {
