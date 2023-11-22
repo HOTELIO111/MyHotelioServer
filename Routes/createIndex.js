@@ -158,4 +158,48 @@ router.get("/createindex/roomTypeamenites", async (req, res) => {
   }
 });
 
+router.get("/createindex/bookingDate", async (req, res) => {
+  try {
+    // Get the MongoDB collection for the model
+    const bookingCollection = Booking.collection;
+    // hotelCollection.createIndex({ address: "text" }, (err) => {
+    bookingCollection.createIndex(
+      {
+        "bookingDate.checkIn": 1,
+        "bookingDate.checkOut": 1,
+        bookingStatus: 1,
+        numberOfRooms: 1,
+      },
+      (err) => {
+        if (err) {
+          console.log("error in created index ");
+        } else {
+          console.log("created successfully ");
+          res.json("success");
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/createindex/roomTypeAmenities", async (req, res) => {
+  try {
+    // Get the MongoDB collection for the model
+    const bookingCollection = HotelModel.collection;
+    // hotelCollection.createIndex({ address: "text" }, (err) => {
+    bookingCollection.createIndex({ "rooms.roomType": 1 }, (err) => {
+      if (err) {
+        console.log("error in created index ");
+      } else {
+        console.log("created successfully ");
+        res.json("success");
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = router;

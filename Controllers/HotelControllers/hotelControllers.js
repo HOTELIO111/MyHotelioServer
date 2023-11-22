@@ -13,21 +13,57 @@ const {
   generateGoogleMapsURL,
 } = require("../../helper/hotel/hotel_helper");
 
+// const RegisterHotel = async (req, res) => {
+//   const vendorId = req.params.id;
+
+//   const _is = await IsWho(vendorId);
+//   if (_is === null)
+//     return res
+//       .status(401)
+//       .json({ error: true, message: "Invalid Hotel Partner Id " });
+
+//   try {
+//     // Register the hotel
+//     const response = await new HotelModel({
+//       ...req.body,
+//       vendorId: _is === "vendor" ? vendorId : null,
+//       isAddedBy: _is,
+//     }).save();
+//     response.discription = defaultDetails(
+//       response.hotelName,
+//       `${response.city} ${response.state}`
+//     );
+//     response.save();
+//     if (!response) {
+//       return res
+//         .status(400)
+//         .json({ error: true, message: "Hotel Not Added Please try Again" });
+//     }
+
+//     // Find the user and update this hotel id
+//     const Vendor = await VendorModel.findOneAndUpdate(
+//       { _id: vendorId },
+//       { $push: { hotels: response._id } },
+//       { new: true, upsert: true }
+//     );
+//     if (!Vendor) {
+//       // If the ID is not pushed into the customer's data, consider the hotel as unregistered
+//       await response.remove();
+//       return res
+//         .status(400)
+//         .json({ error: true, message: "Hotel Not Registered. Try Again" });
+//     }
+
+//     res.status(200).json({ error: false, data: response });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
 const RegisterHotel = async (req, res) => {
-  const vendorId = req.params.id;
-
-  const _is = await IsWho(vendorId);
-  if (_is === null)
-    return res
-      .status(401)
-      .json({ error: true, message: "Invalid Hotel Partner Id " });
-
   try {
     // Register the hotel
     const response = await new HotelModel({
       ...req.body,
-      vendorId: _is === "vendor" ? vendorId : null,
-      isAddedBy: _is,
     }).save();
     response.discription = defaultDetails(
       response.hotelName,
@@ -42,7 +78,7 @@ const RegisterHotel = async (req, res) => {
 
     // Find the user and update this hotel id
     const Vendor = await VendorModel.findOneAndUpdate(
-      { _id: vendorId },
+      { _id: response.vendorId },
       { $push: { hotels: response._id } },
       { new: true, upsert: true }
     );

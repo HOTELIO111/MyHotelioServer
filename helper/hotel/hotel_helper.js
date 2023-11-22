@@ -11,7 +11,7 @@ const HotelList = async (id, role) => {
   // Find the user by id
   let hotels;
   if (role.toLowerCase() === "vendor") {
-    hotels = await HotelModel.find({ vendorId: id, isAddedBy: role })
+    hotels = await HotelModel.find({ vendorId: id })
       .populate([
         {
           path: "rooms.roomType",

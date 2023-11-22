@@ -19,6 +19,7 @@ const {
 const { isOtpVerify } = require("../../helper/misc");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const { _isUserKyc } = require("../../helper/vendor/kycHelpers");
+const { default: mongoose } = require("mongoose");
 
 const AddVendor = async (req, res) => {
   const formData = req.body;
@@ -218,16 +219,8 @@ const DeleteVendors = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
-
-
 };
 
-// make kyc request
-const RequestKyc = async (req, res) => {
-  const { name, email, aadharNo, panNo, aadharImg, panImg } = req.body;
-};
-
-// const SendOtpForVerify = async (req, res) => {
 //     const mobileNo = req.params.number;
 
 //     const otp = crypto.randomInt(1000, 9999);
@@ -285,8 +278,6 @@ const GetVendorDataUpdate = async (req, res) => {
       },
       { new: true }
     );
-
-    console.log();
 
     if (!isUpdated) {
       return res.status(400).json({ error: true, message: "Updation Error" });
@@ -350,7 +341,17 @@ const GetVendorById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await VendorModel.findById(id);
+    const user = await VendorModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      {
+        $lookup: {
+          from: "kyc-requests",
+          localField: "email",
+          foreignField: "email",
+          as: "kyc",
+        },
+      },
+    ]);
     if (!user)
       return res.status(204).json({ error: true, message: "no user found" });
     res.status(200).json({ error: false, message: "success", data: user });
