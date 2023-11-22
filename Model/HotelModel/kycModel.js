@@ -1,7 +1,7 @@
-const { Schema, model } = require('mongoose')
+const { Schema, model } = require("mongoose");
 
-
-const schema = new Schema({
+const schema = new Schema(
+  {
     vendorId: String,
     name: String,
     email: String,
@@ -10,15 +10,16 @@ const schema = new Schema({
     aadharImg: [],
     panImg: String,
     isVerified: {
-        type: String,
-        default: "requested",
-        enum: ["requested", "approved", "failed"]
-    }
-}, {
-    timestamps: true
-})
+      type: String,
+      default: "requested",
+      enum: ["requested", "approved", "failed"],
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-
-const KycModel = model("Kyc-requests", schema)
+const KycModel = model("Kyc-requests", schema);
 
 module.exports = KycModel;

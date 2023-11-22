@@ -1,4 +1,7 @@
 const {
+  GetSearchHotels,
+} = require("../../Controllers/HotelControllers/Search");
+const {
   RegisterHotel,
   GetAllHotel,
   GetSingleHotel,
@@ -6,14 +9,13 @@ const {
   DeleteAllHotel,
   GetUsersHotel,
   fitlerDataCreate,
-  GetSearchTheHotelList,
   GetFieldList,
-  pagination,
   GetSearch,
   DeleteSelectedVendorHotel,
   GetCheckInCheckOut,
   DeleteSigleHotel,
   MapAPi,
+  GetSearchTheHotelList,
 } = require("../../Controllers/HotelControllers/hotelControllers");
 const {
   UpdateRoomData,
@@ -51,9 +53,6 @@ router.delete("/deletebyvendor/:id", DeleteSelectedVendorHotel);
 // Get all the city
 router.get("/get/:field", GetFieldList);
 
-// pagination check
-router.get("/page", pagination);
-
 // rooms APi
 
 // room added
@@ -73,6 +72,6 @@ router.get("/room/delete", DeleteRoomDataFromHotel);
 // new filter api
 router.get("/filter", fitlerDataCreate);
 router.get("/search", GetSearchTheHotelList);
-router.get("/search-it" ,GetSearch)
+router.get("/search-it", GetSearchHotels);
 
 module.exports = router;

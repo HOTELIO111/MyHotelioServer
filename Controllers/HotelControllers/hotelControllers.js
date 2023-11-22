@@ -13,21 +13,57 @@ const {
   generateGoogleMapsURL,
 } = require("../../helper/hotel/hotel_helper");
 
+// const RegisterHotel = async (req, res) => {
+//   const vendorId = req.params.id;
+
+//   const _is = await IsWho(vendorId);
+//   if (_is === null)
+//     return res
+//       .status(401)
+//       .json({ error: true, message: "Invalid Hotel Partner Id " });
+
+//   try {
+//     // Register the hotel
+//     const response = await new HotelModel({
+//       ...req.body,
+//       vendorId: _is === "vendor" ? vendorId : null,
+//       isAddedBy: _is,
+//     }).save();
+//     response.discription = defaultDetails(
+//       response.hotelName,
+//       `${response.city} ${response.state}`
+//     );
+//     response.save();
+//     if (!response) {
+//       return res
+//         .status(400)
+//         .json({ error: true, message: "Hotel Not Added Please try Again" });
+//     }
+
+//     // Find the user and update this hotel id
+//     const Vendor = await VendorModel.findOneAndUpdate(
+//       { _id: vendorId },
+//       { $push: { hotels: response._id } },
+//       { new: true, upsert: true }
+//     );
+//     if (!Vendor) {
+//       // If the ID is not pushed into the customer's data, consider the hotel as unregistered
+//       await response.remove();
+//       return res
+//         .status(400)
+//         .json({ error: true, message: "Hotel Not Registered. Try Again" });
+//     }
+
+//     res.status(200).json({ error: false, data: response });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
 const RegisterHotel = async (req, res) => {
-  const vendorId = req.params.id;
-
-  const _is = await IsWho(vendorId);
-  if (_is === null)
-    return res
-      .status(401)
-      .json({ error: true, message: "Invalid Hotel Partner Id " });
-
   try {
     // Register the hotel
     const response = await new HotelModel({
       ...req.body,
-      vendorId: _is === "vendor" ? vendorId : null,
-      isAddedBy: _is,
     }).save();
     response.discription = defaultDetails(
       response.hotelName,
@@ -42,7 +78,7 @@ const RegisterHotel = async (req, res) => {
 
     // Find the user and update this hotel id
     const Vendor = await VendorModel.findOneAndUpdate(
-      { _id: vendorId },
+      { _id: response.vendorId },
       { $push: { hotels: response._id } },
       { new: true, upsert: true }
     );
@@ -62,8 +98,13 @@ const RegisterHotel = async (req, res) => {
 
 // Get all the data
 const GetAllHotel = async (req, res) => {
+  const { limit, page, fields } = req.query;
+  const skip = limit * page;
   try {
-    const AllData = await HotelModel.find({});
+    const AllData = await HotelModel.find({})
+      .select(fields)
+      .skip(skip)
+      .limit(limit);
     if (!AllData)
       return res.status(400).json({ error: true, message: "No Data Found" });
     res.status(200).json({ error: true, data: AllData });
@@ -90,6 +131,7 @@ const GetSingleHotel = async (req, res) => {
         { path: "vendorId" },
       ])
       .exec();
+
     if (!isHotel)
       return res.status(404).json({ error: true, message: "No Data Found" });
     // return the response
@@ -104,7 +146,7 @@ const UpdateHotelData = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const isUser = await HotelModel.findById(id);
+    const isUser = await HotelModel.find({ _id: id });
     if (!isUser)
       return res.status(404).json({ error: true, message: "No Data Found" });
     // Find the hotel
@@ -112,7 +154,7 @@ const UpdateHotelData = async (req, res) => {
       id,
       {
         ...req.body,
-        hotelEmail: isUser.hotelEmail,
+        hotelEmail: isUser[0].hotelEmail,
       },
       { new: true }
     );
@@ -368,9 +410,6 @@ const GetSearchTheHotelList = async (req, res) => {
           $maxDistance: parseInt(kmRadius) * 1000,
         },
       },
-      // address: {
-      //   $regex: locationRegexPatter,
-      // },
     };
   } else
     return res
@@ -502,17 +541,6 @@ function capitalizeFirstLetter(str) {
   );
 }
 
-// Delete the single Vendor
-const pagination = async (req, res) => {
-  try {
-    const items = await HotelModel.find().skip(skip).limit(Number(pageSize));
-    res.json(items);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
 // delete all hoteles and also the data from the vendor hotels data
 const DeleteAllHotel = async (req, res) => {
   try {
@@ -638,7 +666,6 @@ module.exports = {
   GetSearchTheHotelList,
   GetFieldList,
   GetSearch,
-  pagination,
   DeleteSelectedVendorHotel,
   DeleteSigleHotel,
   DeleteAllHotel,
