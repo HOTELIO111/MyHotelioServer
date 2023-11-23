@@ -249,8 +249,6 @@ const GetSearchHotels = async (req, res) => {
       }
     };
 
-    // const totalCountQuery = await HotelModel.countDocuments(otherSearch);
-
     const response = await HotelModel.aggregate([
       { $match: otherSearch },
       {
@@ -262,35 +260,74 @@ const GetSearchHotels = async (req, res) => {
         },
       },
       {
-        $project: {
-          _id: 1,
-          hotelName: 1,
-          hotelEmail: 1,
-          hotelCoverImg: 1,
-          hotelType: 1,
-          address: 1,
-          hotelRatings: 1,
-          rooms: roomFilter(roomType),
-          amenties: {
-            $reduce: {
-              input: "$roomsTypes.amenties",
-              initialValue: [],
-              in: { $concatArrays: ["$$value", "$$this"] },
-            },
-          },
-          additionalAmenties: {
-            $reduce: {
-              input: "$rooms.additionAmenities",
-              initialValue: [],
-              in: { $concatArrays: ["$$value", "$$this"] },
-            },
-          },
-          score: { $meta: "textScore" },
+        $lookup: {
+          from: "property-types",
+          localField: "hotelType",
+          foreignField: "_id",
+          as: "hotelType",
         },
       },
-      { $sort: Sorting(sort) },
-      { $limit: parseInt(pageSize) },
-      { $skip: parseInt(skip) },
+      { $unwind: "$hotelType" },
+      {
+        $facet: {
+          // First stage: Get the paginated data
+          data: [
+            {
+              $project: {
+                _id: 1,
+                hotelName: 1,
+                hotelEmail: 1,
+                hotelCoverImg: 1,
+                hotelType: 1,
+                hotelMapLink: 1,
+                locality: 1,
+                city: 1,
+                state: 1,
+                hotelRatings: 1,
+                rooms: {
+                  $cond: {
+                    if: { $ifNull: [roomType, false] },
+                    then: {
+                      $filter: {
+                        input: "$rooms",
+                        as: "room",
+                        cond: {
+                          $eq: [
+                            "$$room.roomType",
+                            new mongoose.Types.ObjectId(roomType),
+                          ],
+                        },
+                      },
+                    },
+                    else: "$rooms",
+                  },
+                },
+                amenties: {
+                  $reduce: {
+                    input: "$roomsTypes.amenties",
+                    initialValue: [],
+                    in: {
+                      $concatArrays: ["$$value", "$$this"],
+                    },
+                  },
+                },
+                additionalAmenties: {
+                  $reduce: {
+                    input: "$rooms.additionAmenities",
+                    initialValue: [],
+                    in: { $concatArrays: ["$$value", "$$this"] },
+                  },
+                },
+                score: { $meta: "textScore" },
+              },
+            },
+            { $sort: Sorting(sort) },
+            { $skip: parseInt(skip) },
+            { $limit: parseInt(pageSize) },
+          ],
+          pagination: [{ $count: "counts" }],
+        },
+      },
     ]);
 
     if (!response)

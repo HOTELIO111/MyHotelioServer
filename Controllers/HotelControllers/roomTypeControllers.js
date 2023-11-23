@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
 
 const AddRoomType = async (req, res) => {
@@ -90,9 +91,31 @@ const DeleteRoomTypeAll = async (req, res) => {
 // Getall Room type
 const GetRoomType = async (req, res) => {
   const { id } = req.query;
-  const credentials = id ? { _id: id } : {};
+  const credentials = id ? { _id: new mongoose.Types.ObjectId(id) } : {};
   try {
-    const data = await RoomsTypeModel.find(credentials);
+    // const data = await RoomsTypeModel.find(credentials).populate({
+    //   path: "amenties",
+    //   select: "title",
+    // });
+    const data = await RoomsTypeModel.aggregate([
+      { $match: credentials },
+      {
+        $lookup: {
+          from: "amenities",
+          localField: "amenties",
+          foreignField: "_id",
+          as: "amenties",
+        },
+      },
+      {
+        $lookup: {
+          from: "facilities",
+          localField: "includeFacilities",
+          foreignField: "_id",
+          as: "includeFacilities",
+        },
+      },
+    ]);
     if (!data)
       return res.status(404).json({ error: true, message: "no user found" });
 
