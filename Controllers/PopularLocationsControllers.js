@@ -4,6 +4,14 @@ const PopularLocations = require("../Model/popularLocations/locations");
 const createPopularLocation = async (req, res) => {
   const data = req.body;
   try {
+    const isFound = await PopularLocations.aggregate([
+      { $match: { endpoint: data.endpoint } },
+    ]);
+    if (isFound[0])
+      return res.status(409).json({
+        error: true,
+        message: "already record available with this endpoint",
+      });
     const response = await new PopularLocations({
       ...data,
     }).save();
