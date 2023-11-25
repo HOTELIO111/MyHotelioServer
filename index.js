@@ -10,6 +10,7 @@ const AmenitiesRoutes = require("./Routes/HotelRoutes/amenities");
 const AdminRoutes = require("./Routes/admin/adminRoutes");
 const FacilitiesRoutes = require("./Routes/HotelRoutes/facilitiesRoutes");
 const kycRoutes = require("./Routes/HotelRoutes/kycroutes");
+const Reviews = require("./Routes/Reviews/ReviewsRoutes");
 const PropertyCateRoutes = require("./Routes/HotelRoutes/propertyTypesRoutes");
 const NotificationRoutes = require("./Routes/notifications/notificationsRoutes");
 const MultiTableRoutes = require("./Routes/multiTableDataApi");
@@ -79,6 +80,7 @@ app.use("/notify", NotificationRoutes);
 app.use("/api", MultiTableRoutes);
 app.use("/ccav", CCAvenue);
 app.use("/faq", FaqRoutes);
+app.use("/reviews", Reviews);
 app.use("/popular-location", PopularLocationRoutes);
 
 app.get("/", (req, res) => {

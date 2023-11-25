@@ -154,6 +154,7 @@ const schema = new mongoose.Schema(
       enum: [0, 1, 2, 3, 4, 5],
       default: 3,
     },
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "reviews" }],
   },
   {
     timestamps: true,
@@ -161,6 +162,7 @@ const schema = new mongoose.Schema(
 );
 
 schema.index({ location: "2dsphere" });
+schema.index({ address: "text" });
 
 const HotelModel = mongoose.model("Hotels", schema);
 
