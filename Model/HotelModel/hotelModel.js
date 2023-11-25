@@ -45,6 +45,7 @@ const schema = new mongoose.Schema(
     // Hotel Details
     hotelName: {
       type: String,
+      index: "text",
     },
     hotelType: {
       type: mongoose.Schema.Types.ObjectId,
@@ -61,6 +62,7 @@ const schema = new mongoose.Schema(
     },
     address: {
       type: String,
+      index: "text",
     },
     city: {
       type: String,
@@ -162,7 +164,6 @@ const schema = new mongoose.Schema(
 );
 
 schema.index({ location: "2dsphere" });
-schema.index({ address: "text" });
 
 const HotelModel = mongoose.model("Hotels", schema);
 

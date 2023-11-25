@@ -1,5 +1,5 @@
 const { default: mongoose } = require("mongoose");
-const PopularLocations = require("../Model/popularLocations/locations");
+const PopularLocations = require("../Model/popularLocations/Locations");
 
 const createPopularLocation = async (req, res) => {
   const data = req.body;
