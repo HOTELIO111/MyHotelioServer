@@ -2,23 +2,19 @@ const { model, Schema } = require("mongoose");
 
 const schema = new Schema(
   {
-    user: {
+    code: {
       type: String,
-      required: true,
+      index: true,
     },
-    question: {
-      type: String,
-      required: true,
-    },
-    answer: {
+    discription: {
       type: String,
     },
+    validUpTo: {
+      type: Date,
+    },
+    
   },
   {
     timestamps: true,
   }
 );
-
-const FaqModel = model("faqs", schema);
-
-module.exports = FaqModel;
