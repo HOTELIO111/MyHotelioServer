@@ -81,10 +81,25 @@ const GetSingleFaq = async (req, res) => {
   }
 };
 
+const GetFaqByField = async (req, res) => {
+  const field = req.query;
+  try {
+    const data = await FaqModel.find(field);
+    if (!data)
+      return res
+        .status(204)
+        .json({ error: true, message: "no data found with this field " });
+    res.status(200).json({ error: false, message: "success", data: data });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   GetSingleFaq,
   GetAllFaq,
   DeleteTheFaq,
   UpdateFaq,
   createFaq,
+  GetFaqByField,
 };
