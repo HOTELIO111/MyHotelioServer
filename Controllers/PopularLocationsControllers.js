@@ -30,10 +30,11 @@ const UpdatePopularLocation = async (req, res) => {
   const data = req.body;
   const { id } = req.params;
   try {
-    const response = await PopularLocations.aggregate([
-      { $match: { _id: new mongoose.Types.ObjectId(id) } },
-      { $set: data },
-    ]);
+    const response = await PopularLocations.findByIdAndUpdate(
+      id,
+      { ...data },
+      { new: true }
+    );
 
     if (!response)
       return res
@@ -66,7 +67,17 @@ const DeleteThePopularLocation = async (req, res) => {
 
 const GetAllthePopularLocation = async (req, res) => {
   try {
-    const response = await PopularLocations.aggregate([{ $match: {} }]);
+    const response = await PopularLocations.aggregate([
+      { $match: {} },
+      {
+        $lookup: {
+          from: "faqs",
+          localField: "faq",
+          foreignField: "_id",
+          as: "faq",
+        },
+      },
+    ]);
     if (!response)
       return res.status(204).json({ error: true, message: "no data found " });
     res.status(200).json({ error: false, message: "success", data: response });
