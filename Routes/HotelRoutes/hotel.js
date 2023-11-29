@@ -1,5 +1,6 @@
 const {
   GetSearchHotels,
+  GetSearchedLocationData,
 } = require("../../Controllers/HotelControllers/Search");
 const {
   RegisterHotel,
@@ -73,5 +74,6 @@ router.get("/room/delete", DeleteRoomDataFromHotel);
 router.get("/filter", fitlerDataCreate);
 router.get("/search", GetSearchTheHotelList);
 router.get("/search-it", GetSearchHotels);
+router.get("/search-loc", GetSearchedLocationData);
 
 module.exports = router;

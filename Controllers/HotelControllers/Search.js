@@ -340,7 +340,119 @@ const GetSearchHotels = async (req, res) => {
   }
 };
 
-module.exports = { GetSearchHotels };
+const GetSearchedLocationData = async (req, res) => {
+  const { location, lat, lng, kmRadius, roomType, pageSize, page } = req.query;
+  const skip = (page - 1) * pageSize;
+  try {
+    const searchQuery = {
+      $and: [
+        location ? { $text: { $search: location } } : {},
+        lat && lng && kmRadius
+          ? {
+              _id: {
+                $in: await HotelModel.find({
+                  location: {
+                    $nearSphere: {
+                      $geometry: {
+                        type: "Point",
+                        coordinates: [parseFloat(lat), parseFloat(lng)],
+                      },
+                      $maxDistance: parseInt(kmRadius) * 1000,
+                    },
+                  },
+                }).distinct("_id"),
+              },
+            }
+          : {},
+      ],
+    };
+    const data = await HotelModel.aggregate([
+      { $match: searchQuery },
+      {
+        $lookup: {
+          from: "room-categories",
+          localField: "rooms.roomType",
+          foreignField: "_id",
+          as: "roomsTypes",
+        },
+      },
+      {
+        $lookup: {
+          from: "property-types",
+          localField: "hotelType",
+          foreignField: "_id",
+          as: "hotelType",
+        },
+      },
+      { $unwind: "$hotelType" },
+      {
+        $facet: {
+          // First stage: Get the paginated data
+          data: [
+            {
+              $project: {
+                _id: 1,
+                hotelName: 1,
+                hotelEmail: 1,
+                hotelCoverImg: 1,
+                hotelType: 1,
+                hotelMapLink: 1,
+                locality: 1,
+                city: 1,
+                state: 1,
+                hotelRatings: 1,
+                rooms: {
+                  $cond: {
+                    if: { $ifNull: [roomType, false] },
+                    then: {
+                      $filter: {
+                        input: "$rooms",
+                        as: "room",
+                        cond: {
+                          $eq: [
+                            "$$room.roomType",
+                            new mongoose.Types.ObjectId(roomType),
+                          ],
+                        },
+                      },
+                    },
+                    else: "$rooms",
+                  },
+                },
+                amenties: {
+                  $reduce: {
+                    input: "$roomsTypes.amenties",
+                    initialValue: [],
+                    in: {
+                      $concatArrays: ["$$value", "$$this"],
+                    },
+                  },
+                },
+                additionalAmenties: {
+                  $reduce: {
+                    input: "$rooms.additionAmenities",
+                    initialValue: [],
+                    in: { $concatArrays: ["$$value", "$$this"] },
+                  },
+                },
+                score: { $meta: "textScore" },
+              },
+            },
+            { $sort: { score: { $meta: "textScore" } } },
+            { $skip: parseInt(skip) },
+            { $limit: parseInt(pageSize) },
+          ],
+          pagination: [{ $count: "counts" }],
+        },
+      },
+    ]);
+    res.status(200).json({ error: false, message: "success", data: data });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+module.exports = { GetSearchHotels, GetSearchedLocationData };
 
 // if (checkIn && checkOut) {
 //   const checkInDate = new Date(checkIn);
