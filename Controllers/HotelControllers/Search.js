@@ -346,24 +346,17 @@ const GetSearchedLocationData = async (req, res) => {
   try {
     const searchQuery = {
       $and: [
-        location ? { $text: { $search: location } } : {},
-        lat && lng && kmRadius
-          ? {
-              _id: {
-                $in: await HotelModel.find({
-                  location: {
-                    $nearSphere: {
-                      $geometry: {
-                        type: "Point",
-                        coordinates: [parseFloat(lat), parseFloat(lng)],
-                      },
-                      $maxDistance: parseInt(kmRadius) * 1000,
-                    },
-                  },
-                }).distinct("_id"),
-              },
-            }
-          : {},
+        location ? { $text: { $search: location } } : {}, // Text search on 'location'
+        {
+          location: {
+            $geoWithin: {
+              $centerSphere: [
+                [parseFloat(lat), parseFloat(lng)], // Latitude and Longitude
+                parseInt(kmRadius) / 6371, // Radius in kilometers converted to radians
+              ],
+            },
+          },
+        },
       ],
     };
     const data = await HotelModel.aggregate([
