@@ -270,7 +270,6 @@ const GetSearchHotels = async (req, res) => {
       { $unwind: "$hotelType" },
       {
         $facet: {
-          // First stage: Get the paginated data
           data: [
             {
               $project: {
@@ -348,11 +347,11 @@ const GetSearchedLocationData = async (req, res) => {
       $and: [
         location ? { $text: { $search: location } } : {}, // Text search on 'location'
         {
-          location: {
+          "location.coordinates": {
             $geoWithin: {
               $centerSphere: [
                 [parseFloat(lat), parseFloat(lng)], // Latitude and Longitude
-                parseInt(kmRadius) / 6371, // Radius in kilometers converted to radians
+                20 / 6371, // Radius in kilometers converted to radians
               ],
             },
           },
