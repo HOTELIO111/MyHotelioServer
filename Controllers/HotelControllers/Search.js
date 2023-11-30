@@ -6,6 +6,7 @@ const {
 } = require("../../helper/hotel/hotel_helper");
 const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
 const Booking = require("../../Model/booking/bookingModel");
+const PopularLocations = require("../../Model/popularLocations/Locations");
 
 // const GetSearchHotels = async (req, res) => {
 //   const {
@@ -212,18 +213,13 @@ const GetSearchHotels = async (req, res) => {
           : {},
         lat && lng && kmRadius
           ? {
-              _id: {
-                $in: await HotelModel.find({
-                  location: {
-                    $nearSphere: {
-                      $geometry: {
-                        type: "Point",
-                        coordinates: [parseFloat(lat), parseFloat(lng)],
-                      },
-                      $maxDistance: parseInt(kmRadius) * 1000,
-                    },
-                  },
-                }).distinct("_id"),
+              "location.coordinates": {
+                $geoWithin: {
+                  $centerSphere: [
+                    [parseFloat(lat), parseFloat(lng)], // Latitude and Longitude
+                    parseInt(kmRadius) / 6371, // Radius in kilometers converted to radians
+                  ],
+                },
               },
             }
           : {},
@@ -339,18 +335,131 @@ const GetSearchHotels = async (req, res) => {
   }
 };
 
+// const GetSearchedLocationData = async (req, res) => {
+//   const { location, lat, lng, kmRadius, roomType, pageSize, page } = req.query;
+//   const skip = (page - 1) * pageSize;
+//   try {
+//     const searchQuery = {
+//       $and: [
+//         location ? { $text: { $search: location } } : {}, // Text search on 'location'
+//         {
+//           "location.coordinates": {
+//             $geoWithin: {
+//               $centerSphere: [
+//                 [parseFloat(lat), parseFloat(lng)], // Latitude and Longitude
+//                 20 / 6371, // Radius in kilometers converted to radians
+//               ],
+//             },
+//           },
+//         },
+//       ],
+//     };
+//     const data = await HotelModel.aggregate([
+//       { $match: searchQuery },
+//       {
+//         $lookup: {
+//           from: "room-categories",
+//           localField: "rooms.roomType",
+//           foreignField: "_id",
+//           as: "roomsTypes",
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "property-types",
+//           localField: "hotelType",
+//           foreignField: "_id",
+//           as: "hotelType",
+//         },
+//       },
+
+//       { $unwind: "$hotelType" },
+//       {
+//         $facet: {
+//           // First stage: Get the paginated data
+//           data: [
+//             {
+//               $project: {
+//                 _id: 1,
+//                 hotelName: 1,
+//                 hotelEmail: 1,
+//                 hotelCoverImg: 1,
+//                 hotelType: 1,
+//                 hotelMapLink: 1,
+//                 locality: 1,
+//                 city: 1,
+//                 state: 1,
+//                 hotelRatings: 1,
+//                 rooms: {
+//                   $cond: {
+//                     if: { $ifNull: [roomType, false] },
+//                     then: {
+//                       $filter: {
+//                         input: "$rooms",
+//                         as: "room",
+//                         cond: {
+//                           $eq: [
+//                             "$$room.roomType",
+//                             new mongoose.Types.ObjectId(roomType),
+//                           ],
+//                         },
+//                       },
+//                     },
+//                     else: "$rooms",
+//                   },
+//                 },
+//                 amenties: {
+//                   $reduce: {
+//                     input: "$roomsTypes.amenties",
+//                     initialValue: [],
+//                     in: {
+//                       $concatArrays: ["$$value", "$$this"],
+//                     },
+//                   },
+//                 },
+//                 additionalAmenties: {
+//                   $reduce: {
+//                     input: "$rooms.additionAmenities",
+//                     initialValue: [],
+//                     in: { $concatArrays: ["$$value", "$$this"] },
+//                   },
+//                 },
+//                 score: { $meta: "textScore" },
+//               },
+//             },
+//             { $sort: { score: { $meta: "textScore" } } },
+//             { $skip: parseInt(skip) },
+//             { $limit: parseInt(pageSize) },
+//           ],
+//           pagination: [{ $count: "counts" }],
+//         },
+//       },
+//     ]);
+//     res.status(200).json({ error: false, message: "success", data: data });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
 const GetSearchedLocationData = async (req, res) => {
-  const { location, lat, lng, kmRadius, roomType, pageSize, page } = req.query;
+  const { endpoint, roomType, pageSize, page } = req.query;
   const skip = (page - 1) * pageSize;
+
+  const { location, address } = await PopularLocations.findOne({
+    endpoint: endpoint,
+  });
+  console.log(location, address);
   try {
     const searchQuery = {
       $and: [
-        location ? { $text: { $search: location } } : {}, // Text search on 'location'
+        location ? { $text: { $search: address } } : {}, // Text search on 'location'
         {
           "location.coordinates": {
             $geoWithin: {
               $centerSphere: [
-                [parseFloat(lat), parseFloat(lng)], // Latitude and Longitude
+                [
+                  parseFloat(location.coordinates[1]),
+                  parseFloat(location.coordinates[0]),
+                ], // Latitude and Longitude
                 20 / 6371, // Radius in kilometers converted to radians
               ],
             },
@@ -376,6 +485,7 @@ const GetSearchedLocationData = async (req, res) => {
           as: "hotelType",
         },
       },
+
       { $unwind: "$hotelType" },
       {
         $facet: {
