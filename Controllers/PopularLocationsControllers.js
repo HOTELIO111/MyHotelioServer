@@ -100,10 +100,36 @@ const GetPopularLocationsByID = async (req, res) => {
   }
 };
 
+// get thee data by endPoint
+
+const GetByEndpoint = async (req, res) => {
+  const { endpoint } = req.params;
+  try {
+    const response = await PopularLocations.aggregate([
+      { $match: { endpoint: endpoint } },
+      {
+        $lookup: {
+          from: "faqs",
+          localField: "faq",
+          foreignField: "_id",
+          as: "faq",
+        },
+      },
+    ]);
+    if (!response)
+      return res.status(404).json({ error: true, message: "no data found" });
+
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   createPopularLocation,
   GetPopularLocationsByID,
   GetAllthePopularLocation,
   DeleteThePopularLocation,
   UpdatePopularLocation,
+  GetByEndpoint,
 };

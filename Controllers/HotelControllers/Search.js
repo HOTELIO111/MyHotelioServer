@@ -441,14 +441,69 @@ const GetSearchHotels = async (req, res) => {
 //   }
 // };
 const GetSearchedLocationData = async (req, res) => {
-  const { endpoint, roomType, pageSize, page } = req.query;
+  const {
+    endpoint,
+    roomType,
+    pageSize,
+    page,
+    sort,
+    priceMin,
+    priceMax,
+    hotelType,
+    amenities,
+    payment,
+    kmRadius,
+  } = req.query;
   const skip = (page - 1) * pageSize;
+
+  const amenitiesArray = amenities?.split(",");
+
+  // // Room Filter
+  // const roomFilter = (roomType) => {
+  //   let result;
+  //   if (!roomType) {
+  //     result = 1;
+  //   } else {
+  //     result = {
+  //       $filter: {
+  //         input: "$rooms",
+  //         as: "room",
+  //         cond: {
+  //           $eq: ["$$room.roomType", new mongoose.Types.ObjectId(roomType)],
+  //         },
+  //       },
+  //     };
+  //   }
+  //   return result;
+  // };
+
+  const hotelIds = await RoomsTypeModel.find({
+    amenties: { $all: amenitiesArray },
+  }).distinct("_id");
 
   const { location, address } = await PopularLocations.findOne({
     endpoint: endpoint,
   });
-  console.log(location, address);
   try {
+    const Sorting = (sort) => {
+      switch (sort) {
+        case "popularity":
+          return { score: { $meta: "textScore" } };
+        case "ratings":
+          return { hotelRatings: -1 };
+        case "l2h":
+          return {
+            "rooms.price": 1,
+          };
+        case "h2l":
+          return {
+            "rooms.price": -1,
+          };
+        default:
+          return {};
+      }
+    };
+
     const searchQuery = {
       $and: [
         location ? { $text: { $search: address } } : {}, // Text search on 'location'
@@ -459,12 +514,35 @@ const GetSearchedLocationData = async (req, res) => {
                 [
                   parseFloat(location.coordinates[1]),
                   parseFloat(location.coordinates[0]),
-                ], // Latitude and Longitude
-                20 / 6371, // Radius in kilometers converted to radians
+                ],
+                20 / 6371,
               ],
             },
           },
         },
+        hotelType ? { hotelType: new mongoose.Types.ObjectId(hotelType) } : {},
+        priceMax && priceMin && roomType
+          ? {
+              "rooms.roomType": new mongoose.Types.ObjectId(roomType),
+              "rooms.price": {
+                $gte: parseInt(priceMin),
+                $lte: parseInt(priceMax),
+              },
+            }
+          : priceMax && priceMin
+          ? {
+              "rooms.price": {
+                $gte: parseInt(priceMin),
+                $lte: parseInt(priceMax),
+              },
+            }
+          : {},
+        payment ? { isPostpaidAllowed: payment } : {},
+        hotelIds.length > 0
+          ? {
+              "rooms.roomType": { $in: hotelIds },
+            }
+          : {},
       ],
     };
     const data = await HotelModel.aggregate([
@@ -540,7 +618,7 @@ const GetSearchedLocationData = async (req, res) => {
                 score: { $meta: "textScore" },
               },
             },
-            { $sort: { score: { $meta: "textScore" } } },
+            { $sort: Sorting(sort) },
             { $skip: parseInt(skip) },
             { $limit: parseInt(pageSize) },
           ],
