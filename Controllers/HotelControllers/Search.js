@@ -211,13 +211,13 @@ const GetSearchHotels = async (req, res) => {
               "rooms.roomType": { $in: hotelIds },
             }
           : {},
-        lat && lng && kmRadius
+        lat && lng
           ? {
               "location.coordinates": {
                 $geoWithin: {
                   $centerSphere: [
                     [parseFloat(lat), parseFloat(lng)], // Latitude and Longitude
-                    parseInt(kmRadius) / 6371, // Radius in kilometers converted to radians
+                    80 / 6371, // Radius in kilometers converted to radians
                   ],
                 },
               },
@@ -515,7 +515,7 @@ const GetSearchedLocationData = async (req, res) => {
                   parseFloat(location.coordinates[1]),
                   parseFloat(location.coordinates[0]),
                 ],
-                20 / 6371,
+                80 / 6371,
               ],
             },
           },
