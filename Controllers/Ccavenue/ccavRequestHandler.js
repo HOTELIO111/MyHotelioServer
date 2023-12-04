@@ -5,8 +5,8 @@ var http = require("http"),
 
 exports.postReq = function (request, response) {
   var body = "",
-    workingKey = "3100B96A83FF341DD0C5D9CD351A411F", //Put in the 32-Bit key shared by CCAvenues.
-    accessCode = "AVRE36KK15CJ01ERJC", //Put in the Access Code shared by CCAvenues.
+    workingKey = "D946555C26954295EFAB0BF6151B8270", //Put in the 32-Bit key shared by CCAvenues.
+    accessCode = "AVDI01KH74BU39IDUB", //Put in the Access Code shared by CCAvenues.
     encRequest = "",
     formbody = "";
 
