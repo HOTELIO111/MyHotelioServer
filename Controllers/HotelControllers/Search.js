@@ -451,12 +451,17 @@ const GetSearchedLocationData = async (req, res) => {
     priceMax,
     hotelType,
     amenities,
+    checkIn,
+    checkOut,
     payment,
     kmRadius,
   } = req.query;
   const skip = (page - 1) * pageSize;
 
   const amenitiesArray = amenities?.split(",");
+
+  const checkInDate = new Date(checkIn);
+  const checkOutDate = new Date(checkOut);
 
   // // Room Filter
   // const roomFilter = (roomType) => {
@@ -561,6 +566,14 @@ const GetSearchedLocationData = async (req, res) => {
           localField: "hotelType",
           foreignField: "_id",
           as: "hotelType",
+        },
+      },
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "bookings",
+          foreignField: "_id",
+          as: "hotelBookings",
         },
       },
 
