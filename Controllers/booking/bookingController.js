@@ -7,6 +7,7 @@ const {
   handleCancelationPolicy,
   CancelBooking,
 } = require("../../helper/booking/bookingHelper");
+const bookingIdGenerate = require("./bookingIdGenerator");
 
 const RegisterBooking = async (req, res) => {
   const formData = req.body;
@@ -79,9 +80,41 @@ const GetDeleteBooking = async (req, res) => {
   }
 };
 
+// genreate the booking id
+
+const generateBookingId = async (req, res) => {
+  try {
+    const bookingId = await bookingIdGenerate();
+    if (!bookingId)
+      return res
+        .status(404)
+        .json({ error: true, message: "failed to generate booking id" });
+    res.status(200).json({ error: false, message: "success", id: bookingId });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+// create the pre booking
+const CreatePreBooking = async (req, res) => {
+  const bookingData = req.body;
+  try {
+    const response = await new Booking(bookingData).save();
+    if (response) {
+      res
+        .status(200)
+        .json({ error: false, message: "success", data: response });
+    }
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   RegisterBooking,
   CancleBooking,
   GetBookings,
   GetDeleteBooking,
+  generateBookingId,
+  CreatePreBooking,
 };

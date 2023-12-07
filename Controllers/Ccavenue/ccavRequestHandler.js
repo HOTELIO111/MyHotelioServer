@@ -2,11 +2,12 @@ var http = require("http"),
   fs = require("fs"),
   ccav = require("./ccavutils"),
   qs = require("querystring");
+const { Gateway } = require("../../config/config");
 
 exports.postReq = function (request, response) {
   var body = "",
-    workingKey = "B2C2C502D6CDBF901D63892D364EDB4E", //Put in the 32-Bit key shared by CCAvenues.
-    accessCode = "AVTL37KL46AJ31LTJA", //Put in the Access Code shared by CCAvenues.
+    workingKey = Gateway().workingKey, //Put in the 32-Bit key shared by CCAvenues.
+    accessCode = Gateway().accessKey, //Put in the Access Code shared by CCAvenues.
     encRequest = "",
     formbody = "";
 

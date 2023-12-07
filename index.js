@@ -20,7 +20,8 @@ const FaqRoutes = require("./Routes/Faq");
 const PopularLocationRoutes = require("./Routes/PopularLocations");
 const GoogleRoutes = require("./Routes/MiscellaneousRoutes/GoogleRoutes");
 const CCAvenue = require("./Routes/CcAvenue");
-const port = process.env.PORT || 8080;
+
+const port = process.env.ENV === "production" ? process.env.PORT : 3001 || 8080;
 // database
 require("./config/connection");
 const app = express();
