@@ -1,5 +1,14 @@
 const mongoose = require("mongoose");
 
+const discountInfo = new mongoose.Schema({
+  name: {
+    type: String,
+  },
+  amount: {
+    type: Number,
+  },
+});
+
 const bookingSchema = new mongoose.Schema(
   {
     bookingId: {
@@ -9,10 +18,6 @@ const bookingSchema = new mongoose.Schema(
     },
     room: {
       type: String,
-    },
-    numberOfRoom: {
-      type: Number,
-      default: 1,
     },
     hotel: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,7 +33,7 @@ const bookingSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
-      phoneNumber: String,
+      mobileNo: Number,
     },
     bookingDate: {
       checkIn: {
@@ -67,6 +72,7 @@ const bookingSchema = new mongoose.Schema(
       transactionID: String,
       confirmationNumber: String,
       date: Date,
+      balance: Number,
     },
     specialRequests: String,
     bookingStatus: {
@@ -77,11 +83,11 @@ const bookingSchema = new mongoose.Schema(
     },
     additionalCharges: {
       gst: Number,
-      cancelationCharge: Number,
+      cancellationCharge: Number,
       serviceFee: Number,
     },
     promoCode: String,
-    discountAmount: Number,
+    discountInfo: [discountInfo],
     numberOfGuests: {
       adults: {
         type: Number,

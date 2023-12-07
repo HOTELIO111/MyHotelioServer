@@ -2,11 +2,12 @@ var http = require("http"),
   fs = require("fs"),
   ccav = require("./ccavutils"),
   qs = require("querystring");
+const { Gateway } = require("../../config/config");
 
 exports.postRes = function (request, response) {
   var ccavEncResponse = "",
     ccavResponse = "",
-    workingKey = "B2C2C502D6CDBF901D63892D364EDB4E", //Put in the 32-Bit key shared by CCAvenues.
+    workingKey = Gateway().workingKey, //Put in the 32-Bit key shared by CCAvenues.
     ccavPOST = "";
 
   request.on("data", function (data) {
@@ -14,6 +15,11 @@ exports.postRes = function (request, response) {
     ccavPOST = qs.parse(ccavEncResponse);
     var encryption = ccavPOST.encResp;
     ccavResponse = ccav.decrypt(encryption, workingKey);
+    const responseData = qs.parse(ccavResponse);
+    if (responseData.order_status === "Aborted") {
+      const encoded = encodeURIComponent(ccavResponse).toString();
+      response.redirect(`http://localhost:3000/Payment_success?${encoded}`);
+    }
   });
 
   request.on("end", function () {
@@ -26,6 +32,7 @@ exports.postRes = function (request, response) {
       '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Response Handler</title></head><body><center><font size="4" color="blue"><b>Response Page</b></font><br>' +
       pData +
       "</center><br></body></html>";
+
     response.writeHeader(200, { "Content-Type": "text/html" });
     response.write(htmlcode);
     response.end();
