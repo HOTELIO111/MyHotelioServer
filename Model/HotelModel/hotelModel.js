@@ -19,6 +19,12 @@ const roomSchema = new mongoose.Schema(
     additionAmenities: {
       type: Array,
     },
+    roomConfig: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "room-configs",
+      },
+    ],
     additionalFacilties: {
       type: Array,
     },

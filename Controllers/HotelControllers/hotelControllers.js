@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const Booking = require("../../Model/booking/bookingModel");
@@ -138,6 +139,144 @@ const GetSingleHotel = async (req, res) => {
     res.status(200).json({ error: false, data: isHotel });
   } catch (error) {
     res.status(500).json({ error });
+  }
+};
+
+const GetSingleHotelDataNew = async (req, res) => {
+  const { id } = req.params;
+  const { checkIn, checkOut } = req.query;
+  try {
+    const _hotel = await HotelModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      {
+        $lookup: {
+          from: "hotel-partners",
+          localField: "vendorId",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                mobileNo: 1,
+                kycVerified: 1,
+                role: 1,
+                status: 1,
+              },
+            },
+          ],
+          as: "vendorId",
+        },
+      },
+      {
+        $lookup: {
+          from: "property-types",
+          localField: "hotelType",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                title: 1,
+              },
+            },
+          ],
+          as: "hotelType",
+        },
+      },
+      {
+        $lookup: {
+          from: "room-categories",
+          localField: "rooms.roomType",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $lookup: {
+                from: "amenities",
+                localField: "amenties",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      title: 1,
+                    },
+                  },
+                ],
+                as: "Amenty",
+              },
+            },
+            {
+              $lookup: {
+                from: "facilities",
+                localField: "includeFacilities",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      title: 1,
+                    },
+                  },
+                ],
+                as: "Facility",
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                personAllowed: 1,
+                includeFacilities: 1,
+                minPrice: 1,
+                maxPrice: 1,
+                amenties: "$Amenty",
+                includeFacilities: "$Facility",
+              },
+            },
+          ],
+          as: "roomType",
+        },
+      },
+      {
+        $lookup: {
+          from: "room-configs",
+          localField: "rooms.roomConfig",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $match: {
+                $or: [
+                  {
+                    $and: [
+                      { from: { $gte: new Date(checkIn) } },
+                      { from: { $lte: new Date(checkOut) } },
+                    ],
+                  },
+                  {
+                    $and: [
+                      { to: { $gte: new Date(checkIn) } },
+                      { to: { $lte: new Date(checkOut) } },
+                    ],
+                  },
+                ],
+              },
+            },
+            {
+              $group: {
+                _id: "$will",
+                id: { $first: "$roomid" },
+                totalRoomsCount: { $sum: "$rooms" },
+              },
+            },
+          ],
+          as: "roomCount",
+        },
+      },
+    ]);
+    res.status(200).json({ error: false, message: "success", data: _hotel });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
   }
 };
 
@@ -671,4 +810,5 @@ module.exports = {
   DeleteAllHotel,
   GetCheckInCheckOut,
   MapAPi,
+  GetSingleHotelDataNew,
 };
