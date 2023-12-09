@@ -16,6 +16,7 @@ const {
   GetCheckInCheckOut,
   DeleteSigleHotel,
   MapAPi,
+  GetSingleHotelDataNew,
   GetSearchTheHotelList,
 } = require("../../Controllers/HotelControllers/hotelControllers");
 const {
@@ -26,10 +27,12 @@ const {
 } = require("../../Controllers/HotelControllers/roomManagementControllers");
 const router = require("express").Router();
 const BookingRoutes = require("./../booking/bookingRoutes");
+const RoomConfigRoutes = require("./roomCofigRoutes");
 const CreateIndexRoute = require("./../createIndex");
 
 // add the booking route
 router.use("/book", BookingRoutes);
+router.use("/room-confg", RoomConfigRoutes);
 router.use("/index", CreateIndexRoute);
 
 // add the hotel
@@ -40,11 +43,14 @@ router.get("/getallhotel", GetAllHotel);
 router.get("/getusershotel/:id", GetUsersHotel);
 // get single Hotel Details
 router.get("/hoteldetails/:id", GetSingleHotel);
+// Get single Data Hotel New APi
+router.get("/hotel-details/:id", GetSingleHotelDataNew);
 // get the all hotels of the user
 // update the hotel data
 router.patch("/updatedetails/:id", UpdateHotelData);
 // delete Single Hotel DeleteSigleHotel
 router.get("/deletesingle", DeleteSigleHotel);
+
 // delelte all the data
 router.get("/deleteall", DeleteAllHotel);
 
