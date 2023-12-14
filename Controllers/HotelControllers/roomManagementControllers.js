@@ -1,6 +1,8 @@
+const { default: mongoose } = require("mongoose");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const {
   UpdatetheRoomData,
+  GetSingleRoomAllBookings,
 } = require("../../helper/hotel/roomManagementHelper");
 
 const UpdateRoomData = async (req, res) => {
@@ -12,8 +14,6 @@ const UpdateRoomData = async (req, res) => {
       .status(401)
       .json({ error: true, message: "invalid credentials" });
   try {
-
-    
     const hId = hotelid ? hotelid : hotelId;
     const rId = roomid ? roomid : roomId;
     const isUpdated = await UpdatetheRoomData(hId, rId, req.body);
@@ -124,9 +124,49 @@ const DeleteRoomDataFromHotel = async (req, res) => {
   }
 };
 
+const GetSingleRoomAvailibility = async (req, res) => {
+  const { id } = req.params;
+  const { from, to } = req.query;
+  const RoomBookings = await GetSingleRoomAllBookings(id, from, to);
+  try {
+    const response = await HotelModel.aggregate([
+      { $match: { "rooms._id": new mongoose.Types.ObjectId(id) } },
+      {
+        $project: {
+          selectedRoom: {
+            $filter: {
+              input: "$rooms",
+              as: "room",
+              cond: { $eq: ["$$room._id", new mongoose.Types.ObjectId(id)] },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          availableRooms: RoomBookings[0]?.totalRoomsBooked,
+        },
+      },
+      {
+        $project: {
+          selectedRoom: 1,
+          totalRooms: { $arrayElemAt: ["$selectedRoom.counts", 0] },
+          availableRooms: RoomBookings[0]?.totalRoomsBooked,
+        },
+      },
+    ]);
+
+    res.status(200).json({ success: true, result: response, RoomBookings });
+  } catch (error) {
+    console.error("Error in GetSingleRoomAvailability:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   UpdateRoomData,
   AddRoomType,
   GetAllRoomOfSingleHotel,
   DeleteRoomDataFromHotel,
+  GetSingleRoomAvailibility,
 };

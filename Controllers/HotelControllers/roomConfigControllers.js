@@ -77,7 +77,7 @@ const createRoomConfig = async (req, res) => {
         });
     }
 
-    const _create = await new RoomConfigModel(data).save();
+    const _create = await new RoomConfigModel({ ...data, roomid: rid }).save();
 
     // // no update the room Config in room data
     const _update = await HotelModel.findOneAndUpdate(

@@ -125,7 +125,6 @@ const CancelBooking = async (bookingId, request) => {
   }
 };
 
-
 module.exports = {
   CreateBooking,
   CheckBookingAvailability,
