@@ -24,6 +24,7 @@ const {
   AddRoomType,
   GetAllRoomOfSingleHotel,
   DeleteRoomDataFromHotel,
+  GetSingleRoomAvailibility,
 } = require("../../Controllers/HotelControllers/roomManagementControllers");
 const router = require("express").Router();
 const BookingRoutes = require("./../booking/bookingRoutes");
@@ -75,6 +76,7 @@ router.get("/room/getall", GetAllRoomOfSingleHotel);
 // delete the hotel rooom
 router.get("/room/delete/:hotelid/:roomid", DeleteRoomDataFromHotel);
 router.get("/room/delete", DeleteRoomDataFromHotel);
+router.get("/room-info/:id", GetSingleRoomAvailibility);
 
 // new filter api
 router.get("/filter", fitlerDataCreate);

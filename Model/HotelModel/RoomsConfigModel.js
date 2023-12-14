@@ -19,6 +19,9 @@ const schema = new Schema(
       default: "dec",
       enum: ["inc", "dec"],
     },
+    reason: {
+      type: String,
+    },
   },
   {
     timestamps: true,

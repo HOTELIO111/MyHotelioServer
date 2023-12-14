@@ -144,7 +144,7 @@ const GetSingleHotel = async (req, res) => {
 
 const GetSingleHotelDataNew = async (req, res) => {
   const { id } = req.params;
-  const { checkIn, checkOut } = req.query;
+  const { checkIn, checkOut, totalRooms } = req.query;
   try {
     const _hotel = await HotelModel.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(id) } },
@@ -271,6 +271,42 @@ const GetSingleHotelDataNew = async (req, res) => {
             },
           ],
           as: "roomCount",
+        },
+      },
+      {
+        $lookup: {
+          from: "bookings",
+          foreignField: "_id",
+          localField: "bookings",
+          pipeline: [
+            {
+              $match: {
+                bookingStatus: "confirmed",
+                $or: [
+                  {
+                    "bookingDate.checkIn": {
+                      $gte: new Date(checkIn),
+                      $lte: new Date(checkOut),
+                    },
+                  },
+                  {
+                    "bookingDate.checkOut": {
+                      $gte: new Date(checkIn),
+                      $lte: new Date(checkOut),
+                    },
+                  },
+                  {
+                    $and: [
+                      { "bookingDate.checkIn": { $lte: new Date(checkIn) } },
+                      { "bookingDate.checkOut": { $gte: new Date(checkOut) } },
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
+
+          as: "BookingData",
         },
       },
     ]);
