@@ -128,10 +128,13 @@ const DeleteRoomDataFromHotel = async (req, res) => {
 const GetSingleRoomAvailibility = async (req, res) => {
   const { id } = req.params;
   const { from, to } = req.query;
-  const RoomBookings = await GetSingleRoomAllBookings(id, from, to);
-  const ALlRooms = await TotalRoomCount(id);
+
   try {
     // const response = await HotelModel.aggregate([
+    const [RoomBookings, ALlRooms] = await Promise.all([
+      GetSingleRoomAllBookings(id, from, to),
+      await TotalRoomCount(id, from, to),
+    ]);
     //   { $match: { "rooms._id": new mongoose.Types.ObjectId(id) } },
     //   {
     //     $project: {
@@ -167,7 +170,9 @@ const GetSingleRoomAvailibility = async (req, res) => {
     //   },
     // ]);
 
-    res.status(200).json({ success: true, result: ALlRooms });
+    res
+      .status(200)
+      .json({ success: true, result: { ...ALlRooms[0], ...RoomBookings[0] } });
   } catch (error) {
     console.error("Error in GetSingleRoomAvailability:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
