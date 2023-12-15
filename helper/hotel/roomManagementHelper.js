@@ -30,8 +30,9 @@ const GetSingleRoomAllBookings = async (
   checkIn = "2023-12-09T12:00:00.000Z",
   checkOut = "2023-12-15T12:00:00.000Z"
 ) => {
+  console.log(roomid, checkIn, checkOut);
   try {
-    const response = await Booking.aggregate([
+    let response = await Booking.aggregate([
       {
         $match: {
           room: roomid,
@@ -60,11 +61,14 @@ const GetSingleRoomAllBookings = async (
       },
       {
         $group: {
-          _id: "$_id",
+          _id: "$room",
           totalRoomsBooked: { $sum: "$numberOfRooms" },
         },
       },
     ]);
+    if (response.length === 0) {
+      response = [{ totalRoomsBooked: 0 }];
+    }
 
     return response;
   } catch (error) {
@@ -78,6 +82,7 @@ const TotalRoomCount = async (
   checkOut = "2023-01-01T14:00:00Z"
 ) => {
   try {
+    console.log(roomid, checkIn, checkOut);
     // const response = await HotelModel.find({ "rooms._id": roomid });
     const response = await HotelModel.aggregate([
       { $match: { "rooms._id": new mongoose.Types.ObjectId(roomid) } },
@@ -89,6 +94,7 @@ const TotalRoomCount = async (
           pipeline: [
             {
               $match: {
+                roomid: new mongoose.Types.ObjectId(roomid),
                 $or: [
                   {
                     $and: [
@@ -136,7 +142,7 @@ const TotalRoomCount = async (
       },
       {
         $project: {
-          NetTotalRooms: "$totalRooms.counts",
+          TotalRooms: "$totalRooms.counts",
           decreasedRoom: {
             $let: {
               vars: {
