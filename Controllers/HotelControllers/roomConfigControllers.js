@@ -177,9 +177,9 @@ const UpdateRoomConfig = async (req, res) => {
 };
 
 const GetAllroomConfig = async (req, res) => {
-  const { id } = req.query;
+  const { roomid } = req.query;
   try {
-    const cred = id ? { _id: id } : {};
+    const cred = roomid ? { roomid: roomid } : {};
     const response = await RoomConfigModel.find(cred);
     if (!response)
       return res.status(404).json({ error: true, message: "No Data found" });

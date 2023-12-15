@@ -3,6 +3,7 @@ const HotelModel = require("../../Model/HotelModel/hotelModel");
 const {
   UpdatetheRoomData,
   GetSingleRoomAllBookings,
+  TotalRoomCount,
 } = require("../../helper/hotel/roomManagementHelper");
 
 const UpdateRoomData = async (req, res) => {
@@ -128,35 +129,45 @@ const GetSingleRoomAvailibility = async (req, res) => {
   const { id } = req.params;
   const { from, to } = req.query;
   const RoomBookings = await GetSingleRoomAllBookings(id, from, to);
+  const ALlRooms = await TotalRoomCount(id);
   try {
-    const response = await HotelModel.aggregate([
-      { $match: { "rooms._id": new mongoose.Types.ObjectId(id) } },
-      {
-        $project: {
-          selectedRoom: {
-            $filter: {
-              input: "$rooms",
-              as: "room",
-              cond: { $eq: ["$$room._id", new mongoose.Types.ObjectId(id)] },
-            },
-          },
-        },
-      },
-      {
-        $addFields: {
-          availableRooms: RoomBookings[0]?.totalRoomsBooked,
-        },
-      },
-      {
-        $project: {
-          selectedRoom: 1,
-          totalRooms: { $arrayElemAt: ["$selectedRoom.counts", 0] },
-          availableRooms: RoomBookings[0]?.totalRoomsBooked,
-        },
-      },
-    ]);
+    // const response = await HotelModel.aggregate([
+    //   { $match: { "rooms._id": new mongoose.Types.ObjectId(id) } },
+    //   {
+    //     $project: {
+    //       selectedRoom: {
+    //         $filter: {
+    //           input: "$rooms",
+    //           as: "room",
+    //           cond: { $eq: ["$$room._id", new mongoose.Types.ObjectId(id)] },
+    //         },
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "room-configs",
+    //       localField: "$room._id",
+    //       foreignField: "roomid",
+    //       as: "roomFound",
+    //     },
+    //   },
+    //   {
+    //     $addFields: {
+    //       availableRooms: RoomBookings[0]?.totalRoomsBooked,
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       selectedRoom: 1,
+    //       totalRooms: { $arrayElemAt: ["$selectedRoom.counts", 0] },
+    //       availableRooms: RoomBookings[0]?.totalRoomsBooked,
+    //       roomFound: 1,
+    //     },
+    //   },
+    // ]);
 
-    res.status(200).json({ success: true, result: response, RoomBookings });
+    res.status(200).json({ success: true, result: ALlRooms });
   } catch (error) {
     console.error("Error in GetSingleRoomAvailability:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
