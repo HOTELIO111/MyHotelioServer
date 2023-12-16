@@ -23,6 +23,10 @@ const schema = new Schema(
         ref: "faqs",
       },
     ],
+    title: { type: String, required: true },
+    meta: {
+      type: String,
+    },
   },
   {
     timestamps: true,

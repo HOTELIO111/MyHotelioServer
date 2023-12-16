@@ -82,7 +82,6 @@ const TotalRoomCount = async (
   checkOut = "2023-01-01T14:00:00Z"
 ) => {
   try {
-    console.log(roomid, checkIn, checkOut);
     // const response = await HotelModel.find({ "rooms._id": roomid });
     const response = await HotelModel.aggregate([
       { $match: { "rooms._id": new mongoose.Types.ObjectId(roomid) } },
@@ -159,7 +158,7 @@ const TotalRoomCount = async (
                   ],
                 },
               },
-              in: "$$filteredRoom.totalRooms", // Assuming 'value' is the field you want to return
+              in: "$$filteredRoom.totalRooms",
             },
           },
           increasedRoom: {
@@ -178,7 +177,7 @@ const TotalRoomCount = async (
                   ],
                 },
               },
-              in: "$$filteredRoom.totalRooms", // Assuming 'value' is the field you want to return
+              in: "$$filteredRoom.totalRooms",
             },
           },
         },
@@ -191,60 +190,8 @@ const TotalRoomCount = async (
   }
 };
 
-// $filter: {
-//   input: "$roomconfig",
-//   as: "roominfo",
-//   cond: { $eq: ["$$roominfo._id", "dec"] },
-// },
-
-// const CaculateTheRooms = (data) => {
-//   console.log(data);
-//   let decRooms;
-//   let incRooms;
-//   data?.forEach((element) => {
-//     if (element?.will === "dec") {
-//       decRooms = decRooms + element?.rooms;
-//     } else {
-//       incRooms = incRooms + element?.rooms;
-//     }
-//   });
-//   return { decRooms, incRooms };
-// };
-
 module.exports = {
   UpdatetheRoomData,
   GetSingleRoomAllBookings,
   TotalRoomCount,
 };
-// const response = await Booking.aggregate([
-//   {
-//     $match: {
-//       room: roomid,
-//       bookingStatus: "confirmed",
-//       $and: [
-//         { "bookingDate.checkIn": { $lte: checkOut } },
-//         { "bookingDate.checkOut": { $gte: checkIn } },
-//       ],
-//     },
-//   },
-// ]);
-
-// let: {
-//   var: {
-//     decRoomCount: {
-//       $cond: {
-//         if: { $eq: ["$roomconfig._id", "dec"] },
-//         then: "$$roomconfig.totalRooms",
-//         else: 0,
-//       },
-//     },
-//     incRoomCount: {
-//       $cond: {
-//         if: { $eq: ["$roomconfig._id", "inc"] },
-//         then: "$$roomconfig.totalRooms",
-//         else: 0,
-//       },
-//     },
-//   },
-//   in: { $add: ["$decRoomCount", "$incRoomCount"] },
-// },
