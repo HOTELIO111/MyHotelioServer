@@ -1,94 +1,53 @@
 const express = require("express");
+const { Server } = require("socket.io");
+const { createServer } = require("http");
+const { Worker } = require("bullmq");
+const AppRoutes = require("./Routes/app");
 require("dotenv").config();
+require("./config/connection");
 const cors = require("cors");
-const Utils = require("./Routes/utils");
-const CustomerRoutes = require("./Routes/AuthRoutes/auth");
-const HotelRoutes = require("./Routes/HotelRoutes/hotel");
-const VerifyRoutes = require("./Routes/AuthRoutes/verification");
-const RoomTypeRoutes = require("./Routes/HotelRoutes/roomType");
-const AmenitiesRoutes = require("./Routes/HotelRoutes/amenities");
-const AdminRoutes = require("./Routes/admin/adminRoutes");
-const FacilitiesRoutes = require("./Routes/HotelRoutes/facilitiesRoutes");
-const kycRoutes = require("./Routes/HotelRoutes/kycroutes");
-const Reviews = require("./Routes/Reviews/ReviewsRoutes");
-const PropertyCateRoutes = require("./Routes/HotelRoutes/propertyTypesRoutes");
-const NotificationRoutes = require("./Routes/notifications/notificationsRoutes");
-const MultiTableRoutes = require("./Routes/multiTableDataApi");
-const AgentRouters = require("./Routes/Agentroutes/index");
-const StripeGateway = require("./Routes/stripe");
-const FaqRoutes = require("./Routes/Faq");
-const PopularLocationRoutes = require("./Routes/PopularLocations");
-const GoogleRoutes = require("./Routes/MiscellaneousRoutes/GoogleRoutes");
-const CCAvenue = require("./Routes/CcAvenue");
+const { BookingQue } = require("./jobs/BookingsQueue");
+const { CreatePreBooking } = require("./Controllers/worker/BookingWorker");
+const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+  },
+});
 
 const port = process.env.ENV === "production" ? process.env.PORT : 3001 || 8080;
-// database
-require("./config/connection");
-const app = express();
-
-// app.use(
-//   cors({
-//     origin: [
-//       "https://admin.hoteliorooms.com",
-//       "https://www.hoteliorooms.com",
-//       "http://localhost:3000",
-//       "http://localhost:3001",
-//       "http://localhost:3002",
-//     ],
-//   })
-// );
 
 app.use(cors());
 
 // some middlewares
 app.use(express.json());
 
-app.use(
-  cors({
-    origin: [
-      "https://admin.hoteliorooms.com",
-      "https://www.hoteliorooms.com",
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-    ],
-  })
-);
-
-// app.use(cors());
-
-// some middlewares
-
 // variable Define
 app.use(express.static("./static"));
 
 // routes
-app.use("/util", Utils);
-app.use("/api", CustomerRoutes);
-app.use("/api", StripeGateway);
-app.use("/api/agent", AgentRouters);
-app.use("/hotel", HotelRoutes);
-app.use("/admin", AdminRoutes);
-// verfication related apis
-app.use("/verify", VerifyRoutes);
-app.use("/roomtype", RoomTypeRoutes);
-app.use("/google", GoogleRoutes);
-app.use("/amenity", AmenitiesRoutes);
-app.use("/facility", FacilitiesRoutes);
-app.use("/property-type", PropertyCateRoutes);
-app.use("/kyc", kycRoutes);
-app.use("/notify", NotificationRoutes);
-app.use("/api", MultiTableRoutes);
-app.use("/ccav", CCAvenue);
-app.use("/faq", FaqRoutes);
-app.use("/reviews", Reviews);
-app.use("/popular-location", PopularLocationRoutes);
+app.use("/", AppRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Hotelio Backend");
 });
 
+app.get("/createprebook/:room", (req, res) => {
+  try {
+    const response = BookingQue.add(`${req.params.room} book now`, {
+      name: "sourabh verma",
+    });
+    res.status(200).json({ error: false, message: "succes", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+});
+
+// quer workers
+new Worker("pre-booking", CreatePreBooking);
+
 // server startt
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`server started at port ${port}`);
 });

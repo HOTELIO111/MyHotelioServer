@@ -13,6 +13,7 @@ const {
   GetTheGoogleSpecification,
   generateGoogleMapsURL,
 } = require("../../helper/hotel/hotel_helper");
+const { io } = require("../../index");
 
 // const RegisterHotel = async (req, res) => {
 //   const vendorId = req.params.id;
@@ -84,7 +85,6 @@ const RegisterHotel = async (req, res) => {
       { new: true, upsert: true }
     );
     if (!Vendor) {
-      // If the ID is not pushed into the customer's data, consider the hotel as unregistered
       await response.remove();
       return res
         .status(400)
@@ -262,10 +262,59 @@ const GetSingleHotelDataNew = async (req, res) => {
                 ],
               },
             },
-            { $group: {} },
             // Yha pe Room Calculation baki hai wo kro uske baad booking ka caculated nikalo then sab ok hai
           ],
           as: "roomCountData",
+        },
+      },
+      {
+        $lookup: {
+          from: "bookings",
+          foreignField: "_id",
+          localField: "bookings",
+          pipeline: [
+            {
+              $match: {
+                bookingStatus: "confirmed",
+                $or: [
+                  {
+                    "bookingDate.checkIn": {
+                      $gte: new Date(checkIn),
+                      $lte: new Date(checkOut),
+                    },
+                  },
+                  {
+                    "bookingDate.checkOut": {
+                      $gte: new Date(checkIn),
+                      $lte: new Date(checkOut),
+                    },
+                  },
+                  {
+                    $and: [
+                      { "bookingDate.checkIn": { $lte: new Date(checkIn) } },
+                      { "bookingDate.checkOut": { $gte: new Date(checkOut) } },
+                    ],
+                  },
+                ],
+              },
+            },
+            {
+              $group: {
+                _id: "$room",
+                bookedRoom: { $first: "$room" },
+                totalRooms: { $sum: "$numberOfRooms" },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                bookedRoom: 1,
+                totalRooms: 1,
+              },
+            },
+          ],
+
+          as: "bookingDatas",
         },
       },
       {
@@ -289,7 +338,63 @@ const GetSingleHotelDataNew = async (req, res) => {
               input: "$rooms",
               as: "room",
               in: {
-                counts: "$$room.counts",
+                bookingCount: "$bookingDatas",
+                counts: {
+                  $sum: {
+                    $subtract: [
+                      { $toInt: "$$room.counts" }, // Convert to integer if not already
+                      {
+                        $let: {
+                          vars: {
+                            decreasedArray: {
+                              $filter: {
+                                input: "$roomCountData",
+                                as: "roomCo",
+                                cond: {
+                                  $and: [
+                                    { $eq: ["$$roomCo.roomid", "$$room._id"] },
+                                    { $eq: ["$$roomCo.will", "dec"] },
+                                  ],
+                                },
+                              },
+                            },
+                            increasedArray: {
+                              $filter: {
+                                input: "$roomCountData",
+                                as: "roomCo",
+                                cond: {
+                                  $and: [
+                                    { $eq: ["$$roomCo.roomid", "$$room._id"] },
+                                    { $eq: ["$$roomCo.will", "inc"] },
+                                  ],
+                                },
+                              },
+                            },
+                          },
+                          in: {
+                            $sum: {
+                              $subtract: [
+                                { $sum: "$$decreasedArray.rooms" },
+                                { $sum: "$$increasedArray.rooms" },
+                              ],
+                            },
+                          },
+                          // in: {
+                          //   $subtract: [
+                          //     {
+                          //       $subtract: [
+                          //         { $sum: "$$decreasedArray.rooms" },
+                          //         { $sum: "$$increasedArray.rooms" },
+                          //       ],
+                          //     },
+                          //     { $sum: "$$totalBooking.numberOfRooms" },
+                          //   ],
+                          // },
+                        },
+                      },
+                    ],
+                  },
+                },
                 roomType: {
                   $arrayElemAt: [
                     {
@@ -307,7 +412,13 @@ const GetSingleHotelDataNew = async (req, res) => {
                 additionAmenities: "$$room.additionAmenities",
                 roomConfig: "$$room.roomConfig",
                 additionalFacilties: "$$room.additionalFacilties",
-                roomCount: "$roomCountData",
+                roomCount: {
+                  $filter: {
+                    input: "$roomCountData",
+                    as: "roomCo",
+                    cond: { $eq: ["$$roomCo.roomid", "$$room._id"] },
+                  },
+                },
                 _id: "$$room._id",
               },
             },
@@ -329,6 +440,7 @@ const GetSingleHotelDataNew = async (req, res) => {
           reviews: 1,
           createdAt: 1,
           discription: 1,
+          book: "$bookingDatas",
         },
       },
     ]);
