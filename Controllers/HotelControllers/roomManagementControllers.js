@@ -135,6 +135,8 @@ const GetSingleRoomAvailibility = async (req, res) => {
       GetSingleRoomAllBookings(id, from, to),
       await TotalRoomCount(id, from, to),
     ]);
+
+    const resultData = { ...ALlRooms[0], ...RoomBookings[0] };
     //   { $match: { "rooms._id": new mongoose.Types.ObjectId(id) } },
     //   {
     //     $project: {
@@ -170,9 +172,7 @@ const GetSingleRoomAvailibility = async (req, res) => {
     //   },
     // ]);
 
-    res
-      .status(200)
-      .json({ success: true, result: { ...ALlRooms[0], ...RoomBookings[0] } });
+    res.status(200).json({ success: true, result: resultData });
   } catch (error) {
     console.error("Error in GetSingleRoomAvailability:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });

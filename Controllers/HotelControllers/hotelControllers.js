@@ -379,17 +379,6 @@ const GetSingleHotelDataNew = async (req, res) => {
                               ],
                             },
                           },
-                          // in: {
-                          //   $subtract: [
-                          //     {
-                          //       $subtract: [
-                          //         { $sum: "$$decreasedArray.rooms" },
-                          //         { $sum: "$$increasedArray.rooms" },
-                          //       ],
-                          //     },
-                          //     { $sum: "$$totalBooking.numberOfRooms" },
-                          //   ],
-                          // },
                         },
                       },
                     ],

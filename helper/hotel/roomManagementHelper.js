@@ -30,13 +30,12 @@ const GetSingleRoomAllBookings = async (
   checkIn = "2023-12-09T12:00:00.000Z",
   checkOut = "2023-12-15T12:00:00.000Z"
 ) => {
-  console.log(roomid, checkIn, checkOut);
   try {
     let response = await Booking.aggregate([
       {
         $match: {
           room: roomid,
-          bookingStatus: "confirmed",
+          bookingStatus: { $in: ["confirmed", "pending"] },
           $or: [
             {
               "bookingDate.checkIn": {
@@ -190,8 +189,44 @@ const TotalRoomCount = async (
   }
 };
 
+const GetTheRoomAvailiabilityStats = async (id, from, to) => {
+  try {
+    const [RoomBookings, ALlRooms] = await Promise.all([
+      GetSingleRoomAllBookings(id, from, to),
+      await TotalRoomCount(id, from, to),
+    ]);
+
+    const resultData = { ...ALlRooms[0], ...RoomBookings[0] };
+
+    const roomCount = RoomCount(resultData);
+    return roomCount;
+  } catch (error) {
+    return error;
+  }
+};
+
+const RoomCount = (data) => {
+  const TotalRooms = data?.TotalRooms;
+  const decreasedRoom = data?.decreasedRoom;
+  const increasedRoom = data?.increasedRoom;
+  const totalRoomsBooked = data?.totalRoomsBooked;
+
+  let totalCount = TotalRooms;
+  if (decreasedRoom) {
+    totalCount = totalCount - decreasedRoom;
+  }
+  if (increasedRoom) {
+    totalCount = totalCount + increasedRoom;
+  }
+  if (totalRoomsBooked) {
+    totalCount = totalCount - totalRoomsBooked;
+  }
+  return totalCount;
+};
+
 module.exports = {
   UpdatetheRoomData,
   GetSingleRoomAllBookings,
   TotalRoomCount,
+  GetTheRoomAvailiabilityStats,
 };

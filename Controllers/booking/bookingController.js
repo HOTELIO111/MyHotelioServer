@@ -2,11 +2,17 @@ const CustomerAuthModel = require("../../Model/CustomerModels/customerModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const Booking = require("../../Model/booking/bookingModel");
+const { FindGlobalAndMatch } = require("../../functions/globalVariables");
 const {
   CreateBooking,
   handleCancelationPolicy,
   CancelBooking,
+  PreBookingFunction,
 } = require("../../helper/booking/bookingHelper");
+const {
+  GetTheRoomAvailiabilityStats,
+} = require("../../helper/hotel/roomManagementHelper");
+const { BookingQue } = require("../../jobs/BookingsQueue");
 const bookingIdGenerate = require("./bookingIdGenerator");
 
 const RegisterBooking = async (req, res) => {
@@ -98,18 +104,47 @@ const generateBookingId = async (req, res) => {
 // create the pre booking
 const CreatePreBooking = async (req, res) => {
   const bookingData = req.body;
+
+  // Check the booking availability and hold it for 10 minutes
+  const roomCount = await GetTheRoomAvailiabilityStats(
+    bookingData?.room,
+    bookingData?.bookingDate?.checkIn,
+    bookingData?.bookingDate?.checkOut
+  );
+
+  if (bookingData?.numberOfRooms > roomCount) {
+    return res
+      .status(404)
+      .json({ error: true, message: "Oops! Room not available" });
+  }
+  // // create the Global Varaible
+  // global[bookingData?.room] = {
+  //   bookingDate: bookingData?.bookingDate,
+  //   numberOfRooms: bookingData?.numberOfRooms,
+  // };
+  // const find_data = await FindGlobalAndMatch(bookingData);
+
   try {
-    const response = await new Booking(bookingData).save();
-    if (response) {
-      res
-        .status(200)
-        .json({ error: false, message: "success", data: response });
-    }
+    const _bookingPre = await PreBookingFunction(bookingData);
+
+    res.status(200).json({ error: false, message: _bookingPre });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
 };
 
+const UpdatePreBooking = async (req, res) => {
+  const formData = req.body;
+  const { id } = req.params;
+  try {
+    const addinBookingQue = BookingQue.add(id, formData);
+    res
+      .status(200)
+      .json({ error: false, message: "success", booking: addinBookingQue });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
 module.exports = {
   RegisterBooking,
   CancleBooking,
@@ -117,4 +152,5 @@ module.exports = {
   GetDeleteBooking,
   generateBookingId,
   CreatePreBooking,
+  UpdatePreBooking,
 };

@@ -26,6 +26,9 @@ app.use(express.json());
 // variable Define
 app.use(express.static("./static"));
 
+// Global Variables
+global.roomCount = [];
+
 // routes
 app.use("/", AppRoutes);
 
@@ -33,19 +36,8 @@ app.get("/", (req, res) => {
   res.send("Welcome to Hotelio Backend");
 });
 
-app.get("/createprebook/:room", (req, res) => {
-  try {
-    const response = BookingQue.add(`${req.params.room} book now`, {
-      name: "sourabh verma",
-    });
-    res.status(200).json({ error: false, message: "succes", data: response });
-  } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
-  }
-});
-
 // quer workers
-new Worker("pre-booking", CreatePreBooking);
+new Worker("booking", CreatePreBooking);
 
 // server startt
 server.listen(port, () => {

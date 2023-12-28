@@ -3,29 +3,60 @@ const CustomerAuthModel = require("../../Model/CustomerModels/customerModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const Booking = require("../../Model/booking/bookingModel");
 
-const CreateBooking = async (formData) => {
+const CreateBooking = async (formData, id, status) => {
+  try {
+    // Generate Booking id
+    // const bookingID = await bookingIdGenerate();
+    // const isCreated = await new Booking({
+    //   ...formData,
+    //   bookingId: bookingID,
+    // }).save();
+
+    const isCreated = await Booking.findByIdAndUpdate(
+      id,
+      {
+        ...formData,
+        bookingStatus: status,
+      },
+      {
+        new: true,
+      }
+    );
+    if (!isCreated) return { error: true, message: "Not registered" };
+
+    // Add the booking id in customer and vendor data
+    const onVendor = await HotelModel.findOneAndUpdate(
+      { _id: isCreated.hotel },
+      { $push: { bookings: isCreated._id } }
+    );
+
+    if (!onVendor)
+      return { error: true, message: "Booking not created! Try Again" };
+
+    return { error: false, message: "Success", data: isCreated };
+  } catch (error) {
+    return { error: true, message: error.message };
+  }
+};
+
+const PreBookingFunction = async (formData) => {
   try {
     // Generate Booking id
     const bookingID = await bookingIdGenerate();
     const isCreated = await new Booking({
       ...formData,
       bookingId: bookingID,
+      bookingStatus: "pending",
     }).save();
     if (!isCreated) return { error: true, message: "Not registered" };
 
     // Add the booking id in customer and vendor data
-    const [onCustomer, onVendor] = await Promise.all([
-      CustomerAuthModel.findOneAndUpdate(
-        { _id: isCreated.customer },
-        { $push: { bookings: isCreated._id } }
-      ),
-      HotelModel.findOneAndUpdate(
-        { _id: isCreated.hotel },
-        { $push: { bookings: isCreated._id } }
-      ),
-    ]);
+    const onCustomer = CustomerAuthModel.findOneAndUpdate(
+      { _id: isCreated.customer },
+      { $push: { bookings: isCreated._id } }
+    );
 
-    if (!onCustomer && !onVendor)
+    if (!onCustomer)
       return { error: true, message: "Booking not created! Try Again" };
 
     return { error: false, message: "Success", data: isCreated };
@@ -130,4 +161,5 @@ module.exports = {
   CheckBookingAvailability,
   handleCancellationPolicy,
   CancelBooking,
+  PreBookingFunction,
 };
