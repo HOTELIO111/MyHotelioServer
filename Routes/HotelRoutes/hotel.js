@@ -11,11 +11,8 @@ const {
   GetUsersHotel,
   fitlerDataCreate,
   GetFieldList,
-  GetSearch,
   DeleteSelectedVendorHotel,
-  GetCheckInCheckOut,
   DeleteSigleHotel,
-  MapAPi,
   GetSingleHotelDataNew,
   GetSearchTheHotelList,
 } = require("../../Controllers/HotelControllers/hotelControllers");
@@ -30,10 +27,12 @@ const router = require("express").Router();
 const BookingRoutes = require("./../booking/bookingRoutes");
 const RoomConfigRoutes = require("./roomCofigRoutes");
 const CreateIndexRoute = require("./../createIndex");
+const HotelFilterRoutes = require("./hotelFitlerCategories");
 
 // add the booking route
 router.use("/book", BookingRoutes);
 router.use("/room-confg", RoomConfigRoutes);
+router.use("/room-filter", HotelFilterRoutes);
 router.use("/index", CreateIndexRoute);
 
 // add the hotel
@@ -61,7 +60,7 @@ router.delete("/deletebyvendor/:id", DeleteSelectedVendorHotel);
 // Get all the city
 router.get("/get/:field", GetFieldList);
 
-// rooms APi
+// -------------------------------------- rooms APi --------------------------------------------------------
 
 // room added
 router.post("/room/add/:hotelid", AddRoomType);
