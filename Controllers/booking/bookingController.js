@@ -4,6 +4,9 @@ const VendorModel = require("../../Model/HotelModel/vendorModel");
 const Booking = require("../../Model/booking/bookingModel");
 const { FindGlobalAndMatch } = require("../../functions/globalVariables");
 const {
+  CreateThePaymentInfo,
+} = require("../../helper/Payments/payementFuctions");
+const {
   CreateBooking,
   handleCancelationPolicy,
   CancelBooking,
@@ -12,7 +15,7 @@ const {
 const {
   GetTheRoomAvailiabilityStats,
 } = require("../../helper/hotel/roomManagementHelper");
-const { BookingQue } = require("../../jobs/BookingsQueue");
+const { BookingQue } = require("../../jobs");
 const bookingIdGenerate = require("./bookingIdGenerator");
 
 const RegisterBooking = async (req, res) => {
@@ -117,12 +120,6 @@ const CreatePreBooking = async (req, res) => {
       .status(404)
       .json({ error: true, message: "Oops! Room not available" });
   }
-  // // create the Global Varaible
-  // global[bookingData?.room] = {
-  //   bookingDate: bookingData?.bookingDate,
-  //   numberOfRooms: bookingData?.numberOfRooms,
-  // };
-  // const find_data = await FindGlobalAndMatch(bookingData);
 
   try {
     const _bookingPre = await PreBookingFunction(bookingData);
@@ -145,6 +142,52 @@ const UpdatePreBooking = async (req, res) => {
     res.status(500).json({ error: true, message: error.message });
   }
 };
+
+const CollectPaymentInfoAndConfirmBooking = async (req, res) => {
+  const formData = req.body;
+  const { paymentType } = req.params;
+  try {
+    // check the booking data
+    const _bookingData = await Booking.findOne({
+      bookingId: formData?.order_id,
+    });
+
+    if (!_bookingData)
+      return res
+        .status(404)
+        .json({ error: true, message: "No booking Found " });
+
+    // Store the payment info
+    const paymentReg = await CreateThePaymentInfo(formData);
+
+    // Add to the queue to handle payment for the booking
+    await BookingQue.add(
+      `Handle Payment For Booking No ${formData?.order_id}`,
+      {
+        ...formData,
+        paymentType,
+      }
+    );
+    // const paymentReg = formData;
+    if (paymentReg.order_status === "Success") {
+      res.status(200).json({
+        error: false,
+        message:
+          "Success: Payment received. Booking sent to the hotel for confirmation.",
+      });
+    } else {
+      res.status(200).json({
+        error: true,
+        data: paymentReg,
+        message:
+          "Payment Response indicates failure. Please wait for redirection or contact support.",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   RegisterBooking,
   CancleBooking,
@@ -153,4 +196,5 @@ module.exports = {
   generateBookingId,
   CreatePreBooking,
   UpdatePreBooking,
+  CollectPaymentInfoAndConfirmBooking,
 };

@@ -6,8 +6,9 @@ const AppRoutes = require("./Routes/app");
 require("dotenv").config();
 require("./config/connection");
 const cors = require("cors");
-const { BookingQue } = require("./jobs/BookingsQueue");
+const { BookingQue } = require("./jobs");
 const { CreatePreBooking } = require("./Controllers/worker/BookingWorker");
+const { EmailWorker } = require("./Controllers/worker/EmailNotification");
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -38,6 +39,7 @@ app.get("/", (req, res) => {
 
 // quer workers
 new Worker("booking", CreatePreBooking);
+new Worker("Email-Notification", EmailWorker);
 
 // server startt
 server.listen(port, () => {
