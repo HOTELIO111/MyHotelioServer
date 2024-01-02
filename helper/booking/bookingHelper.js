@@ -5,13 +5,6 @@ const Booking = require("../../Model/booking/bookingModel");
 
 const CreateBooking = async (formData, id, status) => {
   try {
-    // Generate Booking id
-    // const bookingID = await bookingIdGenerate();
-    // const isCreated = await new Booking({
-    //   ...formData,
-    //   bookingId: bookingID,
-    // }).save();
-
     const isCreated = await Booking.findByIdAndUpdate(
       id,
       {
@@ -156,10 +149,15 @@ const CancelBooking = async (bookingId, request) => {
   }
 };
 
+// const CollectPaymentAndConfirm = async (formdata) => {
+//   const
+// };
+
 module.exports = {
   CreateBooking,
   CheckBookingAvailability,
   handleCancellationPolicy,
   CancelBooking,
   PreBookingFunction,
+  // CollectPaymentAndConfirm,
 };

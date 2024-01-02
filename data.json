@@ -1,0 +1,36 @@
+[
+    {
+        "bookingId": "",
+        "room": "",
+        "hotel": "",
+        "guest": "",
+        "bookingDate": {
+            "checkIn": "",
+            "checkOut": ""
+        },
+        "amount": "",
+        "dateOfBooking": "",
+        "payment": {
+            "status": "pending"
+        },
+        "bookingStatus": "confirmed",
+        "numberOfGuests": {
+            "adults": 5
+        },
+        "numberOfRooms": 7,
+        "bookingSource": "website",
+        "customer": "",
+        "additionalCharges": {
+            "gst": "",
+            "cancellationCharge": "",
+            "serviceFee": ""
+        },
+        "specialRequests": "",
+        "discountInfo": [
+            {
+                "name": "",
+                "amount": ""
+            }
+        ]
+    }
+]

@@ -6,20 +6,29 @@ const {
   generateBookingId,
   CreatePreBooking,
   UpdatePreBooking,
+  CollectPaymentInfoAndConfirmBooking,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
   CreateBooking,
 } = require("../../helper/booking/bookingHelper");
+const ValidateBookingQuery = require("../../validator/booking/Booking");
+
 const PreBooking = require("../../validator/booking/PreBooking");
+const ValidatePaymentData = require("../../validator/booking/UpdateBookingPayment");
 
 const router = require("express").Router();
 
 // generatet booking id
 router.get("/booking/generate", generateBookingId);
 
-router.post("/create/pre-booking", CreatePreBooking);
+router.post("/create/pre-booking", ValidateBookingQuery, CreatePreBooking);
 router.post("/create/booking/:id", UpdatePreBooking);
+router.post(
+  "/booking/final/:paymentType",
+  ValidatePaymentData,
+  CollectPaymentInfoAndConfirmBooking
+);
 // create the booking
 router.post("/create", CheckBookingAvailability, RegisterBooking);
 // cancel booking

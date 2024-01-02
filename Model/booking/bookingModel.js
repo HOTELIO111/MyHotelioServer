@@ -60,19 +60,17 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
     payment: {
-      status: {
+      paymentType: {
         type: String,
-        enum: ["success", "pending", "failed"],
-        required: true,
+        enum: ["part-pay", "online", "pay-at-hotel"],
+        default: "online",
       },
-      method: {
-        type: String,
-        required: true,
-      },
-      transactionID: String,
-      confirmationNumber: String,
-      date: Date,
-      balance: Number,
+      payments: [
+        { type: mongoose.Schema.Types.ObjectId, ref: "paymentsresponses" },
+      ],
+      totalamount: Number,
+      paidamount: Number,
+      balanceAmt: Number,
     },
     specialRequests: String,
     bookingStatus: {

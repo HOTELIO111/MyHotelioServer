@@ -72,9 +72,12 @@ router.get("/s3/upload", async (req, res) => {
 
   const UploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 120 });
 
-  res
-    .status(200)
-    .json({ error: false, url: UploadUrl, UploadedPath: GeneratePath });
+  res.status(200).json({
+    error: false,
+    url: UploadUrl,
+    UploadedPath: GeneratePath,
+    UploadedUrl: `https://hotelio-images.s3.ap-south-1.amazonaws.com/${GeneratePath}`,
+  });
 });
 
 // function to genereate objurl

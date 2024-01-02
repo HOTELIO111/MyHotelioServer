@@ -17,6 +17,7 @@ const StripeGateway = require("./stripe");
 const FaqRoutes = require("./Faq");
 const PopularLocationRoutes = require("./PopularLocations");
 const GoogleRoutes = require("./MiscellaneousRoutes/GoogleRoutes");
+const DynamicImageSliderRoutes = require("./DynamicSliderRoutes");
 const CCAvenue = require("./CcAvenue");
 
 router.use("/util", Utils);
@@ -39,5 +40,6 @@ router.use("/ccav", CCAvenue);
 router.use("/faq", FaqRoutes);
 router.use("/reviews", Reviews);
 router.use("/popular-location", PopularLocationRoutes);
+router.use("/slider", DynamicImageSliderRoutes);
 
 module.exports = router;
