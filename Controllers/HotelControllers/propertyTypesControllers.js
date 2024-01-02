@@ -2,11 +2,11 @@ const { reseller } = require("googleapis/build/src/apis/reseller");
 const PropertyTypes = require("../../Model/HotelModel/propertyTypesModel");
 
 const AddPropertyType = async (req, res) => {
-  const { name } = req.query;
+  const { title } = req.query;
 
   try {
     const isAdded = await new PropertyTypes({
-      name,
+      title,
     }).save();
     if (!isAdded)
       return res.status(400).json({
