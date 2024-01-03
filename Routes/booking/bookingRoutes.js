@@ -8,6 +8,7 @@ const {
   // UpdatePreBooking,
   ConfirmBookingPayAtHotel,
   CollectPaymentInfoAndConfirmBooking,
+  ManageCancelBooking,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
@@ -32,8 +33,12 @@ router.post(
 // Book the payat hotel room
 router.post("/booking/pay-at-hotel", ConfirmBookingPayAtHotel);
 
+// cancel Booking
+router.post("/cancel-bookings", ManageCancelBooking);
+
 // create the booking
 router.post("/create", CheckBookingAvailability, RegisterBooking);
+
 // cancel booking
 router.get("/cancel", CancleBooking);
 

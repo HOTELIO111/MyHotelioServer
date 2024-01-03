@@ -208,7 +208,7 @@ const ConfirmBookingPayAtHotel = async (req, res) => {
         paymentType,
       }
     );
-    
+
     res.status(200).json({
       error: false,
       message: "success",
@@ -220,6 +220,11 @@ const ConfirmBookingPayAtHotel = async (req, res) => {
   }
 };
 
+// cancel Bookings
+const ManageCancelBooking = async (req, res) => {
+  const bookings = await Booking.find({});
+};
+
 module.exports = {
   RegisterBooking,
   CancleBooking,
@@ -228,6 +233,6 @@ module.exports = {
   generateBookingId,
   CreatePreBooking,
   ConfirmBookingPayAtHotel,
-  // UpdatePreBooking,
   CollectPaymentInfoAndConfirmBooking,
+  ManageCancelBooking,
 };
