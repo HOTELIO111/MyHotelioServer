@@ -19,6 +19,7 @@ const PopularLocationRoutes = require("./PopularLocations");
 const GoogleRoutes = require("./MiscellaneousRoutes/GoogleRoutes");
 const DynamicImageSliderRoutes = require("./DynamicSliderRoutes");
 const CCAvenue = require("./CcAvenue");
+const OfferRoutes = require("./OffersRoutes.js/offersRoutes");
 
 router.use("/util", Utils);
 router.use("/api", CustomerRoutes);
@@ -41,5 +42,6 @@ router.use("/faq", FaqRoutes);
 router.use("/reviews", Reviews);
 router.use("/popular-location", PopularLocationRoutes);
 router.use("/slider", DynamicImageSliderRoutes);
+router.use("/offers", OfferRoutes);
 
 module.exports = router;

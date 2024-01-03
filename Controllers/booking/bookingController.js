@@ -130,18 +130,18 @@ const CreatePreBooking = async (req, res) => {
   }
 };
 
-const UpdatePreBooking = async (req, res) => {
-  const formData = req.body;
-  const { id } = req.params;
-  try {
-    const addinBookingQue = BookingQue.add(id, formData);
-    res
-      .status(200)
-      .json({ error: false, message: "success", booking: addinBookingQue });
-  } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
-  }
-};
+// const UpdatePreBooking = async (req, res) => {
+//   const formData = req.body;
+//   const { id } = req.params;
+//   try {
+//     const addinBookingQue = BookingQue.add(id, formData);
+//     res
+//       .status(200)
+//       .json({ error: false, message: "success", booking: addinBookingQue });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
 
 const CollectPaymentInfoAndConfirmBooking = async (req, res) => {
   const formData = req.body;
@@ -188,6 +188,38 @@ const CollectPaymentInfoAndConfirmBooking = async (req, res) => {
   }
 };
 
+const ConfirmBookingPayAtHotel = async (req, res) => {
+  try {
+    const formData = req.body;
+    const paymentType = "pay-at-hotel";
+    const _bookingData = await Booking.findOne({
+      bookingId: formData?.order_id,
+    });
+
+    if (!_bookingData)
+      return res
+        .status(404)
+        .json({ error: true, message: "No booking Found " });
+
+    await BookingQue.add(
+      `Handle Payment For Booking No ${formData?.order_id}`,
+      {
+        ...formData,
+        paymentType,
+      }
+    );
+    
+    res.status(200).json({
+      error: false,
+      message: "success",
+      data: _bookingData,
+      paymentType,
+    });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   RegisterBooking,
   CancleBooking,
@@ -195,6 +227,7 @@ module.exports = {
   GetDeleteBooking,
   generateBookingId,
   CreatePreBooking,
-  UpdatePreBooking,
+  ConfirmBookingPayAtHotel,
+  // UpdatePreBooking,
   CollectPaymentInfoAndConfirmBooking,
 };

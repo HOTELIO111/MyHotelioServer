@@ -3,6 +3,7 @@ const { Server } = require("socket.io");
 const { createServer } = require("http");
 const { Worker } = require("bullmq");
 const AppRoutes = require("./Routes/app");
+const bodyparser = require("body-parser");
 require("dotenv").config();
 require("./config/connection");
 const cors = require("cors");
@@ -20,9 +21,10 @@ const io = new Server(server, {
 const port = process.env.ENV === "production" ? process.env.PORT : 3001 || 8080;
 
 app.use(cors());
+app.use(bodyparser.json());
 
 // some middlewares
-app.use(express.json());
+// app.use(express.json());
 
 // variable Define
 app.use(express.static("./static"));

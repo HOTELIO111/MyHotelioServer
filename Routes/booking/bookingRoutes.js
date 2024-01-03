@@ -5,16 +5,14 @@ const {
   GetDeleteBooking,
   generateBookingId,
   CreatePreBooking,
-  UpdatePreBooking,
+  // UpdatePreBooking,
+  ConfirmBookingPayAtHotel,
   CollectPaymentInfoAndConfirmBooking,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
-  CreateBooking,
 } = require("../../helper/booking/bookingHelper");
 const ValidateBookingQuery = require("../../validator/booking/Booking");
-
-const PreBooking = require("../../validator/booking/PreBooking");
 const ValidatePaymentData = require("../../validator/booking/UpdateBookingPayment");
 
 const router = require("express").Router();
@@ -22,13 +20,18 @@ const router = require("express").Router();
 // generatet booking id
 router.get("/booking/generate", generateBookingId);
 
+// create the pending booking and hold the room for the customer
 router.post("/create/pre-booking", ValidateBookingQuery, CreatePreBooking);
-router.post("/create/booking/:id", UpdatePreBooking);
+// router.post("/create/booking/:id", UpdatePreBooking);
+// collect the payment and complete the booking
 router.post(
   "/booking/final/:paymentType",
   ValidatePaymentData,
   CollectPaymentInfoAndConfirmBooking
 );
+// Book the payat hotel room
+router.post("/booking/pay-at-hotel", ConfirmBookingPayAtHotel);
+
 // create the booking
 router.post("/create", CheckBookingAvailability, RegisterBooking);
 // cancel booking
