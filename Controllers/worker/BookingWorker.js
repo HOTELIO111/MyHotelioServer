@@ -6,6 +6,7 @@ const { MobileNotification, EmailNotification } = require("../../jobs");
 const CreatePreBooking = async (data) => {
   const paymentData = data?.data;
   const paymentType = data?.data?.paymentType;
+  console.log(paymentType);
   const bookingData = await Booking.aggregate([
     { $match: { bookingId: paymentData?.order_id } },
   ]);

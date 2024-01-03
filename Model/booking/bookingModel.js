@@ -68,9 +68,15 @@ const bookingSchema = new mongoose.Schema(
       payments: [
         { type: mongoose.Schema.Types.ObjectId, ref: "paymentsresponses" },
       ],
-      totalamount: Number,
-      paidamount: Number,
-      balanceAmt: Number,
+      totalamount: {
+        type: Number,
+      },
+      paidamount: {
+        type: Number,
+      },
+      balanceAmt: {
+        type: Number,
+      },
     },
     specialRequests: String,
     bookingStatus: {
