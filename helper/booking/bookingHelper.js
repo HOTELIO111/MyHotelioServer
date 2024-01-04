@@ -153,11 +153,29 @@ const CancelBooking = async (bookingId, request) => {
 //   const
 // };
 
+const CalculateBookingPolicy = ({
+  time,
+  numberOfRooms,
+  cancelationCharges,
+}) => {
+  try {
+
+    if (numberOfRooms > 5) {
+      return "30 days Cancelation policy will apply";
+    } else {
+      return "24 hours cancelations policy will apply";
+    }
+  } catch (error) {
+    return error.message;
+  }
+};
+
 module.exports = {
   CreateBooking,
   CheckBookingAvailability,
   handleCancellationPolicy,
   CancelBooking,
   PreBookingFunction,
+  CalculateBookingPolicy,
   // CollectPaymentAndConfirm,
 };

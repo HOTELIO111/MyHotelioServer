@@ -34,7 +34,7 @@ router.post(
 router.post("/booking/pay-at-hotel", ConfirmBookingPayAtHotel);
 
 // cancel Booking
-router.post("/cancel-bookings", ManageCancelBooking);
+router.get("/cancel-bookings", ManageCancelBooking);
 
 // create the booking
 router.post("/create", CheckBookingAvailability, RegisterBooking);

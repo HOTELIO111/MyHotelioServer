@@ -11,6 +11,7 @@ const {
   handleCancelationPolicy,
   CancelBooking,
   PreBookingFunction,
+  CalculateBookingPolicy,
 } = require("../../helper/booking/bookingHelper");
 const {
   GetTheRoomAvailiabilityStats,
@@ -222,7 +223,27 @@ const ConfirmBookingPayAtHotel = async (req, res) => {
 
 // cancel Bookings
 const ManageCancelBooking = async (req, res) => {
-  const bookings = await Booking.find({});
+  try {
+    const { bookingid } = req.query;
+    if (!bookingid)
+      return res
+        .status(404)
+        .json({ error: true, message: "Booking Id is required " });
+    const bookings = await Booking.findOne({ bookingId: bookingid });
+    // calculate the time of booking cancel process is doing
+    const Time =
+      (new Date(bookings.bookingDate?.checkIn) - new Date()) /
+      (1000 * 60 * 60 * 24);
+    const Cancelation = CalculateBookingPolicy({
+      numberOfRooms: bookings.numberOfRooms,
+    });
+
+    res
+      .status(200)
+      .json({ error: false, message: "success", data: Cancelation });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
 };
 
 module.exports = {
