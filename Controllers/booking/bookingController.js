@@ -6,6 +6,8 @@ const { FindGlobalAndMatch } = require("../../functions/globalVariables");
 const {
   CreateThePaymentInfo,
 } = require("../../helper/Payments/payementFuctions");
+const ManageCancellationsWithPolicy = require("../../helper/booking/CancellationsPolicy");
+const HotelioBookingCancel = require("../../helper/booking/CancellationsPolicy");
 const {
   CreateBooking,
   handleCancelationPolicy,
@@ -229,18 +231,13 @@ const ManageCancelBooking = async (req, res) => {
       return res
         .status(404)
         .json({ error: true, message: "Booking Id is required " });
-    const bookings = await Booking.findOne({ bookingId: bookingid });
-    // calculate the time of booking cancel process is doing
-    const Time =
-      (new Date(bookings.bookingDate?.checkIn) - new Date()) /
-      (1000 * 60 * 60 * 24);
-    const Cancelation = CalculateBookingPolicy({
-      numberOfRooms: bookings.numberOfRooms,
-    });
+    const calculatedAmt = await ManageCancellationsWithPolicy(bookingid);
 
-    res
-      .status(200)
-      .json({ error: false, message: "success", data: Cancelation });
+    res.status(200).json({
+      error: false,
+      message: "success",
+      data: calculatedAmt,
+    });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
