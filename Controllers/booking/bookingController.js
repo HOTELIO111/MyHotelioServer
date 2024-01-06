@@ -6,11 +6,14 @@ const { FindGlobalAndMatch } = require("../../functions/globalVariables");
 const {
   CreateThePaymentInfo,
 } = require("../../helper/Payments/payementFuctions");
+const ManageCancellationsWithPolicy = require("../../helper/booking/CancellationsPolicy");
+const HotelioBookingCancel = require("../../helper/booking/CancellationsPolicy");
 const {
   CreateBooking,
   handleCancelationPolicy,
   CancelBooking,
   PreBookingFunction,
+  CalculateBookingPolicy,
 } = require("../../helper/booking/bookingHelper");
 const {
   GetTheRoomAvailiabilityStats,
@@ -208,12 +211,32 @@ const ConfirmBookingPayAtHotel = async (req, res) => {
         paymentType,
       }
     );
-    
+
     res.status(200).json({
       error: false,
       message: "success",
       data: _bookingData,
       paymentType,
+    });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+// cancel Bookings
+const ManageCancelBooking = async (req, res) => {
+  try {
+    const { bookingid } = req.query;
+    if (!bookingid)
+      return res
+        .status(404)
+        .json({ error: true, message: "Booking Id is required " });
+    const calculatedAmt = await ManageCancellationsWithPolicy(bookingid);
+
+    res.status(200).json({
+      error: false,
+      message: "success",
+      data: calculatedAmt,
     });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
@@ -228,6 +251,6 @@ module.exports = {
   generateBookingId,
   CreatePreBooking,
   ConfirmBookingPayAtHotel,
-  // UpdatePreBooking,
   CollectPaymentInfoAndConfirmBooking,
+  ManageCancelBooking,
 };

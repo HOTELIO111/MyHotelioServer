@@ -84,9 +84,9 @@ const UpdateTheBookingFailed = async (formdata, bookingData) => {
         bookingStatus: "failed",
         payment: {
           paymentType: formdata?.paymentType,
-          totalamount: bookingData[0].amount,
+          totalamount: bookingData[0]?.amount,
           paidamount: formdata?.amount,
-          balanceAmt: bookingData[0].amount - formdata?.amount,
+          balanceAmt: bookingData[0]?.amount - formdata?.amount,
         },
       }
     );
@@ -99,7 +99,7 @@ const UpdateTheBookingFailed = async (formdata, bookingData) => {
 
 const updateBookingPayAtHotel = async (formdata, bookingData) => {
   try {
-    const findTheBookingAndUpdate = await Booking.findByIdAndUpdate(
+    const findTheBookingAndUpdate = await Booking.findOneAndUpdate(
       {
         bookingId: formdata?.order_id,
       },

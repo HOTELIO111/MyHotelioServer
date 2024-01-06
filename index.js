@@ -21,10 +21,9 @@ const io = new Server(server, {
 const port = process.env.ENV === "production" ? process.env.PORT : 3001 || 8080;
 
 app.use(cors());
-app.use(bodyparser.json());
 
 // some middlewares
-// app.use(express.json());
+app.use(express.json());
 
 // variable Define
 app.use(express.static("./static"));

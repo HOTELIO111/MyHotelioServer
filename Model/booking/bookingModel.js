@@ -85,6 +85,10 @@ const bookingSchema = new mongoose.Schema(
       default: "pending",
       required: true,
     },
+    cancellationDueDate: {
+      type: Date,
+      required: true,
+    },
     additionalCharges: {
       gst: Number,
       cancellationCharge: Number,
@@ -105,23 +109,51 @@ const bookingSchema = new mongoose.Schema(
       ref: "customers", // Reference to the User model if users are registered
     },
     cancellation: {
+      // Status of the cancellation request
       status: {
         type: String,
         enum: ["requested", "approved", "pending", "rejected", "canceled"],
       },
+      // Customer who initiated the cancellation request
       requestedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Customer",
       },
-      requestedDate: Date,
-      reason: String,
-      processedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Customer",
+      // Date when the cancellation was requested
+      requestedDate: {
+        type: Date,
       },
-      processedDate: Date,
-      notes: String,
-      refundAmount: Number, // Store the refund amount when a cancellation is approved
+      // Reason provided for the cancellation
+      reason: {
+        type: String,
+      },
+      // Additional notes or comments related to the cancellation
+      notes: {
+        type: String,
+      },
+      // Refund amount when the cancellation is approved
+      refundAmount: {
+        type: Number,
+        // Store the refund amount when a cancellation is approved
+      },
+    },
+    refunds: {
+      // Total amount of the transaction
+      amount: {
+        type: Number,
+      },
+      // Amount that has been refunded
+      refunded: {
+        type: Number,
+      },
+      // Date when the cancellation and refund were processed
+      dateofCancel: {
+        type: Date,
+      },
+      // Percentage of the refund amount that was deducted, if any
+      deductedPercentage: {
+        type: Number,
+      },
     },
   },
   {

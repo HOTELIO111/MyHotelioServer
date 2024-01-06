@@ -149,15 +149,12 @@ const CancelBooking = async (bookingId, request) => {
   }
 };
 
-// const CollectPaymentAndConfirm = async (formdata) => {
-//   const
-// };
-
 module.exports = {
   CreateBooking,
   CheckBookingAvailability,
   handleCancellationPolicy,
   CancelBooking,
   PreBookingFunction,
+  // CalculateBookingPolicy,
   // CollectPaymentAndConfirm,
 };
