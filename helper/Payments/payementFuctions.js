@@ -8,10 +8,11 @@ const CreateThePaymentInfo = async (formdata) => {
     await Booking.findOneAndUpdate(
       {
         bookingId: formdata.order_id,
-        "payment.payments": { $ne: _paymentReg?._id },
       },
       {
-        $addToSet: { "payment.payments": _paymentReg?._id },
+        $push: {
+          "payment.payments": _paymentReg._id,
+        },
       },
       {
         new: true,

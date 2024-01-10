@@ -226,6 +226,7 @@ const ConfirmBookingPayAtHotel = async (req, res) => {
 // cancel Bookings
 const ManageCancelBooking = async (req, res) => {
   try {
+    const formdata = req.body;
     const { bookingid } = req.query;
     if (!bookingid)
       return res

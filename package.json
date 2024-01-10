@@ -32,11 +32,13 @@
     "nodemon": "^2.0.22",
     "querystring": "^0.2.1",
     "re": "^0.1.4",
-    "socket.io": "^4.7.2",
     "stripe": "^14.1.0",
     "twilio": "^4.13.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.1.0"
+  },
+  "volta": {
+    "node": "16.20.0"
   }
 }

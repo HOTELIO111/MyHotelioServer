@@ -40,6 +40,8 @@ const PreBookingFunction = async (formData) => {
       ...formData,
       bookingId: bookingID,
       bookingStatus: "pending",
+      cancellationDueDate:
+        new Date(formData.bookingDate.checkIn).getTime() - 24 * 60 * 60 * 1000,
     }).save();
     if (!isCreated) return { error: true, message: "Not registered" };
 
@@ -149,12 +151,30 @@ const CancelBooking = async (bookingId, request) => {
   }
 };
 
+const CalculateBookingPolicy = ({
+  time,
+  numberOfRooms,
+  cancelationCharges,
+}) => {
+  try {
+    if (numberOfRooms > 4) {
+      if (time <= 1) {
+        return { percentage: 100 };
+      } else if (time > 1) {
+        return { percentage: 50 };
+      }
+    }
+  } catch (error) {
+    return error;
+  }
+};
+
 module.exports = {
   CreateBooking,
   CheckBookingAvailability,
   handleCancellationPolicy,
   CancelBooking,
   PreBookingFunction,
-  // CalculateBookingPolicy,
+  CalculateBookingPolicy,
   // CollectPaymentAndConfirm,
 };

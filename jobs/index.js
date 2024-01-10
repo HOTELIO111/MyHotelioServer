@@ -10,4 +10,14 @@ const MobileNotification = new Queue("mobile-notification", {
 const EmailNotification = new Queue("Email-Notification", {
   connection: redisConnection,
 });
-module.exports = { BookingQue, MobileNotification, EmailNotification };
+
+const RefundQueue = new Queue("Refunds", {
+  connection: redisConnection,
+});
+
+module.exports = {
+  BookingQue,
+  MobileNotification,
+  EmailNotification,
+  RefundQueue,
+};
