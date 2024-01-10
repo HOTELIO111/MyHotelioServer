@@ -6,10 +6,10 @@ const { MobileNotification, EmailNotification } = require("../../jobs");
 const CreatePreBooking = async (data) => {
   const paymentData = data?.data;
   const paymentType = data?.data?.paymentType;
-  console.log(paymentType);
   const bookingData = await Booking.aggregate([
     { $match: { bookingId: paymentData?.order_id } },
   ]);
+  console.log(paymentData);
   const reciepent = await bookingData[0]?.guest?.email;
   console.log(`working on booking ${data.name}`);
   if (paymentType === "pay-at-hotel") {
@@ -44,8 +44,8 @@ const CreatePreBooking = async (data) => {
 const updateBookingConfirmation = async (formData, bookingData) => {
   try {
     // Extract necessary information from the booking data
-    const totalAmount = bookingData[0].amount;
-
+    const totalAmount = parseInt(bookingData[0].amount);
+    console.log(totalAmount);
     // Update hotel and booking documents in parallel
     const [updatedHotel, updatedBooking] = await Promise.all([
       HotelModel.findByIdAndUpdate(bookingData[0].hotel, {
@@ -53,12 +53,10 @@ const updateBookingConfirmation = async (formData, bookingData) => {
       }),
       Booking.findByIdAndUpdate(bookingData[0]._id, {
         bookingStatus: "confirmed",
-        payment: {
-          paymentType: formData?.paymentType,
-          totalAmount: totalAmount,
-          paidAmount: formData?.amount,
-          balanceAmount: totalAmount - formData?.amount,
-        },
+        "payment.paymentType": formData?.paymentType,
+        "payment.totalamount": totalAmount,
+        "payment.paidamount": formData?.amount,
+        "payment.balanceAmt": totalAmount - formData?.amount,
       }),
     ]);
 
@@ -82,12 +80,10 @@ const UpdateTheBookingFailed = async (formdata, bookingData) => {
       },
       {
         bookingStatus: "failed",
-        payment: {
-          paymentType: formdata?.paymentType,
-          totalamount: bookingData[0]?.amount,
-          paidamount: formdata?.amount,
-          balanceAmt: bookingData[0]?.amount - formdata?.amount,
-        },
+        "payment.paymentType": formdata?.paymentType,
+        "payment.totalamount": bookingData[0]?.amount,
+        "payment.paidamount": formdata?.amount,
+        "payment.balanceAmt": bookingData[0]?.amount - formdata?.amount,
       }
     );
     return { booking: findBookingAndUpdate };

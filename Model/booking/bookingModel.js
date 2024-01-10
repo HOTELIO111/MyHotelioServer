@@ -137,24 +137,7 @@ const bookingSchema = new mongoose.Schema(
         // Store the refund amount when a cancellation is approved
       },
     },
-    refunds: {
-      // Total amount of the transaction
-      amount: {
-        type: Number,
-      },
-      // Amount that has been refunded
-      refunded: {
-        type: Number,
-      },
-      // Date when the cancellation and refund were processed
-      dateofCancel: {
-        type: Date,
-      },
-      // Percentage of the refund amount that was deducted, if any
-      deductedPercentage: {
-        type: Number,
-      },
-    },
+    refunds: [{ type: mongoose.Schema.Types.ObjectId, ref: "refunds" }],
   },
   {
     timestamps: true,

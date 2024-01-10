@@ -1,102 +1,136 @@
 const Booking = require("../../Model/booking/bookingModel");
 
-// class HotelioBookingCancel {
-//   constructor(bookingid, reason) {
-//     this.bookingid = bookingid;
-//     this.isCanceled = false;
-//     this.reason = reason;
-//     this.bookingDetails = null;
-//   }
-
-//   async getBookingDetials() {
-//     this.bookingDetails = await Booking.findOne({ bookingId: this.bookingid });
-//     try {
-//       if (!this.bookingDetails) {
-//         console.log("booking is not found");
-//       }
-//     } catch (error) {
-//       console.log("error", error);
-//     }
-//   }
-
-//   async cancelBooking() {
-//     if (this.bookingDetails) {
-//       await this.getBookingDetials();
-//     } else {
-//       if (
-//         this.bookingDetails &&
-//         this.bookingDetails.bookingStatus !== "canceled"
-//       ) {
-//         console.log("cancel kar du kay ");
-//         // await Booking.findByIdAndUpdate(this.bookingDetails._id, {
-//         //   bookingStatus: "canceled",
-//         //   cancellation: {
-//         //     status: "canceled",
-//         //     requestedBy: this.bookingDetails.customer,
-//         //     reason: this.reason,
-//         //     requestedDate: new Date(),
-//         //     processedDate: new Date(),
-//         //     notes: "Your Booking was canceled",
-//         //     refundAmount: this.bookingDetails.amount,
-//         //   },
-//         // });
-//       }
-//     }
-//   }
-
-//   async refundAmount() {
-//     if (!this.bookingDetails) {
-//       await this.getBookingDetials();
-//     } else {
-//       const { amount, bookingDate, payment, numberOfRooms, dateOfBooking } =
-//         this.bookingDetails;
-//       //   calculate the data before canceling
-//       const Time =
-//         (new Date(bookingDate?.checkIn) - new Date()) / (1000 * 60 * 60 * 24);
-//       const bookingTime =
-//         new Date(bookingDate.checkIn) -
-//         new Date(dateOfBooking) / (1000 * 60 * 60 * 24);
-//     }
-//   }
-// }
-
 const ManageCancellationsWithPolicy = async (bookingid) => {
   try {
     const calculate = await Booking.aggregate([
       { $match: { bookingId: bookingid } },
       {
+        $lookup: {
+          from: "paymentsresponses",
+          foreignField: "_id",
+          localField: "payment.payments",
+          pipeline: [
+            {
+              $group: {
+                _id: "$_id",
+                sum: { $sum: "$amount" },
+              },
+            },
+          ],
+          as: "paymentTable",
+        },
+      },
+      {
         $project: {
-          deductAmt: {
+          amountRefund: {
             $switch: {
               branches: [
                 {
-                  case: {
-                    $and: [
-                      {
-                        $gte: [
-                          "$bookingDate.checkIn",
-                          new Date(), // Assuming cancellationDueDate is a Date field in your Booking collection
-                        ],
-                      },
-                      {
-                        $lt: [
-                          "$bookingDate.checkIn",
-                          new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours in milliseconds
-                        ],
-                      },
-                    ],
+                  case: { $lte: ["$numberOfRooms", 4] },
+                  then: {
+                    $switch: {
+                      branches: [
+                        // if the cancellationDueDate is  between  24 hours from current time it will be like booking canceling before 24 hours
+                        {
+                          case: {
+                            $and: [
+                              { $gte: ["$cancellationDueDate", new Date()] },
+                              {
+                                $lt: [
+                                  "$cancellationDueDate",
+                                  new Date(Date.now() + 24 * 60 * 60 * 1000),
+                                ],
+                              },
+                            ],
+                          },
+                          then: { $arrayElemAt: ["$paymentTable.sum", 0] }, // No deduction if canceled within 24 hours of check-in
+                        },
+                        // if the booking canceling after the cancellation due date
+                        {
+                          case: { $lte: ["$cancellationDueDate", new Date()] },
+                          then: 0, // Deduct penalty charge if canceled after cancellation due date
+                        },
+                        // if the booking canceling before cancellation due date
+                        {
+                          case: { $gte: ["$cancellationDueDate", new Date()] },
+                          then: { $arrayElemAt: ["$paymentTable.sum", 0] },
+                        },
+                      ],
+                      default: 0,
+                    },
                   },
-                  then: 0, // No deduction if canceled within 24 hours of check-in
                 },
               ],
-              default: "No amount charges",
+              default: {
+                $switch: {
+                  branches: [
+                    // if the cancellation is doing between 15 days
+                    {
+                      case: {
+                        $and: [
+                          { $gte: ["$cancellationDueDate", new Date()] },
+                          {
+                            $lt: [
+                              "$cancellationDueDate",
+                              new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+                            ],
+                          },
+                        ],
+                      },
+                      then: 0, // No deduction if canceled within 24 hours of check-in
+                    },
+                    // If the Cancellation doing before 15 days to 30 days
+                    {
+                      case: {
+                        $and: [
+                          {
+                            $gte: [
+                              "$cancellationDueDate",
+                              new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+                            ],
+                          },
+                          {
+                            $lt: [
+                              "$cancellationDueDate",
+                              new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                            ],
+                          },
+                        ],
+                      },
+                      then: {
+                        $arrayElemAt: [
+                          {
+                            $map: {
+                              input: "$paymentTable.sum",
+                              as: "amount",
+                              in: { $divide: ["$$amount", 2] },
+                            },
+                          },
+                          0,
+                        ],
+                      }, // No deduction if canceled within 24 hours of check-in
+                    },
+                    // if the cancellation done after the cancellation date
+                    {
+                      case: { $lte: ["$cancellationDueDate", new Date()] },
+                      then: 0, // Deduct penalty charge if canceled after cancellation due date
+                    },
+                    // if the cancellation done before the cancellation due date or before 30 days
+                    {
+                      case: { $gte: ["$cancellationDueDate", new Date()] },
+                      then: { $arrayElemAt: ["$paymentTable.sum", 0] },
+                    },
+                  ],
+                  default: 0,
+                },
+              },
             },
           },
         },
       },
     ]);
 
-    return calculate;
+    return calculate[0];
   } catch (error) {
     return error.message;
   }
