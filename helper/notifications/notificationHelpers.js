@@ -1,4 +1,4 @@
-const NotificationModel = require("../../Model/other/notificationModel")
+const NotificationModel = require("../../Model/Notifications/notificationModel")
 
 
 

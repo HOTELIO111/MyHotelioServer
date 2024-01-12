@@ -126,6 +126,7 @@ const ManageCancellationsWithPolicy = async (bookingid) => {
               },
             },
           },
+          paidAmount: { $first: "$paymentTable.sum" },
         },
       },
     ]);
@@ -137,59 +138,3 @@ const ManageCancellationsWithPolicy = async (bookingid) => {
 };
 
 module.exports = ManageCancellationsWithPolicy;
-
-// const bookingid = "your_booking_id"; // Replace with the actual booking id
-
-// const cancellationQuery = await Booking.aggregate([
-//   { $match: { bookingId: bookingid } },
-//   {
-//     $project: {
-//       deductAmt: {
-//         $switch: {
-//           branches: [
-//             {
-//               case: {
-//                 $and: [
-//                   {
-//                     $gte: [
-//                       "$cancellationDueDate",
-//                       new Date(), // Assuming cancellationDueDate is a Date field in your Booking collection
-//                     ],
-//                   },
-//                   {
-//                     $lt: [
-//                       "$cancellationDueDate",
-//                       new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours in milliseconds
-//                     ],
-//                   },
-//                 ],
-//               },
-//               then: 0, // No deduction if canceled within 24 hours of check-in
-//             },
-//             {
-//               case: {
-//                 $gte: [
-//                   "$cancellationDueDate",
-//                   new Date(), // Assuming cancellationDueDate is a Date field in your Booking collection
-//                 ],
-//               },
-//               then: "$penaltyCharge", // Deduct penalty charge if canceled after cancellation due date
-//             },
-//             {
-//               case: {
-//                 $lt: [
-//                   "$cancellationDueDate",
-//                   new Date(), // Assuming cancellationDueDate is a Date field in your Booking collection
-//                 ],
-//               },
-//               then: "$completeBookingAmount", // Deduct complete booking amount if canceled within 24 hours of check-in
-//             },
-//           ],
-//           default: "$completeBookingAmount", // Default case if none of the conditions match
-//         },
-//       },
-//     },
-//   },
-// ]);
-
-// console.log(cancellationQuery);

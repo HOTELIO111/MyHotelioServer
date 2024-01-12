@@ -15,9 +15,14 @@ const RefundQueue = new Queue("Refunds", {
   connection: redisConnection,
 });
 
+const NotificationsQueue = new Queue("notification-manager", {
+  connection: redisConnection,
+});
+
 module.exports = {
   BookingQue,
   MobileNotification,
   EmailNotification,
   RefundQueue,
+  NotificationsQueue,
 };

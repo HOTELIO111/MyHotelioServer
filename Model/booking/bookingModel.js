@@ -112,7 +112,7 @@ const bookingSchema = new mongoose.Schema(
       // Status of the cancellation request
       status: {
         type: String,
-        enum: ["requested", "approved", "pending", "rejected", "canceled"],
+        enum: ["pending", "rejected", "canceled"],
       },
       // Customer who initiated the cancellation request
       requestedBy: {
@@ -135,6 +135,10 @@ const bookingSchema = new mongoose.Schema(
       refundAmount: {
         type: Number,
         // Store the refund amount when a cancellation is approved
+      },
+      refundStatus: {
+        type: String,
+        enum: ["failed", "inprogress", "success", "requested"],
       },
     },
     refunds: [{ type: mongoose.Schema.Types.ObjectId, ref: "refunds" }],

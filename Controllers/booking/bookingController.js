@@ -14,6 +14,7 @@ const {
   CancelBooking,
   PreBookingFunction,
   CalculateBookingPolicy,
+  CancelBookingAndProceed,
 } = require("../../helper/booking/bookingHelper");
 const {
   GetTheRoomAvailiabilityStats,
@@ -228,16 +229,23 @@ const ManageCancelBooking = async (req, res) => {
   try {
     const formdata = req.body;
     const { bookingid } = req.query;
+    const { id } = req.params;
     if (!bookingid)
       return res
         .status(404)
         .json({ error: true, message: "Booking Id is required " });
-    const calculatedAmt = await ManageCancellationsWithPolicy(bookingid);
+
+    // make the booking cancellation in pending and send it in cancllations Queue
+    const CancelBooking = await CancelBookingAndProceed(
+      bookingid,
+      id,
+      formdata
+    );
 
     res.status(200).json({
       error: false,
       message: "success",
-      data: calculatedAmt,
+      data: CancelBooking,
     });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
