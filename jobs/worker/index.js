@@ -2,7 +2,7 @@ const { Worker } = require("bullmq");
 const { CreatePreBooking } = require("./BookingWorker");
 const { EmailWorker } = require("./Notifications/EmailNotification");
 const RefundWorker = require("./RefundsWorker");
-const NotificationManager = require("./Notifications/NotificationsSystem");
+const NotificationManager = require("./Notifications/InAppNotification");
 
 // quer workers
 new Worker("booking", CreatePreBooking);

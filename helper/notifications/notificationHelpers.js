@@ -1,6 +1,10 @@
 const NotificationModel = require("../../Model/Notifications/notificationModel")
 
 
+const CreateNotification = () => {
+    
+}
+
 
 
 const AddNotification = async (message, recipient) => {
@@ -24,6 +28,14 @@ const Recipient = async (id) => {
 
     return response
 }
+
+
+
+
+
+
+
+
 
 
 module.exports = { AddNotification, Recipient }

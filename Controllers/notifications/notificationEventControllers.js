@@ -1,4 +1,4 @@
-const EmailEventModel = require("../../Model/Notifications/EmailNotificationEvents");
+const EmailEventModel = require("../../Model/Notifications/NotificationEvents");
 
 const CreateEventNotification = async (req, res) => {
   const formdata = req.body;
