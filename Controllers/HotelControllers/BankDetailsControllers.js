@@ -1,8 +1,10 @@
+const AdminModel = require("../../Model/AdminModel/adminModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const {
   CreateBankDetails,
   UpdateBankDetails,
   DeleteBankDetails,
+  GetAllBankDetails,
 } = require("../../helper/vendor/bankDetails");
 
 const AddPartnerBankDetials = async (req, res) => {
@@ -47,12 +49,27 @@ const DeletePartnerBankDetails = async (req, res) => {
 const GetPartnerBankDetails = async (req, res) => {
   const { vendorid } = req.params;
   try {
-    const [vendor, admin] = await Promise.all([VendorModel.findById(vendorid) , ]);
-  } catch (error) {}
+    const [vendor, admin] = await Promise.all([
+      VendorModel.findById(vendorid),
+      AdminModel.findById(vendorid),
+    ]);
+    let response;
+    if (vendor) {
+      response = await GetAllBankDetails(vendor.bankDetails);
+    } else if (admin) {
+      response = await GetAllBankDetails(null);
+    }
+    if (!response)
+      return res.status(400).json({ error: true, message: response.message });
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
 };
 
 module.exports = {
   AddPartnerBankDetials,
   UpdatePartnerBankDetails,
   DeletePartnerBankDetails,
+  GetPartnerBankDetails,
 };
