@@ -156,21 +156,22 @@ const CancelBooking = async (bookingId, request) => {
 const CancelBookingAndProceed = async (bookingid, id, fromdata) => {
   try {
     const checkTheRefundPolicy = await ManageCancellationsWithPolicy(bookingid);
-    // if (checkTheRefundPolicy.amountRefund === 0) {
-    //   const _bookingUpdate = await Booking.findOneAndUpdate(
-    //     { bookingId: bookingid },
-    //     {
-    //       bookingStatus: "canceled",
-    //       "cancellation.status": "canceled",
-    //       "cancellation.requestedBy": id,
-    //       "cancellation.requestedDate": new Date(),
-    //       "cancellation.reason": fromdata.reason,
-    //       "cancellation.notes": "Booking is canceled",
-    //       "cancellation.refundAmount": checkTheRefundPolicy?.amountRefund,
-    //       "cancellation.refundStatus": "success",
-    //     },
-    //     { new: true }
-    //   );
+    if (checkTheRefundPolicy.amountRefund === 0) {
+      const _bookingUpdate = await Booking.findOneAndUpdate(
+        { bookingId: bookingid },
+        {
+          bookingStatus: "canceled",
+          "cancellation.status": "canceled",
+          "cancellation.requestedBy": id,
+          "cancellation.requestedDate": new Date(),
+          "cancellation.reason": fromdata.reason,
+          "cancellation.notes": "Booking is canceled ",
+          "cancellation.refundAmount": checkTheRefundPolicy?.amountRefund,
+          "cancellation.refundStatus": "success",
+        },
+        { new: true }
+      );
+    }
 
     //   // ================================ Notifcation ==========================
     //   EmailNotification.add(

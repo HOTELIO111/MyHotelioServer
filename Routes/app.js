@@ -2,6 +2,7 @@ const router = require("express").Router();
 const Utils = require("./utils");
 const CustomerRoutes = require("./AuthRoutes/auth");
 const HotelRoutes = require("./HotelRoutes/hotel");
+const AnalyticsRoutes = require("./Analytics/index");
 const VerifyRoutes = require("./AuthRoutes/verification");
 const RoomTypeRoutes = require("./HotelRoutes/roomType");
 const AmenitiesRoutes = require("./HotelRoutes/amenities");
@@ -45,5 +46,6 @@ router.use("/popular-location", PopularLocationRoutes);
 router.use("/slider", DynamicImageSliderRoutes);
 router.use("/offers", OfferRoutes);
 router.use("/email", EmailEventRoutes);
+router.use("/analytics", AnalyticsRoutes);
 
 module.exports = router;

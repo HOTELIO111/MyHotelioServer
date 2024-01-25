@@ -33,6 +33,11 @@ const schema = new mongoose.Schema(
     // verify the email or number or kyc
     isNumberVarified: Boolean,
     isEmailVerified: Boolean,
+    // account info
+    bankDetails: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "partners_bank_details",
+    },
   },
   {
     timestamps: true,

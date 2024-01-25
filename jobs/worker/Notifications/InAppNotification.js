@@ -19,9 +19,7 @@ const NotificationManager = async (data) => {
       mood: "warning",
     });
 
-
-
-    // sever to admin ho gaya hai aage ka bhejo 
+  // sever to admin ho gaya hai aage ka bhejo
   //
   try {
   } catch (error) {}
