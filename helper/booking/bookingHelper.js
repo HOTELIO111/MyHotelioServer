@@ -2,6 +2,8 @@ const bookingIdGenerate = require("../../Controllers/booking/bookingIdGenerator"
 const CustomerAuthModel = require("../../Model/CustomerModels/customerModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const Booking = require("../../Model/booking/bookingModel");
+const { EmailNotification } = require("../../jobs");
+const ManageCancellationsWithPolicy = require("./CancellationsPolicy");
 
 const CreateBooking = async (formData, id, status) => {
   try {
@@ -151,19 +153,49 @@ const CancelBooking = async (bookingId, request) => {
   }
 };
 
-const CalculateBookingPolicy = ({
-  time,
-  numberOfRooms,
-  cancelationCharges,
-}) => {
+const CancelBookingAndProceed = async (bookingid, id, fromdata) => {
   try {
-    if (numberOfRooms > 4) {
-      if (time <= 1) {
-        return { percentage: 100 };
-      } else if (time > 1) {
-        return { percentage: 50 };
-      }
+    const checkTheRefundPolicy = await ManageCancellationsWithPolicy(bookingid);
+    if (checkTheRefundPolicy.amountRefund === 0) {
+      const _bookingUpdate = await Booking.findOneAndUpdate(
+        { bookingId: bookingid },
+        {
+          bookingStatus: "canceled",
+          "cancellation.status": "canceled",
+          "cancellation.requestedBy": id,
+          "cancellation.requestedDate": new Date(),
+          "cancellation.reason": fromdata.reason,
+          "cancellation.notes": "Booking is canceled ",
+          "cancellation.refundAmount": checkTheRefundPolicy?.amountRefund,
+          "cancellation.refundStatus": "success",
+        },
+        { new: true }
+      );
     }
+
+    //   // ================================ Notifcation ==========================
+    //   EmailNotification.add(
+    //     `${bookingid} Booking Canceled Notification`,
+    //     _bookingUpdate
+    //   );
+    // } else {
+    //   const _bookingpending = await Booking.findOneAndUpdate(
+    //     { bookingId: bookingid },
+    //     {
+    //       bookingStatus: "canceled",
+    //       "cancellation.status": "pending",
+    //       "cancellation.requestedBy": id,
+    //       "cancellation.requestedDate": new Date(),
+    //       "cancellation.reason": fromdata.reason,
+    //       "cancellation.notes": "",
+    //       "cancellation.refundAmount": "",
+    //       "cancellation.refundStatus": "",
+    //     },
+    //     { new: true }
+    //   );
+    // }
+
+    return checkTheRefundPolicy;
   } catch (error) {
     return error;
   }
@@ -175,6 +207,6 @@ module.exports = {
   handleCancellationPolicy,
   CancelBooking,
   PreBookingFunction,
-  CalculateBookingPolicy,
+  CancelBookingAndProceed,
   // CollectPaymentAndConfirm,
 };

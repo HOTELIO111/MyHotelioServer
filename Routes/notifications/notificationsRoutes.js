@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const { CreateNotification, GetRecipientNotification, GetDeleteAllTheNotification, GetDeleteNotificationByID, DeleteSingeVendorAllNotification, GetAllNotifications } = require('../../Controllers/Others/notificationsControllers')
+const { CreateNotification, GetRecipientNotification, GetDeleteAllTheNotification, GetDeleteNotificationByID, DeleteSingeVendorAllNotification, GetAllNotifications } = require('../../Controllers/notifications/notificationsControllers')
 
 
 

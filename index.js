@@ -1,7 +1,7 @@
 const express = require("express");
 const { createServer } = require("http");
 const AppRoutes = require("./Routes/app");
-require("./Controllers/worker/index");
+require("./jobs/worker/index");
 require("dotenv").config();
 require("./config/connection");
 const cors = require("cors");

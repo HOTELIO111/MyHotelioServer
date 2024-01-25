@@ -1,5 +1,9 @@
-const NotificationModel = require("../../Model/other/notificationModel")
+const NotificationModel = require("../../Model/Notifications/notificationModel")
 
+
+const CreateNotification = () => {
+    
+}
 
 
 
@@ -24,6 +28,14 @@ const Recipient = async (id) => {
 
     return response
 }
+
+
+
+
+
+
+
+
 
 
 module.exports = { AddNotification, Recipient }
