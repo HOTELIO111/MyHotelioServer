@@ -14,6 +14,9 @@ const schema = new Schema(
       type: String,
       required: true,
     },
+    linkedMobileNo: {
+      type: String,
+    },
     bankName: {
       type: String,
     },
