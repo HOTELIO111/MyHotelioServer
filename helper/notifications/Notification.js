@@ -1,4 +1,5 @@
 const SendMail = require("../../Controllers/Others/Mailer");
+require("dotenv").config();
 const NotificationsEventsModel = require("../../Model/Notifications/NotificationEvents");
 
 class NotificationsEvents {
@@ -75,8 +76,14 @@ class NotificationsEvents {
     }
   }
 
-  async SendMobileNotifications(message, reciever) {
-    // const 
+  async SendMobileNotifications(message, recievers) {
+    const NotificationSchema = {
+      user: process.env.W_USER,
+      password: process.env.W_PASSWORD,
+      senderid: process.env.W_SENDERID,
+      mobiles: recievers.join(","),
+      sms: `${otp} is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
+    };
   }
 }
 
