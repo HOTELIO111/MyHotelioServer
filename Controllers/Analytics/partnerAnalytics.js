@@ -28,6 +28,29 @@ const PartnerHotelsInfo = async (req, res) => {
               },
             },
           },
+          totalActiveHotel: {
+            $sum: {
+              $cond: {
+                if: { $eq: ["$status", true] },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+          totalApprovedAndActive: {
+            $sum: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $eq: ["$status", true] },
+                    { $eq: ["$isAdminApproved", true] },
+                  ],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
         },
       },
       {
@@ -36,6 +59,8 @@ const PartnerHotelsInfo = async (req, res) => {
           totalHotels: "$totalHotels",
           totalApprovedHotels: "$totalApprovedHotels",
           totalInactiveHotel: "$totalInactiveHotel",
+          totalActiveHotel: "$totalActiveHotel",
+          totalApprovedAndActive: "$totalApprovedAndActive",
         },
       },
     ]);
