@@ -42,7 +42,7 @@ const PartnerHotelsInfo = async (req, res) => {
 
     res
       .status(200)
-      .json({ error: false, message: "success", date: response[0] });
+      .json({ error: false, message: "success", data: response[0] });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }

@@ -74,6 +74,10 @@ class NotificationsEvents {
       };
     }
   }
+
+  async SendMobileNotifications(message, reciever) {
+    // const 
+  }
 }
 
 module.exports = NotificationsEvents;
