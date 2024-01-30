@@ -12,6 +12,7 @@ const HotelList = async (id, role) => {
   let hotels;
   if (role.toLowerCase() === "vendor") {
     hotels = await HotelModel.find({ vendorId: id })
+      .sort({ createdAt: -1 })
       .populate([
         {
           path: "rooms.roomType",
@@ -26,7 +27,10 @@ const HotelList = async (id, role) => {
       ])
       .exec();
   } else if (role.toLowerCase() === "admin") {
-    hotels = await HotelModel.find({}).populate("rooms.roomType").exec();
+    hotels = await HotelModel.find({})
+      .sort({ createdAt: -1 })
+      .populate("rooms.roomType")
+      .exec();
   } else {
     hotels = null;
   }
