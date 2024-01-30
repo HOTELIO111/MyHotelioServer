@@ -6,13 +6,16 @@ const schema = new Schema(
       type: String,
       required: true,
     },
-    account_no: {
+    accountNo: {
       type: String,
       required: true,
     },
-    account_holder_name: {
+    accountHolderName: {
       type: String,
       required: true,
+    },
+    linkedMobileNo: {
+      type: String,
     },
     bankName: {
       type: String,

@@ -11,12 +11,12 @@ const EmailWorker = async (data) => {
   if (!eventdata)
     return notification.SendInAppNotification(
       `Wrong EventId using ${eventId}`,
-      `wrong event id implemented ${eventId} please check it or make it correct`,
+      `wrong event id using ${eventId} please check it or make it correct`,
       process.env.ADMIN,
       "warning",
       process.env.SERVERID
     );
-
+    
   // check the data of event  and send which type of notification has to send
 };
 

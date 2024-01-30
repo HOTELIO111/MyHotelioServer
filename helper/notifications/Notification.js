@@ -1,3 +1,4 @@
+const { default: axios } = require("axios");
 const SendMail = require("../../Controllers/Others/Mailer");
 require("dotenv").config();
 const NotificationsEventsModel = require("../../Model/Notifications/NotificationEvents");
@@ -77,13 +78,30 @@ class NotificationsEvents {
   }
 
   async SendMobileNotifications(message, recievers) {
-    const NotificationSchema = {
-      user: process.env.W_USER,
-      password: process.env.W_PASSWORD,
-      senderid: process.env.W_SENDERID,
-      mobiles: recievers.join(","),
-      sms: `${otp} is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
-    };
+    try {
+      const NotificationSchema = {
+        user: process.env.W_USER,
+        password: process.env.W_PASSWORD,
+        senderid: process.env.W_SENDERID,
+        mobiles: recievers.join(","),
+        sms: `${otp} is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
+      };
+      const queryString = new URLSearchParams(NotificationSchema).toString();
+
+      const response = await axios.get(process.env.W_URL + queryString);
+      if (response.status === 200) {
+        return {
+          error: false,
+          message: "successfully notified on Mobile Number",
+        };
+      }
+      return { error: true, message: "failed to notifiy on mobile number " };
+    } catch (error) {
+      return {
+        error: true,
+        message: `failed to notify through mobile and get error ${error.message}`,
+      };
+    }
   }
 }
 
