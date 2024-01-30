@@ -42,6 +42,9 @@ const verify = require("../../middlewares/Verify");
 const {
   GetallCustomer,
 } = require("../../Controllers/admincontrollers/admincustomerManage");
+const {
+  UploadAvatar,
+} = require("../../Controllers/AuthControllers/universalControllers");
 
 // authenticate the customer '
 router.get("/authenticate", Authentication);
@@ -100,10 +103,6 @@ router.patch("/vendor/update/:id", GetVendorUpdate);
 // verify the email and update the data
 router.patch("/vendor/verified", GetVendorDataUpdate);
 
-
-
-
-
 // admin SOme Routes
 router.post("/admin/signup", GetAddTheAdmin);
 // admin login
@@ -118,5 +117,9 @@ router.patch("/admin/update/:id", UpdateAdmin);
 // SEND OTP FROM TWILLO
 router.get("/sendopt/:number", SendOtp);
 router.get("/verifyotp/:key/:otp", VerifyOptFormDb);
+
+// ==================== Universal apis =========================
+
+router.post("/upload/avatar/:userid", UploadAvatar);
 
 module.exports = router;
