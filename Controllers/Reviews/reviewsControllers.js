@@ -50,13 +50,18 @@ const DeleteTheReview = async (req, res) => {
 
   try {
     const isDeleted = await ReviewsModel.deleteMany(deleteCred);
-    if (isDeleted.deletedCount === 0)
+
+    if (isDeleted.deletedCount === 0) {
       return res
         .status(404)
-        .json({ error: true, message: "no data found with this id " });
-    res.status(200).json({ error: false, message: "success Deleted" });
+        .json({ error: true, message: "No reviews found with this id" });
+    }
+    res
+      .status(200)
+      .json({ error: false, message: "Reviews successfully deleted" });
   } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
+    console.error(error);
+    res.status(500).json({ error: true, message: "Internal server error" });
   }
 };
 
@@ -93,6 +98,14 @@ const GetSingleReview = async (req, res) => {
           as: "hotel",
         },
       },
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "booking",
+          foreignField: "_id",
+          as: "booking",
+        },
+      },
     ]);
     if (!allReviews)
       return res.status(404).json({ error: true, message: "no data found " });
@@ -103,9 +116,7 @@ const GetSingleReview = async (req, res) => {
     res.status(500).json({ error: true, message: error.message });
   }
 };
-
 // get all the review with the specific field match
-
 const GetTheReviewsByMatchingFields = async (req, res) => {
   const query = req.query;
 
@@ -140,6 +151,14 @@ const GetTheReviewsByMatchingFields = async (req, res) => {
           as: "customer",
         },
       },
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "booking",
+          foreignField: "_id",
+          as: "booking",
+        },
+      },
     ]);
 
     if (!getData || getData.length === 0)
@@ -153,6 +172,18 @@ const GetTheReviewsByMatchingFields = async (req, res) => {
     res.status(500).json({ error: true, message: error.message });
   }
 };
+
+// const GetReviewsByHotel = async (req, res) => {
+//   const { hotelid } = req.params;
+//   try {
+//     const response = await ReviewsModel.aggregate([
+//       { $match: { _id: new mongoose.Types.ObjectId(hotelid) } },
+//     ]);
+//     res.status(200).json({ error: false, message: "success", data: response });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
 
 module.exports = {
   CreateReview,

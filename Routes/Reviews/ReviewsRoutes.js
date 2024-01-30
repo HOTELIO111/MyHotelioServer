@@ -6,6 +6,9 @@ const {
   GetSingleReview,
   DeleteTheReview,
 } = require("../../Controllers/Reviews/reviewsControllers");
+const {
+  DeleteReviewsMiddleWare,
+} = require("../../middlewares/Reviews/ReviewsMiddlewares");
 
 const router = require("express").Router();
 
@@ -14,6 +17,6 @@ router.patch("/update/:id", UpdateTheReview);
 router.get("/get/:id", GetSingleReview);
 router.get("/getall", GetAllReviews);
 router.get("/get", GetTheReviewsByMatchingFields);
-router.delete("/delete/:id", DeleteTheReview);
+router.delete("/delete/:id", DeleteReviewsMiddleWare, DeleteTheReview);
 
 module.exports = router;
