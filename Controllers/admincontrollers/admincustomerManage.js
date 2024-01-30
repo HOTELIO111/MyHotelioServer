@@ -5,7 +5,9 @@ const GetallCustomer = async (req, res) => {
   const { userId } = req.query;
   const data = userId ? { _id: userId } : {};
   try {
-    const allcustomer = await CustomerAuthModel.find(data);
+    const allcustomer = await CustomerAuthModel.find(data).sort({
+      createdAt: -1,
+    });
     if (!allcustomer)
       return res.status(404).json({ error: true, message: "no user found" });
 
