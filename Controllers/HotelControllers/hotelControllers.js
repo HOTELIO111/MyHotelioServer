@@ -13,7 +13,6 @@ const {
   GetTheGoogleSpecification,
   generateGoogleMapsURL,
 } = require("../../helper/hotel/hotel_helper");
-const { io } = require("../../index");
 
 // const RegisterHotel = async (req, res) => {
 //   const vendorId = req.params.id;
