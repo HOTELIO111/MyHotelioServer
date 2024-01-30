@@ -23,4 +23,27 @@ const EmailEventAddValidator = (req, res, next) => {
   }
 };
 
-module.exports = { EmailEventAddValidator };
+// =========================== Email emplates  ====================================
+
+const EmailTemplateValidate = async (req, res, next) => {
+  const formdata = req.body;
+  try {
+    const validationSchema = joi.object({
+      html: joi.string(),
+      message: joi.string().min(0),
+      eventid: joi.string().required(),
+      isActive: joi.boolean().required(),
+    });
+
+    const { error } = validationSchema.validate(formdata);
+    if (error)
+      return res
+        .status(400)
+        .json({ error: true, message: error.details[0].message });
+
+    next();
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+module.exports = { EmailEventAddValidator, EmailTemplateValidate };
