@@ -1,39 +1,39 @@
 const mongoose = require("mongoose");
 
-const schema = new mongoose.Schema({
+const schema = new mongoose.Schema(
+  {
     name: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     email: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     mobileNo: {
-        type: Number,
-        required: true
+      type: Number,
+      required: true,
     },
     role: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     password: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     avatar: {
-        type: String,
+      type: String,
     },
     resetLink: String,
     resetDateExpires: Date,
     secretKey: String,
-}, {
+  },
+  {
     timestamps: true,
-})
+  }
+);
 
-
-
-
-const AdminModel = mongoose.model("Admin", schema)
+const AdminModel = mongoose.model("Admin", schema);
 
 module.exports = AdminModel;

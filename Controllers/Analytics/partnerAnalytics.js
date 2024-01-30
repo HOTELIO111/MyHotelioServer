@@ -107,8 +107,13 @@ const DashboardCountings = async (req, res) => {
             {
               $project: {
                 $map: {
-                  input: "$room",
-                  as:{}
+                  input: "$rooms",
+                  as: "roomsArray",
+                  in :{
+                    $cond :{
+                      if: ""
+                    }
+                  }
                 },
               },
             },
