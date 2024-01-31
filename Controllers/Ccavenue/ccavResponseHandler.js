@@ -18,7 +18,9 @@ exports.postRes = function (request, response) {
     const responseData = qs.parse(ccavResponse);
     if (responseData.order_status === "Aborted") {
       const encoded = encodeURIComponent(ccavResponse).toString();
-      response.redirect(`http://localhost:3000/Payment_success?${encoded}`);
+      response.redirect(
+        `http://www.hoteliorooms.com/Transaction_Status?${encoded}`
+      );
     }
   });
 

@@ -4,7 +4,6 @@ const schema = new Schema(
   {
     message: {
       type: String,
-      required: true,
     },
     ratings: {
       type: Number,

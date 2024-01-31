@@ -173,18 +173,129 @@ const GetTheReviewsByMatchingFields = async (req, res) => {
   }
 };
 
-// const GetReviewsByHotel = async (req, res) => {
-//   const { hotelid } = req.params;
-//   try {
-//     const response = await ReviewsModel.aggregate([
-//       { $match: { _id: new mongoose.Types.ObjectId(hotelid) } },
-//     ]);
-//     res.status(200).json({ error: false, message: "success", data: response });
-//   } catch (error) {
-//     res.status(500).json({ error: true, message: error.message });
-//   }
-// };
+// Get Review By Hotel
+const GethotelReviews = async (req, res) => {
+  const { hotelid } = req.params;
+  try {
+    const _reviewAnalytics = await ReviewsModel.aggregate([
+      {
+        $facet: {
+          data: [
+            { $match: { hotel: new mongoose.Types.ObjectId(hotelid) } },
+            {
+              $sort: {
+                ratings: -1,
+                valueOfMoney: -1,
+                cleanliness: -1,
+                comfort: -1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          ratings: {
+            overall: {
+              $divide: [{ $sum: "$data.ratings" }, { $size: "$data" }],
+            },
+            fiveStars: {
+              $size: {
+                $filter: {
+                  input: "$data",
+                  as: "singleData",
+                  cond: { $eq: ["$$singleData.ratings", 5] },
+                },
+              },
+            },
+            fourStars: {
+              $size: {
+                $filter: {
+                  input: "$data",
+                  as: "singleData",
+                  cond: { $eq: ["$$singleData.ratings", 4] },
+                },
+              },
+            },
+            threeStars: {
+              $size: {
+                $filter: {
+                  input: "$data",
+                  as: "singleData",
+                  cond: { $eq: ["$$singleData.ratings", 3] },
+                },
+              },
+            },
+            twoStars: {
+              $size: {
+                $filter: {
+                  input: "$data",
+                  as: "singleData",
+                  cond: { $eq: ["$$singleData.ratings", 2] },
+                },
+              },
+            },
+            oneStars: {
+              $size: {
+                $filter: {
+                  input: "$data",
+                  as: "singleData",
+                  cond: { $eq: ["$$singleData.ratings", 1] },
+                },
+              },
+            },
+          },
+          valueOfMoney: {
+            $multiply: [
+              {
+                $divide: [
+                  {
+                    $sum: "$data.valueOfMoney",
+                  },
+                  { $multiply: [{ $size: "$data" }, 5] },
+                ],
+              },
+              100,
+            ],
+          },
+          cleanliness: {
+            $multiply: [
+              {
+                $divide: [
+                  {
+                    $sum: "$data.cleanliness",
+                  },
+                  { $multiply: [{ $size: "$data" }, 5] },
+                ],
+              },
+              100,
+            ],
+          },
+          comfort: {
+            $multiply: [
+              {
+                $divide: [
+                  {
+                    $sum: "$data.comfort",
+                  },
+                  { $multiply: [{ $size: "$data" }, 5] },
+                ],
+              },
+              100,
+            ],
+          },
+          reviews: "$data",
+        },
+      },
+    ]);
 
+    res
+      .status(200)
+      .json({ error: false, message: "success", data: _reviewAnalytics });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
 module.exports = {
   CreateReview,
   GetTheReviewsByMatchingFields,
@@ -192,4 +303,5 @@ module.exports = {
   DeleteTheReview,
   UpdateTheReview,
   GetSingleReview,
+  GethotelReviews,
 };
