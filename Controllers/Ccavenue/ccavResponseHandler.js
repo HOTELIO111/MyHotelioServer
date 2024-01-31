@@ -22,6 +22,12 @@ exports.postRes = function (request, response) {
         `http://www.hoteliorooms.com/Transaction_Status?${encoded}`
       );
     }
+    if (responseData.order_status === "Success") {
+      const encoded = encodeURIComponent(ccavResponse).toString();
+      response.redirect(
+        `http://www.hoteliorooms.com/Transaction_Status?${encoded}`
+      );
+    }
   });
 
   request.on("end", function () {
