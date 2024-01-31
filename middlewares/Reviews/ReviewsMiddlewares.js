@@ -4,25 +4,21 @@ const ReviewsModel = require("../../Model/Reviews/Reviews");
 const DeleteReviewsMiddleWare = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const _find = id !== "all" ? { _id: id } : {};
-    const allReviews = await ReviewsModel.find(_find);
-    const allIds = allReviews.map((item) => item._id);
-    let response;
-    if (id.toLowerCase() === "all") {
-      response = await HotelModel.updateMany(
-        {},
-        {
-          $pullAll: { reviews: allIds },
-        }
-      );
-    } else {
-      response = await HotelModel.updateMany(
-        { _id: id },
-        {
-          $pullAll: { reviews: allIds },
-        }
-      );
-    }
+    const _find = await ReviewsModel.findById(id);
+    if (!_find)
+      return res
+        .status(400)
+        .json({ error: true, message: "review Already Deleted " });
+    const removeHotelReview = await HotelModel.findByIdAndUpdate(
+      { _id: _find.hotel },
+      { $pull: { reviews: id } },
+      { new: true }
+    );
+    if (!removeHotelReview)
+      return res.status(400).json({
+        error: true,
+        message: "something error please try again later",
+      });
     next();
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
