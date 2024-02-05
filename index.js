@@ -5,6 +5,7 @@ require("./jobs/worker/index");
 require("dotenv").config();
 require("./config/connection");
 const cors = require("cors");
+const UserVerify = require("./middlewares/Reviews/VerifyUser");
 const app = express();
 const server = createServer(app);
 
@@ -18,11 +19,8 @@ app.use(express.json());
 // variable Define
 app.use(express.static("./static"));
 
-// Global Variables
-global.roomCount = [];
-
 // routes
-app.use("/", AppRoutes);
+app.use("/", UserVerify, AppRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Hotelio Backend");

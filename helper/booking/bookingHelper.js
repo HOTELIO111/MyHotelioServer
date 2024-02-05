@@ -1,3 +1,4 @@
+const HandleResponse = require("../../Controllers/Ccavenue/ResponseHandlersFunc");
 const bookingIdGenerate = require("../../Controllers/booking/bookingIdGenerator");
 const CustomerAuthModel = require("../../Model/CustomerModels/customerModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
@@ -201,6 +202,291 @@ const CancelBookingAndProceed = async (bookingid, id, fromdata) => {
   }
 };
 
+const GetTheSingleBookingPopulated = async (bookingId) => {
+  try {
+    const response = await Booking.aggregate([
+      { $match: { bookingId: bookingId } },
+      {
+        $lookup: {
+          from: "hotels",
+          foreignField: "_id",
+          localField: "hotel",
+          pipeline: [
+            {
+              $lookup: {
+                from: "hotel-partners",
+                localField: "vendorId",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      name: 1,
+                      email: 1,
+                      mobileNo: 1,
+                      kycVerified: 1,
+                      role: 1,
+                      status: 1,
+                    },
+                  },
+                ],
+                as: "vendorData",
+              },
+            },
+            {
+              $lookup: {
+                from: "property-types",
+                localField: "hotelType",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      title: 1,
+                    },
+                  },
+                ],
+                as: "PropertyType",
+              },
+            },
+            {
+              $lookup: {
+                from: "room-categories",
+                localField: "rooms.roomType",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: "amenities",
+                      localField: "amenties",
+                      foreignField: "_id",
+                      pipeline: [
+                        {
+                          $project: {
+                            _id: 1,
+                            title: 1,
+                          },
+                        },
+                      ],
+                      as: "Amenty",
+                    },
+                  },
+                  {
+                    $lookup: {
+                      from: "facilities",
+                      localField: "includeFacilities",
+                      foreignField: "_id",
+                      pipeline: [
+                        {
+                          $project: {
+                            _id: 1,
+                            title: 1,
+                          },
+                        },
+                      ],
+                      as: "Facility",
+                    },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      personAllowed: 1,
+                      title: 1,
+                      includeFacilities: 1,
+                      minPrice: 1,
+                      maxPrice: 1,
+                      amenties: "$Amenty",
+                      includeFacilities: "$Facility",
+                    },
+                  },
+                ],
+                as: "roomTypeData",
+              },
+            },
+            {
+              $lookup: {
+                from: "room-configs",
+                localField: "rooms.roomConfig",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $match: {
+                      $or: [
+                        {
+                          $and: [
+                            { from: { $gte: new Date() } },
+                            { from: { $lte: new Date() } },
+                          ],
+                        },
+                        {
+                          $and: [
+                            { to: { $gte: new Date() } },
+                            { to: { $lte: new Date() } },
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                  // Yha pe Room Calculation baki hai wo kro uske baad booking ka caculated nikalo then sab ok hai
+                ],
+                as: "roomCountData",
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                // vendorId: { $arrayElemAt: ["$vendorData", 0] },
+                // isAddedBy: 1,
+                hotelName: 1,
+                hotelType: { $arrayElemAt: ["$PropertyType", 0] },
+                hotelEmail: 1,
+                hotelMobileNo: 1,
+                // locality: 1,
+                address: 1,
+                // city: 1,
+                // state: 1,
+                // country: 1,
+                zipCode: 1,
+                location: 1,
+                rooms: {
+                  $map: {
+                    input: "$rooms",
+                    as: "room",
+                    in: {
+                      counts: {
+                        $sum: {
+                          $subtract: [
+                            { $toInt: "$$room.counts" }, // Convert to integer if not already
+                            {
+                              $let: {
+                                vars: {
+                                  decreasedArray: {
+                                    $filter: {
+                                      input: "$roomCountData",
+                                      as: "roomCo",
+                                      cond: {
+                                        $and: [
+                                          {
+                                            $eq: [
+                                              "$$roomCo.roomid",
+                                              "$$room._id",
+                                            ],
+                                          },
+                                          { $eq: ["$$roomCo.will", "dec"] },
+                                        ],
+                                      },
+                                    },
+                                  },
+                                  increasedArray: {
+                                    $filter: {
+                                      input: "$roomCountData",
+                                      as: "roomCo",
+                                      cond: {
+                                        $and: [
+                                          {
+                                            $eq: [
+                                              "$$roomCo.roomid",
+                                              "$$room._id",
+                                            ],
+                                          },
+                                          { $eq: ["$$roomCo.will", "inc"] },
+                                        ],
+                                      },
+                                    },
+                                  },
+                                },
+                                in: {
+                                  $sum: {
+                                    $subtract: [
+                                      { $sum: "$$decreasedArray.rooms" },
+                                      { $sum: "$$increasedArray.rooms" },
+                                    ],
+                                  },
+                                },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                      roomType: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$roomTypeData",
+                              as: "roomTypes",
+                              cond: {
+                                $eq: ["$$roomTypes._id", "$$room.roomType"],
+                              },
+                            },
+                          },
+                          0,
+                        ],
+                      },
+                      price: "$$room.price",
+                      status: "$$room.status",
+                      additionAmenities: "$$room.additionAmenities",
+                      roomConfig: "$$room.roomConfig",
+                      additionalFacilties: "$$room.additionalFacilties",
+                      roomCount: {
+                        $filter: {
+                          input: "$roomCountData",
+                          as: "roomCo",
+                          cond: { $eq: ["$$roomCo.roomid", "$$room._id"] },
+                        },
+                      },
+                      _id: "$$room._id",
+                    },
+                  },
+                },
+                hotelCoverImg: 1,
+                // hotelImages: 1,
+                // checkOut: 1,
+                // checkIn: 1,
+                // cancellationPrice: 1,
+                // termsAndCondition: 1,
+                // hotelFullySanitized: 1,
+                // notSupportDiscrimination: 1,
+                // validAndTrueData: 1,
+                // hotelMapLink: 1,
+                // isAdminApproved: 1,
+                // isPostpaidAllowed: 1,
+                // status: 1,
+                // hotelRatings: 1,
+                // reviews: 1,
+                // createdAt: 1,
+                // discription: 1,
+              },
+            },
+          ],
+          as: "hotel",
+        },
+      },
+      { $unwind: "$hotel" },
+    ]);
+    return { error: false, message: "success", data: response };
+  } catch (error) {
+    return { error: true, message: error.message };
+  }
+};
+
+const GenerateTemplate = async (req, res) => {
+  const { bookingId } = req.params;
+  try {
+    const bookingData = await GetTheSingleBookingPopulated(bookingId);
+    const handler = new HandleResponse("part-pay", bookingData);
+    const generateTemplate = await handler.RenderSuccessPage(
+      83294923922,
+      "10-20-2024",
+      200000,
+      "success",
+      bookingId
+    );
+    res.send(generateTemplate);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   CreateBooking,
   CheckBookingAvailability,
@@ -208,5 +494,7 @@ module.exports = {
   CancelBooking,
   PreBookingFunction,
   CancelBookingAndProceed,
+  GetTheSingleBookingPopulated,
+  GenerateTemplate,
   // CollectPaymentAndConfirm,
 };
