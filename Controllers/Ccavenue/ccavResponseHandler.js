@@ -36,7 +36,6 @@ exports.postRes = async function (request, response) {
     var encryption = ccavPOST.encResp;
     ccavResponse = ccav.decrypt(encryption, workingKey);
     const responseData = qs.parse(ccavResponse);
-    await handler.SendForFinalBooking(responseData);
   });
 
   request.on("end", async function () {
@@ -58,6 +57,7 @@ exports.postRes = async function (request, response) {
 
     let pData;
     if (responseData.order_status === "Success") {
+      await handler.SendForFinalBooking(responseData);
       pData = successTemplate;
     } else {
       pData = OtherTemplate;
