@@ -1,37 +1,39 @@
-const {
-  GetNotificationEvent,
-  GenerateInAppIdNotifications,
-} = require("../../../helper/notifications/notificationsEvents");
+const NotificationsEvents = require("../../../helper/notifications/Notification");
 require("dotenv").config();
 
 const NotificationManager = async (data) => {
-  const eventId = data.data.eventid;
-  const eventTitle = data.data.eventTitle;
-  // get notiication Details
-  const _notificationDetails = await GetNotificationEvent(eventId);
-  if (!_notificationDetails)
-    return GenerateInAppIdNotifications({
-      subject: `No event Id found for ${eventTitle} using this even id ${eventId}`,
-      message:
-        "accessing wrong event id please contact for developer we cannot send the notification ",
-      sender: process.env.SERVERID,
-      recipient: process.env.ADMIN,
-      mood: "warning",
-    });
+  const notificationType = data.data.type;
+  const fromdata = data.data;
+  const notifier = new NotificationsEvents();
 
-  // sever to admin ho gaya hai aage ka bhejo
-  //
-  try {
-  } catch (error) {}
+  switch (notificationType) {
+    case "email":
+      await notifier.SendEmailNotifications(
+        fromdata?.recipient,
+        fromdata?.subject,
+        fromdata?.html,
+        fromdata?.text,
+        fromdata?.cc
+      );
+      break;
+    case "inApp":
+      await notifier.SendInAppNotification(
+        fromdata?.subject,
+        fromdata?.text,
+        fromdata?.recipient,
+        fromdata?.mood,
+        fromdata?.sender
+      );
+      break;
+    case "mobile":
+      await notifier.SendMobileNotifications(
+        fromdata?.text,
+        fromdata?.recipient
+      );
+      break;
+    default:
+      break;
+  }
 };
 module.exports = NotificationManager;
 
-// date -
-
-/*
-{
-  data :{
-     subject 
-  }
-} 
-*/

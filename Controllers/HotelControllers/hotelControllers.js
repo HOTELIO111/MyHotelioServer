@@ -950,6 +950,11 @@ const GetSearch = async (req, res) => {
   }
 };
 
+// Get NearBy Hotels
+
+
+
+
 module.exports = {
   RegisterHotel,
   GetAllHotel,

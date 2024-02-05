@@ -2,6 +2,7 @@ const router = require("express").Router();
 const Utils = require("./utils");
 const CustomerRoutes = require("./AuthRoutes/auth");
 const HotelRoutes = require("./HotelRoutes/hotel");
+const ContactUsRoutes = require("./contactRoutes");
 const AnalyticsRoutes = require("./Analytics/index");
 const VerifyRoutes = require("./AuthRoutes/verification");
 const RoomTypeRoutes = require("./HotelRoutes/roomType");
@@ -23,6 +24,7 @@ const CCAvenue = require("./CcAvenue");
 const OfferRoutes = require("./OffersRoutes.js/offersRoutes");
 const EmailEventRoutes = require("./notifications/EmailEventsRoutes");
 const BankDetials = require("./HotelRoutes/BankDetails");
+const EnquiryRoutes = require("./EnquiryRoutes");
 
 router.use("/util", Utils);
 router.use("/api", CustomerRoutes);
@@ -30,6 +32,7 @@ router.use("/api", StripeGateway);
 router.use("/api/agent", AgentRouters);
 router.use("/hotel", HotelRoutes);
 router.use("/admin", AdminRoutes);
+router.use("/contact", ContactUsRoutes);
 // routerverfication related apis
 router.use("/verify", VerifyRoutes);
 router.use("/roomtype", RoomTypeRoutes);
@@ -49,5 +52,6 @@ router.use("/offers", OfferRoutes);
 router.use("/email", EmailEventRoutes);
 router.use("/bank", BankDetials);
 router.use("/analytics", AnalyticsRoutes);
+router.use("/enquiry", EnquiryRoutes);
 
 module.exports = router;

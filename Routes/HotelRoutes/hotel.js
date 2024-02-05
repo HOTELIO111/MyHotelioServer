@@ -15,6 +15,7 @@ const {
   DeleteSigleHotel,
   GetSingleHotelDataNew,
   GetSearchTheHotelList,
+  GetNearByHotels,
 } = require("../../Controllers/HotelControllers/hotelControllers");
 const {
   UpdateRoomData,

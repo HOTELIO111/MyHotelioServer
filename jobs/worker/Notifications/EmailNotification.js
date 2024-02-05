@@ -16,8 +16,8 @@ const EmailWorker = async (data) => {
       "warning",
       process.env.SERVERID
     );
-    
-  // check the data of event  and send which type of notification has to send
+
+  // now get the event id and make the event notification LineUp
 };
 
 module.exports = { EmailWorker };

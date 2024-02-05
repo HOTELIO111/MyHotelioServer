@@ -13,6 +13,9 @@ const {
   GetAuthWIthGoogle,
   AddFieldWithOtp,
   DeleteCustomerById,
+  MakeHotelFavourite,
+  RemoveHotelFromFavourite,
+  GetALLFavouritesHotels,
 } = require("../../Controllers/AuthControllers/customerControllers");
 const {
   AddVendor,
@@ -76,7 +79,12 @@ router.post("/update-pass/:id", UpdateThePassword);
 router.patch("/update", AddFieldWithOtp);
 // delet by id
 router.get("/delete/:id", DeleteCustomerById);
-
+// make the hotel favourites
+router.get("/favourite/add/:customerid/:hotelid", MakeHotelFavourite);
+// remove the hotel favourites
+router.get("/favourite/remove/:customerid/:hotelid", RemoveHotelFromFavourite);
+// get all the favourites hotels
+router.get("/favourite/get/:customerid", GetALLFavouritesHotels);
 // router.post("/sendOtp/:number", SendOtpForVerify);
 
 // vendor Login And Signup

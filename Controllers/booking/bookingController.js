@@ -1,8 +1,6 @@
 const CustomerAuthModel = require("../../Model/CustomerModels/customerModel");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
-const VendorModel = require("../../Model/HotelModel/vendorModel");
 const Booking = require("../../Model/booking/bookingModel");
-const { FindGlobalAndMatch } = require("../../functions/globalVariables");
 const {
   CreateThePaymentInfo,
 } = require("../../helper/Payments/payementFuctions");
@@ -10,10 +8,8 @@ const ManageCancellationsWithPolicy = require("../../helper/booking/Cancellation
 const HotelioBookingCancel = require("../../helper/booking/CancellationsPolicy");
 const {
   CreateBooking,
-  handleCancelationPolicy,
   CancelBooking,
   PreBookingFunction,
-  CalculateBookingPolicy,
   CancelBookingAndProceed,
 } = require("../../helper/booking/bookingHelper");
 const {
@@ -21,6 +17,7 @@ const {
 } = require("../../helper/hotel/roomManagementHelper");
 const { BookingQue } = require("../../jobs");
 const bookingIdGenerate = require("./bookingIdGenerator");
+const BillingSystem = require("./billingSystem");
 
 const RegisterBooking = async (req, res) => {
   const formData = req.body;
@@ -134,19 +131,6 @@ const CreatePreBooking = async (req, res) => {
   }
 };
 
-// const UpdatePreBooking = async (req, res) => {
-//   const formData = req.body;
-//   const { id } = req.params;
-//   try {
-//     const addinBookingQue = BookingQue.add(id, formData);
-//     res
-//       .status(200)
-//       .json({ error: false, message: "success", booking: addinBookingQue });
-//   } catch (error) {
-//     res.status(500).json({ error: true, message: error.message });
-//   }
-// };
-
 const CollectPaymentInfoAndConfirmBooking = async (req, res) => {
   const formData = req.body;
   const { paymentType } = req.params;
@@ -252,6 +236,47 @@ const ManageCancelBooking = async (req, res) => {
   }
 };
 
+// calculate bill
+const CalculateBilling = async (req, res) => {
+  const {
+    checkIn,
+    checkOut,
+    totalRooms,
+    totalGuest,
+    roomid,
+    customer,
+    agent,
+    OfferId,
+  } = req.query;
+  try {
+    const billing = new BillingSystem(
+      checkIn,
+      checkOut,
+      totalRooms,
+      totalGuest,
+      roomid,
+      customer,
+      agent,
+      OfferId
+    );
+    await billing.GetRoomInfoAndOffer(roomid, OfferId);
+    await billing.customerWalletManage(customer);
+    const billingData = await billing.Calculate();
+    if (billingData.error)
+      return res
+        .status(400)
+        .json({ error: true, message: billingData.message });
+
+    res.status(200).json({
+      error: false,
+      message: "success",
+      data: billingData.data,
+    });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   RegisterBooking,
   CancleBooking,
@@ -262,4 +287,5 @@ module.exports = {
   ConfirmBookingPayAtHotel,
   CollectPaymentInfoAndConfirmBooking,
   ManageCancelBooking,
+  CalculateBilling,
 };

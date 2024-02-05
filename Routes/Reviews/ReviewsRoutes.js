@@ -6,6 +6,8 @@ const {
   GetSingleReview,
   DeleteTheReview,
   GethotelReviews,
+  MakeTimeLineReview,
+  GetTheTimelineReviews,
 } = require("../../Controllers/Reviews/reviewsControllers");
 const {
   DeleteReviewsMiddleWare,
@@ -21,5 +23,7 @@ router.get("/getall", GetAllReviews);
 router.get("/get", GetTheReviewsByMatchingFields);
 router.delete("/delete/:id", DeleteReviewsMiddleWare, DeleteTheReview);
 router.get("/get/hotel/:hotelid", GethotelReviews);
+router.get("/timeline/:id/:status", MakeTimeLineReview);
+router.get("/timeline/get", GetTheTimelineReviews);
 
 module.exports = router;

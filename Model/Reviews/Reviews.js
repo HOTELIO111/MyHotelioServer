@@ -29,6 +29,9 @@ const schema = new Schema(
       max: 5,
       default: 5,
     },
+    timeline: {
+      type: Boolean,
+    },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "customers",

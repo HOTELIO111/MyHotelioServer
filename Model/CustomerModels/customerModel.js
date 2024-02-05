@@ -49,6 +49,12 @@ const schema = new mongoose.Schema(
     gender: String,
     maritialStatus: String,
     state: String,
+    favourites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "hotels",
+      },
+    ],
     pinCode: String,
     resetLink: String,
     resetDateExpires: Date,

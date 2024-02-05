@@ -170,6 +170,7 @@ const schema = new mongoose.Schema(
 );
 
 schema.index({ location: "2dsphere" });
+schema.index({ "location.coordinates": "2dsphere" });
 
 const HotelModel = mongoose.model("Hotels", schema);
 

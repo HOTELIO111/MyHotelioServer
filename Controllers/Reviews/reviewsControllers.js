@@ -296,6 +296,43 @@ const GethotelReviews = async (req, res) => {
     res.status(500).json({ error: true, message: error.message });
   }
 };
+
+const MakeTimeLineReview = async (req, res) => {
+  const { id, status } = req.params;
+
+  try {
+    const response = await ReviewsModel.findByIdAndUpdate(
+      id,
+      {
+        timeline: status,
+      },
+      {
+        new: true,
+      }
+    );
+    if (!response)
+      return res
+        .status(400)
+        .json({ error: true, message: "please check the id and status" });
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const GetTheTimelineReviews = async (req, res) => {
+  try {
+    const response = await ReviewsModel.aggregate([
+      {
+        $match: { timeline: true },
+      },
+    ]);
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   CreateReview,
   GetTheReviewsByMatchingFields,
@@ -304,4 +341,6 @@ module.exports = {
   UpdateTheReview,
   GetSingleReview,
   GethotelReviews,
+  MakeTimeLineReview,
+  GetTheTimelineReviews,
 };

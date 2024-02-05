@@ -10,6 +10,7 @@ const crypto = require("crypto");
 const SendMail = require("../Others/Mailer");
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
+const { default: mongoose } = require("mongoose");
 
 const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
   let verification;
@@ -593,6 +594,85 @@ const DeleteCustomerById = async (req, res) => {
     });
 };
 
+// ======================= Favourites =========================================
+
+const MakeHotelFavourite = async (req, res) => {
+  const { customerid, hotelid } = req.params;
+
+  try {
+    const _exist = await CustomerAuthModel.find({
+      _id: customerid,
+      favourites: hotelid,
+    });
+    if (_exist)
+      return res
+        .status(400)
+        .json({ error: true, message: "this hotel is already your favourite" });
+    const response = await CustomerAuthModel.findByIdAndUpdate(
+      customerid,
+      {
+        $push: { favourites: hotelid },
+      },
+      {
+        new: true,
+      }
+    );
+    if (!response)
+      return res.status(400).json({ error: true, message: "id not found" });
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const RemoveHotelFromFavourite = async (req, res) => {
+  const { customerid, hotelid } = req.params;
+  try {
+    const response = await CustomerAuthModel.findByIdAndUpdate(
+      customerid,
+      {
+        $pull: { favourites: hotelid },
+      },
+      {
+        new: true,
+      }
+    );
+    if (!response)
+      return res.status(400).json({ error: true, message: "id not found" });
+    res.status(200).json({ error: true, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const GetALLFavouritesHotels = async (req, res) => {
+  const { customerid } = req.params;
+
+  try {
+    const response = await CustomerAuthModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(customerid) } },
+      {
+        $lookup: {
+          from: "hotels",
+          localField: "favourites",
+          foreignField: "_id",
+          as: "favourites",
+        },
+      },
+      {
+        $project: {
+          favourites: 1,
+        },
+      },
+    ]);
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+
+
 module.exports = {
   SignupUser,
   LoginUser,
@@ -606,4 +686,7 @@ module.exports = {
   GetAuthWIthGoogle,
   AddFieldWithOtp,
   DeleteCustomerById,
+  MakeHotelFavourite,
+  RemoveHotelFromFavourite,
+  GetALLFavouritesHotels,
 };

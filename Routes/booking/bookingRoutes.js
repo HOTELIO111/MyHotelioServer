@@ -9,6 +9,7 @@ const {
   ConfirmBookingPayAtHotel,
   CollectPaymentInfoAndConfirmBooking,
   ManageCancelBooking,
+  CalculateBilling,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
@@ -46,5 +47,7 @@ router.get("/get-booking", GetBookings);
 
 // delete all the booking
 router.get("/delete", GetDeleteBooking);
+// calculation
+router.get("/calculate/bill", CalculateBilling);
 
 module.exports = router;
