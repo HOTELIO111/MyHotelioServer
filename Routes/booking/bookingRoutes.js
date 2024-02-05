@@ -13,6 +13,8 @@ const {
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
+  GetTheSingleBookingPopulated,
+  GenerateTemplate,
 } = require("../../helper/booking/bookingHelper");
 const ValidateBookingQuery = require("../../validator/booking/Booking");
 const ValidatePaymentData = require("../../validator/booking/UpdateBookingPayment");
@@ -49,5 +51,7 @@ router.get("/get-booking", GetBookings);
 router.get("/delete", GetDeleteBooking);
 // calculation
 router.get("/calculate/bill", CalculateBilling);
+
+router.get("/get-single/:bookingId", GenerateTemplate);
 
 module.exports = router;
