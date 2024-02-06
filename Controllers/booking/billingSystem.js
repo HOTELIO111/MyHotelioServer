@@ -122,7 +122,7 @@ class BillingSystem {
                 if: {
                   $gt: [
                     { $size: { $ifNull: ["$offerDiscount.discount", []] } },
-                    1,
+                    0,
                   ],
                 },
                 then: { $arrayElemAt: ["$offerDiscount.discount", 0] },
@@ -132,9 +132,9 @@ class BillingSystem {
             OfferCode: {
               $cond: {
                 if: {
-                  $gt: [{ $size: { $ifNull: ["$offerDiscount.code", []] } }, 1],
+                  $gt: [{ $size: { $ifNull: ["$offerDiscount.code", []] } }, 0],
                 },
-                then: { $arrayElemAt: ["$offerDiscount.discount", 0] },
+                then: { $arrayElemAt: ["$offerDiscount.code", 0] },
                 else: "",
               },
             },
