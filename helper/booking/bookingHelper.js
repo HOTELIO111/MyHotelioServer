@@ -49,7 +49,7 @@ const PreBookingFunction = async (formData) => {
     if (!isCreated) return { error: true, message: "Not registered" };
 
     // Add the booking id in customer and vendor data
-    const onCustomer = CustomerAuthModel.findOneAndUpdate(
+    const onCustomer = await CustomerAuthModel.findOneAndUpdate(
       { _id: isCreated.customer },
       { $push: { bookings: isCreated._id } }
     );

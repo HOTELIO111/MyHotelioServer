@@ -114,11 +114,30 @@ class BillingSystem {
             as: "offerDiscount",
           },
         },
-        { $unwind: "$offerDiscount" },
+        // { $unwind: "$offerDiscount" },
         {
           $addFields: {
-            codeDiscount: "$offerDiscount.discount",
-            OfferCode: "$offerDiscount.code",
+            codeDiscount: {
+              $cond: {
+                if: {
+                  $gt: [
+                    { $size: { $ifNull: ["$offerDiscount.discount", []] } },
+                    1,
+                  ],
+                },
+                then: { $arrayElemAt: ["$offerDiscount.discount", 0] },
+                else: { amount: 0, percentage: 0 },
+              },
+            },
+            OfferCode: {
+              $cond: {
+                if: {
+                  $gt: [{ $size: { $ifNull: ["$offerDiscount.code", []] } }, 1],
+                },
+                then: { $arrayElemAt: ["$offerDiscount.discount", 0] },
+                else: "",
+              },
+            },
           },
         },
         {
@@ -184,9 +203,13 @@ class BillingSystem {
   async Calculate() {
     try {
       const BasePrice = this.totalRoomAmount();
+      const offerDiscount =
+        this.offerCode !== "" && this.discountAmount !== 0
+          ? { type: this.offerCode, amount: this.discountAmount() }
+          : "No offer applied";
       const totalDiscount = [
         { type: "wallet", amount: this.customerwallet },
-        { type: this.offerCode, amount: this.discountAmount() },
+        offerDiscount,
       ];
       const discountedAmount = this.customerwallet + this.discountAmount();
       const priceAfterDiscount = this.totalRoomAmount() - discountedAmount;

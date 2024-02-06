@@ -16,6 +16,7 @@ const {
   MakeHotelFavourite,
   RemoveHotelFromFavourite,
   GetALLFavouritesHotels,
+  GetAllCustomerBookings,
 } = require("../../Controllers/AuthControllers/customerControllers");
 const {
   AddVendor,
@@ -85,7 +86,11 @@ router.get("/favourite/add/:customerid/:hotelid", MakeHotelFavourite);
 router.get("/favourite/remove/:customerid/:hotelid", RemoveHotelFromFavourite);
 // get all the favourites hotels
 router.get("/favourite/get/:customerid", GetALLFavouritesHotels);
+// get all bookings
+router.get("/booking/:customerid", GetAllCustomerBookings);
 // router.post("/sendOtp/:number", SendOtpForVerify);
+
+// ==================================================== Vendor Routes =========================================================================
 
 // vendor Login And Signup
 router.post("/vendor/signup", AddVendor);
@@ -110,6 +115,8 @@ router.delete("/vendor/deleteall", DeleteVendors);
 router.patch("/vendor/update/:id", GetVendorUpdate);
 // verify the email and update the data
 router.patch("/vendor/verified", GetVendorDataUpdate);
+
+// =====================================================Adming Routes ===================================================================================
 
 // admin SOme Routes
 router.post("/admin/signup", GetAddTheAdmin);

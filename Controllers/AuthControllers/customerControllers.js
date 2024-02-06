@@ -671,7 +671,43 @@ const GetALLFavouritesHotels = async (req, res) => {
   }
 };
 
+//  ===============================Customer Booking related apis -=================================
 
+const GetAllCustomerBookings = async (req, res) => {
+  const { customerid } = req.params;
+  try {
+    const response = await CustomerAuthModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(customerid) } },
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "bookings",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $lookup: {
+                from: "hotels",
+                localField: "hotel",
+                foreignField: "_id",
+                // pipeline:[
+                //   {$project:{
+
+                //   }}
+                // ],
+                as: "hotel",
+              },
+            },
+            { $sort: { createdAt: -1 } },
+          ],
+          as: "bookings",
+        },
+      },
+    ]);
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
 
 module.exports = {
   SignupUser,
@@ -689,4 +725,5 @@ module.exports = {
   MakeHotelFavourite,
   RemoveHotelFromFavourite,
   GetALLFavouritesHotels,
+  GetAllCustomerBookings,
 };
