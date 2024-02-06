@@ -54,4 +54,5 @@ router.get("/calculate/bill", CalculateBilling);
 
 router.get("/get-single/:bookingId", GenerateTemplate);
 
+// ================================ Customer  =======================================
 module.exports = router;

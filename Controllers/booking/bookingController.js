@@ -81,8 +81,8 @@ const GetDeleteBooking = async (req, res) => {
   try {
     const response = await Booking.deleteMany(credentials);
     if (response) {
-      HotelModel.updateMany({ bookings: [] });
-      CustomerAuthModel.updateMany({ bookings: [] });
+      await HotelModel.updateMany({ bookings: [] });
+      await CustomerAuthModel.updateMany({ bookings: [] });
       res.status(200).json("every data deleted");
     }
   } catch (error) {
