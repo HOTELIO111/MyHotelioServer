@@ -18,6 +18,7 @@ const {
 const { BookingQue } = require("../../jobs");
 const bookingIdGenerate = require("./bookingIdGenerator");
 const BillingSystem = require("./billingSystem");
+const BookingSystem = require("./BookingSystem");
 
 const RegisterBooking = async (req, res) => {
   const formData = req.body;
@@ -76,15 +77,19 @@ const GetBookings = async (req, res) => {
 
 const GetDeleteBooking = async (req, res) => {
   const { id } = req.query;
-  const credentials = id ? { _id: id } : {};
 
   try {
-    const response = await Booking.deleteMany(credentials);
-    if (response) {
-      await HotelModel.updateMany({ bookings: [] });
-      await CustomerAuthModel.updateMany({ bookings: [] });
-      res.status(200).json("every data deleted");
+    const bookingHandler = new BookingSystem();
+    let _deleted;
+    if (!id) {
+      _deleted = await bookingHandler.DeleteBooking();
+    } else {
+      _deleted = await bookingHandler.DeleteBookingById(id);
     }
+
+    if (_deleted.error)
+      return res.status(400).json({ error: true, message: _deleted.message });
+    res.status(200).json(_deleted);
   } catch (error) {
     res.status(500).json(error.message);
   }
@@ -106,71 +111,120 @@ const generateBookingId = async (req, res) => {
 };
 
 // create the pre booking
+// const CreatePreBooking = async (req, res) => {
+//   const bookingData = req.body;
+
+//   // Check the booking availability and hold it for 10 minutes
+//   const roomCount = await GetTheRoomAvailiabilityStats(
+//     bookingData?.room,
+//     bookingData?.bookingDate?.checkIn,
+//     bookingData?.bookingDate?.checkOut
+//   );
+
+//   if (bookingData?.numberOfRooms > roomCount) {
+//     return res
+//       .status(404)
+//       .json({ error: true, message: "Oops! Room not available" });
+//   }
+
+//   try {
+//     const _bookingPre = await PreBookingFunction(bookingData);
+
+//     res.status(200).json({ error: false, message: _bookingPre });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
 const CreatePreBooking = async (req, res) => {
   const bookingData = req.body;
 
+  const bookingHandler = new BookingSystem();
   // Check the booking availability and hold it for 10 minutes
-  const roomCount = await GetTheRoomAvailiabilityStats(
+  const roomCount = await bookingHandler.GetRoomAvailiability(
     bookingData?.room,
     bookingData?.bookingDate?.checkIn,
     bookingData?.bookingDate?.checkOut
   );
 
-  if (bookingData?.numberOfRooms > roomCount) {
+  if (bookingData?.numberOfRooms > roomCount.data) {
     return res
       .status(404)
       .json({ error: true, message: "Oops! Room not available" });
   }
-
   try {
-    const _bookingPre = await PreBookingFunction(bookingData);
+    const _bookingPre = await bookingHandler.CreatePreBooking(bookingData);
 
-    res.status(200).json({ error: false, message: _bookingPre });
+    if (_bookingPre.error) return res.status(400).json(_bookingPre);
+
+    res
+      .status(200)
+      .json({ error: false, message: "success", data: _bookingPre.data });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
 };
 
+// const CollectPaymentInfoAndConfirmBooking = async (req, res) => {
+//   const formData = req.body;
+//   const { paymentType } = req.params;
+//   try {
+//     // check the booking data
+//     const _bookingData = await Booking.findOne({
+//       bookingId: formData?.order_id,
+//     });
+
+//     if (!_bookingData)
+//       return res
+//         .status(404)
+//         .json({ error: true, message: "No booking Found " });
+
+//     // Store the payment info
+//     const paymentReg = await CreateThePaymentInfo(formData);
+
+//     // Add to the queue to handle payment for the booking
+//     await BookingQue.add(
+//       `Handle Payment For Booking No ${formData?.order_id}`,
+//       {
+//         ...formData,
+//         paymentType,
+//       }
+//     );
+//     // const paymentReg = formData;
+//     if (paymentReg.order_status === "Success") {
+//       res.status(200).json({
+//         error: false,
+//         message:
+//           "Success: Payment received. Booking sent to the hotel for confirmation.",
+//       });
+//     } else {
+//       res.status(200).json({
+//         error: true,
+//         data: paymentReg,
+//         message:
+//           "Payment Response indicates failure. Please wait for redirection or contact support.",
+//       });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
 const CollectPaymentInfoAndConfirmBooking = async (req, res) => {
   const formData = req.body;
   const { paymentType } = req.params;
   try {
-    // check the booking data
-    const _bookingData = await Booking.findOne({
-      bookingId: formData?.order_id,
-    });
-
-    if (!_bookingData)
-      return res
-        .status(404)
-        .json({ error: true, message: "No booking Found " });
-
-    // Store the payment info
-    const paymentReg = await CreateThePaymentInfo(formData);
-
-    // Add to the queue to handle payment for the booking
-    await BookingQue.add(
-      `Handle Payment For Booking No ${formData?.order_id}`,
-      {
-        ...formData,
-        paymentType,
-      }
-    );
-    // const paymentReg = formData;
-    if (paymentReg.order_status === "Success") {
-      res.status(200).json({
-        error: false,
-        message:
-          "Success: Payment received. Booking sent to the hotel for confirmation.",
-      });
-    } else {
-      res.status(200).json({
+    if (!formData.order_id && !paymentType)
+      return res.status(400).json({
         error: true,
-        data: paymentReg,
-        message:
-          "Payment Response indicates failure. Please wait for redirection or contact support.",
+        message: "payment type and payment response not met",
       });
-    }
+    const bookingHandler = new BookingSystem();
+    // Store the payment info
+    const booking = await bookingHandler.FinalizeBooking(formData);
+
+    if (booking.error) return res.status(400).json(booking);
+    res
+      .status(200)
+      .json({ error: false, message: booking.message, data: booking.data });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
@@ -180,28 +234,20 @@ const ConfirmBookingPayAtHotel = async (req, res) => {
   try {
     const formData = req.body;
     const paymentType = "pay-at-hotel";
-    const _bookingData = await Booking.findOne({
-      bookingId: formData?.order_id,
-    });
 
-    if (!_bookingData)
-      return res
-        .status(404)
-        .json({ error: true, message: "No booking Found " });
-
-    await BookingQue.add(
-      `Handle Payment For Booking No ${formData?.order_id}`,
-      {
-        ...formData,
-        paymentType,
-      }
+    const bookingHandler = new BookingSystem();
+    const response = await bookingHandler.PayAtHotelBooking(
+      formData,
+      paymentType
     );
+
+    if (response.error)
+      return res.status(400).json({ error: true, message: response.message });
 
     res.status(200).json({
       error: false,
       message: "success",
-      data: _bookingData,
-      paymentType,
+      data: response.message,
     });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });

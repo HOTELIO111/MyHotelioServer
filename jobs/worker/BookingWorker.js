@@ -1,121 +1,130 @@
+const BookingSystem = require("../../Controllers/booking/BookingSystem");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const Booking = require("../../Model/booking/bookingModel");
 require("dotenv").config();
-const { EmailNotification } = require("./Notifications/EmailNotification");
 
 const CreatePreBooking = async (data) => {
-  const paymentData = data?.data;
-  const paymentType = data?.data?.paymentType;
-  const bookingData = await Booking.aggregate([
-    { $match: { bookingId: paymentData?.order_id } },
-  ]);
-  console.log(paymentData);
-  const reciepent = await bookingData[0]?.guest?.email;
-  console.log(`working on booking ${data.name}`);
-  if (paymentType === "pay-at-hotel") {
-    await updateBookingPayAtHotel(paymentData, bookingData);
-    EmailNotification.add(
-      `send mail to customer on email ${bookingData[0]?.guest?.email}`,
-      {
-        to: reciepent,
-        subject: "Hotel Booking Confirmation - Your Travel Partner: Hotelio",
-      }
-    );
-    console.log("Booking confirmed and you can pay it on hotel");
-  } else {
-    if (paymentData?.order_status === "Success") {
-      await updateBookingConfirmation(paymentData, bookingData);
+  const handleFinalize = new BookingSystem();
+  const finalizeResult = await handleFinalize.QueueBookingHandler(data);
 
-      await EmailNotification.add(
-        `send mail to customer on email ${bookingData?.guest?.email}`,
-        {
-          to: reciepent,
-          subject: "Hotel Booking Confirmation - Your Travel Partner: Hotelio",
-        }
-      );
-      console.log("Booking confirmed and Payment recieved successfully ");
-    } else {
-      await UpdateTheBookingFailed(paymentData, bookingData);
-      console.log("Booking confirmed and Payment Failed ");
-    }
+  if (finalizeResult.error) {
+    console.log(finalizeResult);
   }
+
+  console.log(finalizeResult);
 };
 
-const updateBookingConfirmation = async (formData, bookingData) => {
-  try {
-    // Extract necessary information from the booking data
-    const totalAmount = parseInt(bookingData[0].amount);
-    console.log(totalAmount);
-    // Update hotel and booking documents in parallel
-    const [updatedHotel, updatedBooking] = await Promise.all([
-      HotelModel.findByIdAndUpdate(bookingData[0].hotel, {
-        $push: { bookings: bookingData[0]._id },
-      }),
-      Booking.findByIdAndUpdate(bookingData[0]._id, {
-        bookingStatus: "confirmed",
-        "payment.paymentType": formData?.paymentType,
-        "payment.totalamount": totalAmount,
-        "payment.paidamount": formData?.amount,
-        "payment.balanceAmt": totalAmount - formData?.amount,
-      }),
-    ]);
+// const paymentData = data?.data;
+// const paymentType = data?.data?.paymentType;
+// const bookingData = await Booking.aggregate([
+//   { $match: { bookingId: paymentData?.order_id } },
+// ]);
+// const reciepent = await bookingData[0]?.guest?.email;
+// console.log(`working on booking ${data.name}`);
+// if (paymentType === "pay-at-hotel") {
+//   await updateBookingPayAtHotel(paymentData, bookingData);
+//   EmailNotification.add(
+//     `send mail to customer on email ${bookingData[0]?.guest?.email}`,
+//     {
+//       to: reciepent,
+//       subject: "Hotel Booking Confirmation - Your Travel Partner: Hotelio",
+//     }
+//   );
+//   console.log("Booking confirmed and you can pay it on hotel");
+// } else {
+//   if (paymentData?.order_status === "Success") {
+//     await updateBookingConfirmation(paymentData, bookingData);
 
-    // Return updated data
-    return {
-      hotelData: updatedHotel,
-      booking: updatedBooking,
-    };
-  } catch (error) {
-    // Handle errors gracefully
-    console.error("Error updating booking confirmation:", error.message);
-    throw error; // Propagate the error for higher-level handling
-  }
-};
+//     await EmailNotification.add(
+//       `send mail to customer on email ${bookingData?.guest?.email}`,
+//       {
+//         to: reciepent,
+//         subject: "Hotel Booking Confirmation - Your Travel Partner: Hotelio",
+//       }
+//     );
+//     console.log("Booking confirmed and Payment recieved successfully ");
+//   } else {
+//     await UpdateTheBookingFailed(paymentData, bookingData);
+//     console.log("Booking confirmed and Payment Failed ");
+//   }
+// }
 
-const UpdateTheBookingFailed = async (formdata, bookingData) => {
-  try {
-    const findBookingAndUpdate = await Booking.findOneAndUpdate(
-      {
-        bookingId: formdata?.order_id,
-      },
-      {
-        bookingStatus: "failed",
-        "payment.paymentType": formdata?.paymentType,
-        "payment.totalamount": bookingData[0]?.amount,
-        "payment.paidamount": formdata?.amount,
-        "payment.balanceAmt": bookingData[0]?.amount - formdata?.amount,
-      }
-    );
-    return { booking: findBookingAndUpdate };
-  } catch (error) {
-    console.error("Error updating booking confirmation:", error.message);
-    throw error;
-  }
-};
+// const updateBookingConfirmation = async (formData, bookingData) => {
+//   try {
+//     console.log(formData, bookingData);
+//     // Extract necessary information from the booking data
+//     const totalAmount = parseInt(bookingData[0].amount);
+//     console.log(totalAmount);
+//     // Update hotel and booking documents in parallel
+//     const [updatedHotel, updatedBooking] = await Promise.all([
+//       HotelModel.findByIdAndUpdate(bookingData[0].hotel, {
+//         $push: { bookings: bookingData[0]._id },
+//       }),
+//       Booking.findByIdAndUpdate(bookingData[0]._id, {
+//         bookingStatus: "confirmed",
+//         "payment.paymentType": formData?.paymentType,
+//         "payment.totalamount": totalAmount,
+//         "payment.paidamount": formData?.amount,
+//         "payment.balanceAmt": totalAmount - formData?.amount,
+//       }),
+//     ]);
 
-const updateBookingPayAtHotel = async (formdata, bookingData) => {
-  try {
-    const findTheBookingAndUpdate = await Booking.findOneAndUpdate(
-      {
-        bookingId: formdata?.order_id,
-      },
-      {
-        bookingStatus: "confirmed",
-        payment: {
-          paymentType: "pay-at-hotel",
-          totalamount: bookingData[0].amount,
-          paidamount: 0,
-          balanceAmt: bookingData[0].amount,
-        },
-      }
-    );
+//     // Return updated data
+//     return {
+//       hotelData: updatedHotel,
+//       booking: updatedBooking,
+//     };
+//   } catch (error) {
+//     // Handle errors gracefully
+//     console.error("Error updating booking confirmation:", error.message);
+//     throw error; // Propagate the error for higher-level handling
+//   }
+// };
 
-    return { booking: findTheBookingAndUpdate };
-  } catch (error) {
-    console.error("Error updating booking confirmation:", error.message);
-    throw error;
-  }
-};
+// const UpdateTheBookingFailed = async (formdata, bookingData) => {
+//   try {
+//     const findBookingAndUpdate = await Booking.findOneAndUpdate(
+//       {
+//         bookingId: formdata?.order_id,
+//       },
+//       {
+//         bookingStatus: "failed",
+//         "payment.paymentType": formdata?.paymentType,
+//         "payment.totalamount": bookingData[0]?.amount,
+//         "payment.paidamount": formdata?.amount,
+//         "payment.balanceAmt": bookingData[0]?.amount - formdata?.amount,
+//       }
+//     );
+//     return { booking: findBookingAndUpdate };
+//   } catch (error) {
+//     console.error("Error updating booking confirmation:", error.message);
+//     throw error;
+//   }
+// };
+
+// const updateBookingPayAtHotel = async (formdata, bookingData) => {
+//   try {
+//     const findTheBookingAndUpdate = await Booking.findOneAndUpdate(
+//       {
+//         bookingId: formdata?.order_id,
+//       },
+//       {
+//         bookingStatus: "confirmed",
+//         payment: {
+//           paymentType: "pay-at-hotel",
+//           totalamount: bookingData[0].amount,
+//           paidamount: 0,
+//           balanceAmt: bookingData[0].amount,
+//         },
+//       }
+//     );
+
+//     return { booking: findTheBookingAndUpdate };
+//   } catch (error) {
+//     console.error("Error updating booking confirmation:", error.message);
+//     throw error;
+//   }
+// };
 
 // console.log(paymentData);
 // if (paymentData?.order_status === "Success") {

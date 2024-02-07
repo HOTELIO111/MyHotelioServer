@@ -30,6 +30,7 @@ const {
   DeleteVendorById,
   GetVendorById,
   GetVendorPasswordUpdate,
+  GetTheHotelBooking,
 } = require("../../Controllers/AuthControllers/vendorControllers");
 const {
   GetAddTheAdmin,
@@ -115,6 +116,7 @@ router.delete("/vendor/deleteall", DeleteVendors);
 router.patch("/vendor/update/:id", GetVendorUpdate);
 // verify the email and update the data
 router.patch("/vendor/verified", GetVendorDataUpdate);
+// router.get("/hotel/bookings/:hotelid", GetTheHotelBooking);
 
 // =====================================================Adming Routes ===================================================================================
 

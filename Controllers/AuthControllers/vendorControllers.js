@@ -380,6 +380,197 @@ const GetVendorPasswordUpdate = async (req, res) => {
   } catch (error) {}
 };
 
+// const GetTheHotelBooking = async (req, res) => {
+//   const { hotelid } = req.params;
+//   try {
+//     const response = await HotelModel.aggregate([
+//       { $match: { _id: new mongoose.Types.ObjectId(hotelid) } },
+//       // {
+//       //   $lookup: {
+//       //     from: "bookings",
+//       //     localField: "bookings",
+//       //     foreignField: "_id",
+//       //     pipeline: [
+//       //       {
+//       //         $lookup: {
+//       //           from: "hotels",
+//       //           localField: "hotel",
+//       //           foreignField: "_id",
+//       //           pipeline: [
+//       //             {
+//       //               $lookup: {
+//       //                 from: "room-categories",
+//       //                 localField: "rooms.roomType",
+//       //                 foreignField: "_id",
+//       //                 pipeline: [
+//       //                   {
+//       //                     $lookup: {
+//       //                       from: "amenities",
+//       //                       localField: "amenties",
+//       //                       foreignField: "_id",
+//       //                       pipeline: [
+//       //                         {
+//       //                           $group: {
+//       //                             _id: "amenites",
+//       //                             title: { $push: "$title" },
+//       //                           },
+//       //                         },
+//       //                       ],
+//       //                       as: "Amenty",
+//       //                     },
+//       //                   },
+//       //                   { $unwind: "$Amenty" },
+//       //                   {
+//       //                     $lookup: {
+//       //                       from: "facilities",
+//       //                       localField: "includeFacilities",
+//       //                       foreignField: "_id",
+//       //                       pipeline: [
+//       //                         {
+//       //                           $group: {
+//       //                             _id: "facilities",
+//       //                             title: { $push: "$title" },
+//       //                           },
+//       //                         },
+//       //                       ],
+//       //                       as: "Facility",
+//       //                     },
+//       //                   },
+//       //                   { $unwind: "$Facility" },
+//       //                   {
+//       //                     $project: {
+//       //                       _id: 1,
+//       //                       personAllowed: 1,
+//       //                       includeFacilities: 1,
+//       //                       amenties: "$Amenty.title",
+//       //                       includeFacilities: "$Facility.title",
+//       //                       title: 1,
+//       //                     },
+//       //                   },
+//       //                 ],
+//       //                 as: "roomTypeData",
+//       //               },
+//       //             },
+//       //             {
+//       //               $project: {
+//       //                 hotelCoverImg: 1,
+//       //                 hotelName: 1,
+//       //                 hotelRatings: 1,
+//       //                 reviews: 1,
+//       //                 rooms: {
+//       //                   $map: {
+//       //                     input: "$rooms",
+//       //                     as: "room",
+//       //                     in: {
+//       //                       counts: {
+//       //                         $sum: {
+//       //                           $subtract: [
+//       //                             { $toInt: "$$room.counts" }, // Convert to integer if not already
+//       //                             {
+//       //                               $let: {
+//       //                                 vars: {
+//       //                                   decreasedArray: {
+//       //                                     $filter: {
+//       //                                       input: "$roomCountData",
+//       //                                       as: "roomCo",
+//       //                                       cond: {
+//       //                                         $and: [
+//       //                                           {
+//       //                                             $eq: [
+//       //                                               "$$roomCo.roomid",
+//       //                                               "$$room._id",
+//       //                                             ],
+//       //                                           },
+//       //                                           {
+//       //                                             $eq: ["$$roomCo.will", "dec"],
+//       //                                           },
+//       //                                         ],
+//       //                                       },
+//       //                                     },
+//       //                                   },
+//       //                                   increasedArray: {
+//       //                                     $filter: {
+//       //                                       input: "$roomCountData",
+//       //                                       as: "roomCo",
+//       //                                       cond: {
+//       //                                         $and: [
+//       //                                           {
+//       //                                             $eq: [
+//       //                                               "$$roomCo.roomid",
+//       //                                               "$$room._id",
+//       //                                             ],
+//       //                                           },
+//       //                                           {
+//       //                                             $eq: ["$$roomCo.will", "inc"],
+//       //                                           },
+//       //                                         ],
+//       //                                       },
+//       //                                     },
+//       //                                   },
+//       //                                 },
+//       //                                 in: {
+//       //                                   $sum: {
+//       //                                     $subtract: [
+//       //                                       { $sum: "$$decreasedArray.rooms" },
+//       //                                       { $sum: "$$increasedArray.rooms" },
+//       //                                     ],
+//       //                                   },
+//       //                                 },
+//       //                               },
+//       //                             },
+//       //                           ],
+//       //                         },
+//       //                       },
+//       //                       roomType: {
+//       //                         $arrayElemAt: [
+//       //                           {
+//       //                             $filter: {
+//       //                               input: "$roomTypeData",
+//       //                               as: "roomTypes",
+//       //                               cond: {
+//       //                                 $eq: [
+//       //                                   "$$roomTypes._id",
+//       //                                   "$$room.roomType",
+//       //                                 ],
+//       //                               },
+//       //                             },
+//       //                           },
+//       //                           0,
+//       //                         ],
+//       //                       },
+//       //                       price: "$$room.price",
+//       //                       // status: "$$room.status",
+//       //                       additionAmenities: "$$room.additionAmenities",
+//       //                       // roomConfig: "$$room.roomConfig",
+//       //                       additionalFacilties: "$$room.additionalFacilties",
+//       //                       _id: "$$room._id",
+//       //                     },
+//       //                   },
+//       //                 },
+//       //                 discription: 1,
+//       //               },
+//       //             },
+//       //           ],
+//       //           as: "hotel",
+//       //         },
+//       //       },
+//       //       { $sort: { createdAt: -1 } },
+//       //     ],
+//       //     as: "bookings",
+//       //   },
+//       // },
+//       // {
+//       //   $project: {
+//       //     bookings: 1,
+//       //   },
+//       // },
+//     ]);
+//     res.status(200).json({ error: false, message: "success", data: response });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
+
 module.exports = {
   AddVendor,
   VendorLogin,
@@ -392,4 +583,5 @@ module.exports = {
   DeleteVendorById,
   GetVendorById,
   GetVendorPasswordUpdate,
+  // GetTheHotelBooking,
 };

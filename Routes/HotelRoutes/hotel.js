@@ -16,6 +16,7 @@ const {
   GetSingleHotelDataNew,
   GetSearchTheHotelList,
   GetNearByHotels,
+  GetHotelBookingAsperhotel,
 } = require("../../Controllers/HotelControllers/hotelControllers");
 const {
   UpdateRoomData,
@@ -60,6 +61,9 @@ router.delete("/deletebyvendor/:id", DeleteSelectedVendorHotel);
 
 // Get all the city
 router.get("/get/:field", GetFieldList);
+
+// Get the Hotels Bookings as per Hotels
+router.get("/get/hotel-bookings/:hotelid", GetHotelBookingAsperhotel);
 
 // -------------------------------------- rooms APi --------------------------------------------------------
 
