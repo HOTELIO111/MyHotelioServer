@@ -874,7 +874,21 @@ const DeleteAllHotel = async (req, res) => {
   }
 };
 
-// ------Room Api's ----------------------------------------------------
+// Get The hotel Bookings
+const GetHotelBookingAsperhotel = async (req, res) => {
+  const { hotelid } = req.params;
+
+  try {
+    const response = await Booking.find({ hotel: hotelid }).sort({
+      createdAt: -1,
+    });
+    return res
+      .status(200)
+      .json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
 
 // Testing purposeFunction
 const GetCheckInCheckOut = async (req, res) => {
@@ -952,9 +966,6 @@ const GetSearch = async (req, res) => {
 
 // Get NearBy Hotels
 
-
-
-
 module.exports = {
   RegisterHotel,
   GetAllHotel,
@@ -971,6 +982,7 @@ module.exports = {
   GetSearch,
   DeleteSelectedVendorHotel,
   DeleteSigleHotel,
+  GetHotelBookingAsperhotel,
   DeleteAllHotel,
   GetCheckInCheckOut,
   MapAPi,
