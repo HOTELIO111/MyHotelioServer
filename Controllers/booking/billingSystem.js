@@ -34,11 +34,12 @@ class BillingSystem {
     this.discountAmount = function () {
       let amount = 0;
       if (this.offerData.amount !== 0) {
-        amount = this.offerData.amount;
+        amount = Math.ceil(this.offerData.amount);
       }
       if (this.offerData.percentage !== 0) {
         amount =
-          amount + (this.totalRoomAmount() * this.offerData.percentage) / 100;
+          amount +
+          Math.ceil((this.totalRoomAmount() * this.offerData.percentage) / 100);
       }
       return amount;
     };
@@ -52,7 +53,9 @@ class BillingSystem {
       return charge;
     };
     this.gstAmount = function () {
-      const gstAmount = (this.totalRoomAmount() * this.gstCharge()) / 100;
+      const gstAmount = Math.ceil(
+        (this.totalRoomAmount() * this.gstCharge()) / 100
+      );
       return gstAmount;
     };
     this.customerwallet = 0;
@@ -233,56 +236,12 @@ class BillingSystem {
           taxAndServices,
           totalTaxAndServiceAmount,
           totalAmountToPay,
-          // roomdata: this.totalRoomAmount(),
-          // days: this.totalDays(),
-          // gstCharge: this.gstCharge(),
-          // gst: this.gstAmount(),
-          // offerAmount: this.discountAmount(),
         },
       };
     } catch (error) {
       return { error: true, message: error.message };
     }
   }
-
-  // async CheckOffer() {
-  //   if (!this.GetRoomInfo()) {
-  //     this.GetRoomInfo();
-  //   }
-  //   try {
-  //     const roomsInfo = await this.GetRoomInfo();
-  //     const _offers = await OfferModel.aggregate([
-  //       {
-  //         $match: {
-  //           "validation.upto": { $gte: this.todaysDate },
-  //           "validation.validFor": this.validFor,
-  //           "validation.minTransactions": { $lte: this.room.price },
-  //         },
-  //       },
-  //       {
-  //         $addFields: {
-  //           discount: {
-  //             $cond: {
-  //               if: { $ne: ["$codeDiscount.percentage", 0] },
-  //               then: {
-  //                 $multiply: [
-  //                   { $divide: ["$codeDiscount.percentage", 100] },
-  //                   this.room.price,
-  //                 ],
-  //               },
-  //               else: "$codeDiscount.amount",
-  //             },
-  //           },
-  //         },
-  //       },
-  //       { $sort: { discount: -1 } },
-  //     ]);
-  //     this.offer = _offers;
-  //     return { error: false, data: { room: this.room, _offers } };
-  //   } catch (error) {
-  //     return { error: true, message: error.message };
-  //   }
-  // }
 }
 
 module.exports = BillingSystem;
