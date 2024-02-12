@@ -1,7 +1,9 @@
 const { default: axios } = require("axios");
 const SendMail = require("../../Controllers/Others/Mailer");
 require("dotenv").config();
+const handlebars = require("handlebars");
 const NotificationsEventsModel = require("../../Model/Notifications/NotificationEvents");
+const NotificationModel = require("../../Model/Notifications/notificationModel");
 
 class NotificationsEvents {
   constructor(event, eventId) {
@@ -15,15 +17,59 @@ class NotificationsEvents {
     }
 
     try {
-      const findEventId = await NotificationsEventsModel.findOne({
-        eventId: this.eventId,
-      });
+      // const findEventId = await NotificationsEventsModel.findOne({
+      //   eventId: this.eventId,
+      // });
+      const findEventData = await NotificationsEventsModel.aggregate([
+        { $match: { eventid: this.eventId } },
+        {
+          $lookup: {
+            from: "email_templates",
+            localField: "templates.email",
+            foreignField: "_id",
+            as: "templates.email",
+          },
+        },
+        {
+          $unwind: {
+            path: "$templates.email",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "sms_templates",
+            localField: "templates.sms",
+            foreignField: "_id",
+            as: "templates.sms",
+          },
+        },
+        {
+          $unwind: { path: "$templates.sms", preserveNullAndEmptyArrays: true },
+        },
+      ]);
+      if (findEventData.length === 0)
+        return { error: true, message: "Wrong eventId" };
+      this.eventData = findEventData[0];
+      this.emailTemplate = findEventData[0]?.templates?.email;
+      this.smsTemplate = findEventData[0]?.templates?.sms;
 
-      if (!findEventId) return "Wrong eventId";
-
-      return findEventId;
+      return { error: false, message: "success", data: findEventData[0] };
     } catch (error) {
-      return error.message;
+      return { error: true, message: error.message };
+    }
+  }
+
+  async SendNotificationInEvent() {
+    if (!this.eventData) {
+      await this.findEventData();
+    }
+    try {
+      //  event data check the categorise
+      const emailEmaplate = this.emailTemplate;
+      const mobileTemplate = this.smsTemplate;
+    } catch (error) {
+      return { error: true, message: error.message };
     }
   }
 
@@ -84,11 +130,11 @@ class NotificationsEvents {
         password: process.env.W_PASSWORD,
         senderid: process.env.W_SENDERID,
         mobiles: recievers.join(","),
-        sms: `${otp} is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
+        sms: `382333 is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
       };
       const queryString = new URLSearchParams(NotificationSchema).toString();
-
       const response = await axios.get(process.env.W_URL + queryString);
+
       if (response.status === 200) {
         return {
           error: false,
@@ -102,6 +148,13 @@ class NotificationsEvents {
         message: `failed to notify through mobile and get error ${error.message}`,
       };
     }
+  }
+
+  async GenerateTemplate(template, data) {
+    if (!template || !data) return false;
+    const templateData = handlebars.compile(template);
+    const generatedTemplate = templateData(data);
+    return generatedTemplate;
   }
 }
 

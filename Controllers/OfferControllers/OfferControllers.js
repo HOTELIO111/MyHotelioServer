@@ -101,7 +101,7 @@ const GetAllOfferCode = async (req, res) => {
 };
 
 const GetHotelOffers = async (req, res) => {
-  const { hotelid, roomid, validFor } = req.query;
+  const { hotelid, roomid, validFor, roomType } = req.query;
   try {
     const _hoteldata = await HotelModel.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(hotelid) } },
@@ -141,6 +141,7 @@ const GetHotelOffers = async (req, res) => {
           "validation.upto": { $gte: date },
           "validation.validFor": validFor,
           "validation.minTransactions": { $lte: RoomPrice },
+          "validation.roomtype": new mongoose.Types.ObjectId(roomType),
         },
       },
       {

@@ -191,6 +191,12 @@ const SendNow = async ({ to, subject, html, text, cc }) => {
   await SendMail(mailOptions);
 };
 
+const NotificationType = {
+  mobile: "mobile",
+  inApp: "inApp",
+  email: "email",
+};
+
 module.exports = {
   GenerateEmailTemplate,
   UpdateEmailTemplate,
@@ -206,4 +212,5 @@ module.exports = {
   GetNotificationEvent,
   GenerateInAppIdNotifications,
   SendNow,
+  NotificationType,
 };

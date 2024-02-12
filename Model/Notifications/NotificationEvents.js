@@ -2,30 +2,29 @@ const { model, Schema, default: mongoose } = require("mongoose");
 
 const schema = new Schema(
   {
-    eventId: {
+    eventid: {
       type: String,
       required: true,
     },
     templateKeys: {
-      type: Object,
+      type: Array,
       required: true,
     },
     subject: {
       type: String,
     },
     templates: {
-      email: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "email_templates",
-        },
-      ],
-      sms: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "sms_templates",
-        },
-      ],
+      email: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "email_templates",
+        default: null,
+      },
+
+      sms: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "sms_templates",
+        default: null,
+      },
     },
   },
   {

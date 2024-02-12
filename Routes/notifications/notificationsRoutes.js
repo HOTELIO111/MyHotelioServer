@@ -1,30 +1,35 @@
-const router = require('express').Router()
-const { CreateNotification, GetRecipientNotification, GetDeleteAllTheNotification, GetDeleteNotificationByID, DeleteSingeVendorAllNotification, GetAllNotifications } = require('../../Controllers/notifications/notificationsControllers')
+const router = require("express").Router();
+const EmailTemplateRoutes = require("./EmailEventsRoutes");
+const {
+  CreateNotification,
+  GetRecipientNotification,
+  GetDeleteAllTheNotification,
+  GetDeleteNotificationByID,
+  DeleteSingeVendorAllNotification,
+  GetAllNotifications,
+} = require("../../Controllers/notifications/notificationsControllers");
 
-
+router.use("/events", EmailTemplateRoutes);
 
 // create a notification
 
-router.get("/notification", CreateNotification)
+router.get("/notification", CreateNotification);
 
 // get through reciepientr
-router.get("/notification/:recipient", GetRecipientNotification)
+router.get("/notification/:recipient", GetRecipientNotification);
 
-// delete the notification 
-router.get("/notification/delete/:id", GetDeleteNotificationByID)
+// delete the notification
+router.get("/notification/delete/:id", GetDeleteNotificationByID);
 
-// delete all notification as vendor 
+// delete all notification as vendor
 
-router.get("/notification/delete/vendor/id", DeleteSingeVendorAllNotification)
+router.get("/notification/delete/vendor/id", DeleteSingeVendorAllNotification);
 
-// get all the notifications 
+// get all the notifications
 
-router.get("/notification/getall", GetAllNotifications)
+router.get("/notification/getall", GetAllNotifications);
 
-//delete all notifications  
-router.get("/notification/deleteall", GetDeleteAllTheNotification)
+//delete all notifications
+router.get("/notification/deleteall", GetDeleteAllTheNotification);
 
-
-
-
-module.exports = router 
+module.exports = router;

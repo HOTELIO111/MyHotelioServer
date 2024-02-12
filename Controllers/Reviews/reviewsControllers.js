@@ -326,6 +326,14 @@ const GetTheTimelineReviews = async (req, res) => {
       {
         $match: { timeline: true },
       },
+      {
+        $lookup: {
+          from: "customers",
+          localField: "customer",
+          foreignField: "_id",
+          as: "customer",
+        },
+      },
     ]);
     res.status(200).json({ error: false, message: "success", data: response });
   } catch (error) {
