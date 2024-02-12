@@ -334,6 +334,7 @@ const GetTheTimelineReviews = async (req, res) => {
           as: "customer",
         },
       },
+      { $unwind: "$customer" },
     ]);
     res.status(200).json({ error: false, message: "success", data: response });
   } catch (error) {
