@@ -59,8 +59,6 @@ const SendEmailVerify = async (req, res) => {
   }
 };
 
-
-
 const SendMobileVefication = async (req, res) => {
   try {
     // Extract the mobile number from the request parameters
@@ -71,7 +69,7 @@ const SendMobileVefication = async (req, res) => {
       user: process.env.W_USER,
       password: process.env.W_PASSWORD,
       senderid: process.env.W_SENDERID,
-      mobiles: `+91${number}`, // Removed space after '+'
+      mobiles: `+91${number}`,
       sms: `${otp} is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
     };
 

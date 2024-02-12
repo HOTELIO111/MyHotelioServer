@@ -5,9 +5,12 @@ const EmailEventAddValidator = (req, res, next) => {
 
   try {
     const eventValidateSchema = joi.object({
-      eventId: joi.string().required().min(6),
-      requiredKeys: joi.object().required(),
-      template: joi.string().required(),
+      eventid: joi.string().required().min(6),
+      templateKeys: joi.array().required(),
+      templates: joi.object({
+        email: joi.string(),
+        sms: joi.string(),
+      }),
       subject: joi.string().required().min(5),
     });
 
@@ -32,7 +35,7 @@ const EmailTemplateValidate = async (req, res, next) => {
       html: joi.string(),
       message: joi.string().min(0),
       eventid: joi.string().required(),
-      isActive: joi.boolean().required(),
+      title: joi.string().required(),
     });
 
     const { error } = validationSchema.validate(formdata);
@@ -46,4 +49,30 @@ const EmailTemplateValidate = async (req, res, next) => {
     res.status(500).json({ error: true, message: error.message });
   }
 };
-module.exports = { EmailEventAddValidator, EmailTemplateValidate };
+
+// ======================= Sms Templates =============================
+const SmsTemplateValidate = async (req, res, next) => {
+  const formdata = req.body;
+  try {
+    const validationSchema = joi.object({
+      message: joi.string().min(0),
+      eventid: joi.string().required(),
+      title: joi.string().required(),
+    });
+
+    const { error } = validationSchema.validate(formdata);
+    if (error)
+      return res
+        .status(400)
+        .json({ error: true, message: error.details[0].message });
+
+    next();
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+module.exports = {
+  EmailEventAddValidator,
+  EmailTemplateValidate,
+  SmsTemplateValidate,
+};

@@ -2,12 +2,17 @@ const { model, Schema } = require("mongoose");
 
 const schema = new Schema(
   {
-    mobile: {
+    title: {
       type: String,
       required: true,
     },
-    isActive: {
-      type: Boolean,
+    message: {
+      type: String,
+      required: true,
+    },
+    eventid: {
+      type: String,
+      required: true,
     },
   },
   {

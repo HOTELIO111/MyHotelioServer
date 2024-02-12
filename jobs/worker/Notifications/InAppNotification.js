@@ -1,4 +1,5 @@
-const NotificationsEvents = require("../../../helper/notifications/Notification");
+const NotificationsEvents = require("../../../helper/notifications/NotificationSystem");
+
 require("dotenv").config();
 
 const NotificationManager = async (data) => {
@@ -26,14 +27,14 @@ const NotificationManager = async (data) => {
       );
       break;
     case "mobile":
-      await notifier.SendMobileNotifications(
+      const sendit = await notifier.SendMobileNotifications(
         fromdata?.text,
         fromdata?.recipient
       );
+      console.log(sendit);
       break;
     default:
       break;
   }
 };
 module.exports = NotificationManager;
-
