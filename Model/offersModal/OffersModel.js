@@ -29,10 +29,12 @@ const offerSchema = new Schema(
         type: Number,
         default: 0,
       },
-      roomtype: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "room-categories",
-      },
+      roomtype: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "room-categories",
+        },
+      ],
     },
     codeDiscount: {
       amount: {
