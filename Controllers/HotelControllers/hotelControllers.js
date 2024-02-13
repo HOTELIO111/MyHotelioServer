@@ -880,11 +880,17 @@ const GetHotelBookingAsperhotel = async (req, res) => {
   const { hotelid } = req.params;
 
   try {
-    const response = await Booking.find({ hotel: hotelid })
-      .populate("hotel")
-      .sort({
-        createdAt: -1,
-      });
+    const response = await HotelModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(hotelid) } },
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "_id",
+          foreignField: "hotel",
+          as: "bookings",
+        },
+      },
+    ]);
     return res
       .status(200)
       .json({ error: false, message: "success", data: response });
