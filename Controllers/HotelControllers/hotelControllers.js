@@ -3,6 +3,7 @@ const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const Booking = require("../../Model/booking/bookingModel");
 const { defaultDetails } = require("../../Model/other/DefaultText");
+const fs = require("fs");
 const {
   HotelList,
   GetDeleteTheVendorHotel,
@@ -879,9 +880,11 @@ const GetHotelBookingAsperhotel = async (req, res) => {
   const { hotelid } = req.params;
 
   try {
-    const response = await Booking.find({ hotel: hotelid }).sort({
-      createdAt: -1,
-    });
+    const response = await Booking.find({ hotel: hotelid })
+      .populate("hotel")
+      .sort({
+        createdAt: -1,
+      });
     return res
       .status(200)
       .json({ error: false, message: "success", data: response });
