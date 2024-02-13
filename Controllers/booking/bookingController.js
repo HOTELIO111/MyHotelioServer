@@ -19,6 +19,8 @@ const { BookingQue } = require("../../jobs");
 const bookingIdGenerate = require("./bookingIdGenerator");
 const BillingSystem = require("./billingSystem");
 const BookingSystem = require("./BookingSystem");
+const VendorModel = require("../../Model/HotelModel/vendorModel");
+const { default: mongoose } = require("mongoose");
 
 const RegisterBooking = async (req, res) => {
   const formData = req.body;
@@ -323,6 +325,304 @@ const CalculateBilling = async (req, res) => {
   }
 };
 
+const GetUserhotelBookings = async (req, res) => {
+  const { userid } = req.params;
+  try {
+    const response = await VendorModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(userid) } },
+      {
+        $lookup: {
+          from: "bookings",
+          foreignField: "hotel",
+          localField: "hotels",
+          pipeline: [
+            {
+              $lookup: {
+                from: "hotels",
+                localField: "hotel",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: "property-types",
+                      localField: "hotelType",
+                      foreignField: "_id",
+                      pipeline: [
+                        {
+                          $project: {
+                            _id: 1,
+                            title: 1,
+                          },
+                        },
+                      ],
+                      as: "PropertyType",
+                    },
+                  },
+                  {
+                    $lookup: {
+                      from: "room-categories",
+                      localField: "rooms.roomType",
+                      foreignField: "_id",
+                      pipeline: [
+                        {
+                          $lookup: {
+                            from: "amenities",
+                            localField: "amenties",
+                            foreignField: "_id",
+                            pipeline: [
+                              {
+                                $project: {
+                                  _id: 1,
+                                  title: 1,
+                                },
+                              },
+                            ],
+                            as: "Amenty",
+                          },
+                        },
+                        {
+                          $lookup: {
+                            from: "facilities",
+                            localField: "includeFacilities",
+                            foreignField: "_id",
+                            pipeline: [
+                              {
+                                $project: {
+                                  _id: 1,
+                                  title: 1,
+                                },
+                              },
+                            ],
+                            as: "Facility",
+                          },
+                        },
+                        {
+                          $project: {
+                            _id: 1,
+                            personAllowed: 1,
+                            includeFacilities: 1,
+                            minPrice: 1,
+                            maxPrice: 1,
+                            amenties: "$Amenty",
+                            includeFacilities: "$Facility",
+                            title: 1,
+                          },
+                        },
+                      ],
+                      as: "roomTypeData",
+                    },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      hotelName: 1,
+                      hotelType: { $arrayElemAt: ["$PropertyType", 0] },
+                      hotelEmail: 1,
+                      hotelMobileNo: 1,
+                      address: 1,
+                      location: 1,
+                      rooms: {
+                        $map: {
+                          input: "$rooms",
+                          as: "room",
+                          in: {
+                            counts: "$$room.counts",
+                            roomType: {
+                              $arrayElemAt: [
+                                {
+                                  $filter: {
+                                    input: "$roomTypeData",
+                                    as: "roomTypes",
+                                    cond: {
+                                      $eq: [
+                                        "$$roomTypes._id",
+                                        "$$room.roomType",
+                                      ],
+                                    },
+                                  },
+                                },
+                                0,
+                              ],
+                            },
+                            price: "$$room.price",
+                            status: "$$room.status",
+                            additionAmenities: "$$room.additionAmenities",
+                            roomConfig: "$$room.roomConfig",
+                            additionalFacilties: "$$room.additionalFacilties",
+                            _id: "$$room._id",
+                          },
+                        },
+                      },
+                      hotelCoverImg: 1,
+                      hotelImages: 1,
+                      checkOut: 1,
+                      checkIn: 1,
+                      hotelCoverImg: 1,
+                      hotelImages: 1,
+                    },
+                  },
+                ],
+                as: "hotel",
+              },
+            },
+            { $sort: { createdAt: -1 } },
+          ],
+          as: "bookings",
+        },
+      },
+      {
+        $project: {
+          bookings: "$bookings",
+        },
+      },
+    ]);
+    res
+      .status(200)
+      .json({ error: false, message: "success", data: response[0].bookings });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const GetUserhotelBookingsAdmin = async (req, res) => {
+  try {
+    const response = await Booking.aggregate([
+      { $match: {} },
+      {
+        $lookup: {
+          from: "hotels",
+          localField: "hotel",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $lookup: {
+                from: "property-types",
+                localField: "hotelType",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      title: 1,
+                    },
+                  },
+                ],
+                as: "PropertyType",
+              },
+            },
+            {
+              $lookup: {
+                from: "room-categories",
+                localField: "rooms.roomType",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: "amenities",
+                      localField: "amenties",
+                      foreignField: "_id",
+                      pipeline: [
+                        {
+                          $project: {
+                            _id: 1,
+                            title: 1,
+                          },
+                        },
+                      ],
+                      as: "Amenty",
+                    },
+                  },
+                  {
+                    $lookup: {
+                      from: "facilities",
+                      localField: "includeFacilities",
+                      foreignField: "_id",
+                      pipeline: [
+                        {
+                          $project: {
+                            _id: 1,
+                            title: 1,
+                          },
+                        },
+                      ],
+                      as: "Facility",
+                    },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      personAllowed: 1,
+                      includeFacilities: 1,
+                      minPrice: 1,
+                      maxPrice: 1,
+                      amenties: "$Amenty",
+                      includeFacilities: "$Facility",
+                      title: 1,
+                    },
+                  },
+                ],
+                as: "roomTypeData",
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                hotelName: 1,
+                hotelType: { $arrayElemAt: ["$PropertyType", 0] },
+                hotelEmail: 1,
+                hotelMobileNo: 1,
+                address: 1,
+                location: 1,
+                rooms: {
+                  $map: {
+                    input: "$rooms",
+                    as: "room",
+                    in: {
+                      counts: "$$room.counts",
+                      roomType: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$roomTypeData",
+                              as: "roomTypes",
+                              cond: {
+                                $eq: ["$$roomTypes._id", "$$room.roomType"],
+                              },
+                            },
+                          },
+                          0,
+                        ],
+                      },
+                      price: "$$room.price",
+                      status: "$$room.status",
+                      additionAmenities: "$$room.additionAmenities",
+                      roomConfig: "$$room.roomConfig",
+                      additionalFacilties: "$$room.additionalFacilties",
+                      _id: "$$room._id",
+                    },
+                  },
+                },
+                hotelCoverImg: 1,
+                hotelImages: 1,
+                checkOut: 1,
+                checkIn: 1,
+                hotelCoverImg: 1,
+                hotelImages: 1,
+              },
+            },
+          ],
+          as: "hotel",
+        },
+      },
+      { $unwind: "$hotel" },
+      { $sort: { createdAt: -1 } },
+    ]);
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   RegisterBooking,
   CancleBooking,
@@ -334,4 +634,6 @@ module.exports = {
   CollectPaymentInfoAndConfirmBooking,
   ManageCancelBooking,
   CalculateBilling,
+  GetUserhotelBookings,
+  GetUserhotelBookingsAdmin,
 };

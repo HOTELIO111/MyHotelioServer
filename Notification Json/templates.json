@@ -1,0 +1,18 @@
+{
+    "title": "title for the  indentifications",
+    "html": "html template",
+    "message": "message",
+    "eventid": "",
+    "subject": "",
+    "type": [
+        "email",
+        "mobile",
+        "inApp"
+    ],
+    "for": [
+        "Vendor",
+        "Admin",
+        "Agent",
+        "customer"
+    ]
+}

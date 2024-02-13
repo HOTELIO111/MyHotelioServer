@@ -1,0 +1,26 @@
+{
+    "eventID": "your_event_id",
+    "reciepient": "Server",
+    "message": "Notification Sended for Eventid ",
+    "notified": {
+        "customer": {
+            "emailNotified": true,
+            "mobileNotified": true
+        },
+        "vendor": {
+            "emailNotified": true,
+            "mobileNotified": true,
+            "inApp": true
+        },
+        "admin": {
+            "emailNotified": true,
+            "mobileNotified": true,
+            "inApp": true
+        },
+        "agent": {
+            "emailNotified": true,
+            "mobileNotified": true
+        }
+    },
+    "error": ""
+}

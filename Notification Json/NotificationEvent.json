@@ -1,0 +1,24 @@
+{
+    "eventId": "",
+    "templateKeys": "",
+    "notificationTo": {
+        "customer": {
+            "emailNotified": true,
+            "mobileNotified": false
+        },
+        "vendor": {
+            "emailNotified": true,
+            "mobileNotified": false,
+            "inApp": false
+        },
+        "admin": {
+            "emailNotified": true,
+            "mobileNotified": false,
+            "inApp": true
+        },
+        "agent": {
+            "emailNotified": true,
+            "mobileNotified": true
+        }
+    }
+}

@@ -10,6 +10,8 @@ const {
   CollectPaymentInfoAndConfirmBooking,
   ManageCancelBooking,
   CalculateBilling,
+  GetUserhotelBookings,
+  GetUserhotelBookingsAdmin,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
@@ -53,6 +55,9 @@ router.get("/delete", GetDeleteBooking);
 router.get("/calculate/bill", CalculateBilling);
 
 router.get("/get-single/:bookingId", GenerateTemplate);
+
+router.get("/get/bookings/:userid", GetUserhotelBookings);
+router.get("/get/bookings-admin/getall", GetUserhotelBookingsAdmin);
 
 // ================================ Customer  =======================================
 module.exports = router;
