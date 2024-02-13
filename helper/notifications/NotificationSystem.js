@@ -156,6 +156,20 @@ class NotificationsEvents {
     const generatedTemplate = templateData(data);
     return generatedTemplate;
   }
+
+  async DataCaracterise() {
+    if (!this.eventId) {
+      throw new Error("missing event id it was required");
+    }
+    switch (this.eventId) {
+      case "WELCOME_CUSTOMER":
+        const to = ["customer", "admin"];
+        return 
+
+      default:
+        break;
+    }
+  }
 }
 
 module.exports = NotificationsEvents;
