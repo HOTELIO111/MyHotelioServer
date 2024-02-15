@@ -19,10 +19,15 @@ const NotificationsQueue = new Queue("notification-manager", {
   connection: redisConnection,
 });
 
+const NotificationManagementQueue = new Queue("notification-management", {
+  connection: redisConnection,
+});
+
 module.exports = {
   BookingQue,
   MobileNotification,
   EmailNotification,
   RefundQueue,
   NotificationsQueue,
+  NotificationManagementQueue,
 };

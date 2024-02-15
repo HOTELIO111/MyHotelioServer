@@ -887,6 +887,7 @@ const GetHotelBookingAsperhotel = async (req, res) => {
           from: "bookings",
           localField: "_id",
           foreignField: "hotel",
+          pipeline: [{ $sort: { createdAt: -1 } }],
           as: "bookings",
         },
       },
