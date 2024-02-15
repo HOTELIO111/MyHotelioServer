@@ -11,7 +11,11 @@ const SendMail = require("../Others/Mailer");
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 const { default: mongoose } = require("mongoose");
-const { EmailNotification } = require("../../jobs");
+const {
+  EmailNotification,
+  NotificationManagementQueue,
+} = require("../../jobs");
+const GenerateNotificatonsData = require("../../functions/GenerateNotificationsData");
 
 const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
   let verification;
@@ -64,11 +68,23 @@ const Authentication = async (req, res) => {
         .json({ error: true, message: "please check the data and try again" });
 
     // send notification of joining
-    // await EmailNotification.add("your new Job", {
-    //   eventId: eventId,
-    //   customerName: user.name,
-    //   recipient: user.email,
+    // const notifyData = await GenerateNotificatonsData({
+    //   customer: {
+    //     name: user.name || user.email || user.mobileNo,
+    //     ...user,
+    //   },
+    //   admin: {
+    //     ...user,
+    //   },
     // });
+
+    // NotificationManagementQueue.add(
+    //   `eventNotification: 65cc49bc8722df6236019f6a`,
+    //   {
+    //     eventId: "65cc49bc8722df6236019f6a",
+    //     data: notifyData,
+    //   }
+    // );
     // assign jwt
     const jwtPayload = {
       _id: user._id,

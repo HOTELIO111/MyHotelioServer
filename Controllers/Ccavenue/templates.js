@@ -102,7 +102,7 @@ const WebTemplate = ({ transaction, booking, timer, title }) => {
           // Update the placeholder element with the countdown value
           document.getElementById('countdown-placeholder').innerHTML = countdown;
           if (countdown === 0) {
-            window.location.href = 'https://www.hoteliorooms.com/YourBooking';
+            window.location.href = 'https://www.hoteliorooms.com/booking-history';
           } else {
             countdown--;
             setTimeout(updateCountdown, 1000);

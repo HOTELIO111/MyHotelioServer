@@ -122,10 +122,7 @@ const sendNotification = async (req, res) => {
         ...userData,
       },
       admin: {
-        _id: "6u634345u36345u4344u3",
-        email: "admin@gmal.com",
-        mobileNo: 8090300447,
-        info: userData,
+        ...userData,
       },
     });
 

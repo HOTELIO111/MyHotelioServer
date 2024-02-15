@@ -10,5 +10,4 @@ new Worker("booking", CreatePreBooking);
 new Worker("Email-Notification", EmailWorker);
 new Worker("Refunds", RefundWorker);
 new Worker("notification-manager", NotificationManager);
-
 new Worker("notification-management", NotificationsQueue);
