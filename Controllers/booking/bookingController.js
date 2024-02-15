@@ -465,6 +465,7 @@ const GetUserhotelBookings = async (req, res) => {
                 as: "hotel",
               },
             },
+            { $unwind: "$hotel" },
             { $sort: { createdAt: -1 } },
           ],
           as: "bookings",

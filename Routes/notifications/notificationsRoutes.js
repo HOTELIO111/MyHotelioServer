@@ -9,7 +9,10 @@ const {
   GetAllNotifications,
 } = require("../../Controllers/notifications/notificationsControllers");
 
+const NewNotifications = require("./New Notifications/notificationRoutes");
+
 router.use("/events", EmailTemplateRoutes);
+router.use("/new-notifications", NewNotifications);
 
 // create a notification
 
