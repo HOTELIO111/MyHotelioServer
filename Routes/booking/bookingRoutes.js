@@ -59,5 +59,6 @@ router.get("/get-single/:bookingId", GenerateTemplate);
 router.get("/get/bookings/:userid", GetUserhotelBookings);
 router.get("/get/bookings-admin/getall", GetUserhotelBookingsAdmin);
 
+
 // ================================ Customer  =======================================
 module.exports = router;
