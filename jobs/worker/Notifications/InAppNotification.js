@@ -5,6 +5,7 @@ require("dotenv").config();
 const NotificationManager = async (data) => {
   const notificationType = data.data.type;
   const fromdata = data.data;
+  console.log(formdata);
   const notifier = new NotificationsEvents();
 
   switch (notificationType) {

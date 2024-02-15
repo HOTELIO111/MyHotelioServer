@@ -5,6 +5,7 @@ const TemplatesModel = require("../../../Model/Notifications/newNotifications/te
 const NotificationModel = require("../../../Model/Notifications/newNotifications/NotificationModel");
 const InAppNotifyModel = require("../../../Model/Notifications/newNotifications/InAppNotifications");
 const handlebars = require("handlebars");
+const { NotificationsQueue } = require("../../../jobs");
 
 class NotificationSystem {
   // ======================================= event list ======================================================================
@@ -182,7 +183,14 @@ class NotificationSystem {
         const recipient = userData.recipient;
         const cc = "sharmag226025@gmail.com";
 
-        await this.SendMail({ subject, message, html, recipient, cc });
+        NotificationsQueue.add(`email To ${person}`, {
+          type: "email",
+          subject,
+          message,
+          html,
+          recipient,
+          cc,
+        });
       } else {
         console.log("No template found to send");
       }
@@ -203,8 +211,13 @@ class NotificationSystem {
           mobileTemplate?.message,
           templateData
         );
-        const number = userData.mobile;
-        this.SendMobile({ text, number });
+        const number = userData.mobileNo;
+        // this.SendMobile({ text, number });
+        NotificationsQueue.add(`Sms To ${person}`, {
+          type: "mobile",
+          text,
+          recipient: [number],
+        });
       } else {
         console.log("no mobile template found for this to send");
       }
