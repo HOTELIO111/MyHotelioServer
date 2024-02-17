@@ -6,8 +6,10 @@ const cron = require("node-cron");
 const {
   CreateThePaymentInfo,
 } = require("../../helper/Payments/payementFuctions");
-const { BookingQue, CancelWithOutPayment } = require("../../jobs");
+const { BookingQue, CancelWithOutPayment, RefundQueue } = require("../../jobs");
 const bookingIdGenerate = require("./bookingIdGenerator");
+const ManageCancellationsWithPolicy = require("../../helper/booking/CancellationsPolicy");
+const RefundModel = require("../../Model/booking/RefundModel");
 
 class BookingSystem {
   constructor() {}
@@ -515,6 +517,127 @@ class BookingSystem {
           }
         );
       }
+      return { error: false, message: "success", data: response };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+  async ManageCanellationsAndProceed(bookingId, id, formdata) {
+    if (!this.bookingData) {
+      await this.GetbookingData(bookingId);
+    }
+    try {
+      const policy = await ManageCancellationsWithPolicy(bookingId);
+      let _updated;
+      if (policy.amountRefund === 0) {
+        _updated = await this.UpdateTheCancellations({
+          bookingId: bookingId,
+          bookingStatus: "canceled",
+          requestedById: id,
+          reason: formdata.reason,
+          notes: "Booking Canceled successfully ",
+          refundAmt: policy?.amountRefund,
+          refundStatus: "success",
+        });
+      } else {
+        _updated = await this.UpdateTheCancellations({
+          bookingId: bookingId,
+          bookingStatus: "canceled",
+          requestedById: id,
+          reason: formdata.reason,
+          notes:
+            "Booking canceled successfully , we processing you refund it will take 5-7 business days",
+          refundAmt: policy?.amountRefund,
+          refundStatus: "pending",
+        });
+
+        // Added the data in the queue to do the refund process
+        await RefundQueue.add(
+          `Handle The Cancellations refund of ${bookingId}`,
+          {
+            ..._updated,
+          }
+        );
+      }
+      if (_updated.error)
+        return { error: true, message: "failed to updated cancellations" };
+
+      return { error: false, message: "success", data: _updated };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+
+  async UpdateTheCancellations({
+    bookingId,
+    bookingStatus,
+    cancledStatus,
+    requestedById,
+    reason,
+    notes,
+    refundAmt,
+    refundStatus,
+  }) {
+    try {
+      console.log("Booking process Started ");
+      const _update = await Booking.findOneAndUpdate(
+        {
+          bookingId: bookingId,
+        },
+        {
+          bookingStatus: bookingStatus,
+          "cancellation.status": cancledStatus,
+          "cancellation.requestedBy": requestedById,
+          "cancellation.requestedDate": new Date(),
+          "cancellation.reason": reason,
+          "cancellation.notes": notes,
+          "cancellation.refundAmount": refundAmt,
+          "cancellation.refundStatus": refundStatus,
+        },
+        { new: true }
+      );
+
+      return { error: false, message: "success", data: _update };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+
+  async RegisterRefund({
+    totalAmount,
+    refundedAmount,
+    dateOfCancellation,
+    deductionPercentage,
+    cancellationReason,
+    cancelledBy,
+    notes,
+    status,
+    refundMethod,
+    paymentDetails,
+    bookingId,
+  }) {
+    try {
+      const response = await new RefundModel({
+        totalAmount: totalAmount,
+        refundedAmount: refundedAmount,
+        dateOfCancellation: dateOfCancellation,
+        deductionPercentage,
+        cancellationReason,
+        cancelledBy,
+        notes,
+        status,
+        refundMethod,
+        paymentDetails,
+      }).save();
+
+      if (!response)
+        return { error: true, message: "error to making record of Refunds" };
+
+      await Booking.findOneAndUpdate(
+        { bookingId: bookingId },
+        { $push: { refunds: response._di } },
+        { new: true }
+      );
       return { error: false, message: "success", data: response };
     } catch (error) {
       return { error: true, message: error.message };

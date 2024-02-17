@@ -5,7 +5,6 @@ require("dotenv").config();
 const NotificationManager = async (data) => {
   const notificationType = data.data.type;
   const fromdata = data.data;
-  console.log(formdata);
   const notifier = new NotificationsEvents();
 
   switch (notificationType) {
@@ -32,7 +31,6 @@ const NotificationManager = async (data) => {
         fromdata?.text,
         fromdata?.recipient
       );
-      console.log(sendit);
       break;
     default:
       break;

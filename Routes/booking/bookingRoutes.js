@@ -12,6 +12,7 @@ const {
   CalculateBilling,
   GetUserhotelBookings,
   GetUserhotelBookingsAdmin,
+  RefundTesting,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
@@ -59,6 +60,9 @@ router.get("/get-single/:bookingId", GenerateTemplate);
 router.get("/get/bookings/:userid", GetUserhotelBookings);
 router.get("/get/bookings-admin/getall", GetUserhotelBookingsAdmin);
 
+// refund testing
+
+router.post("/refund", RefundTesting);
 
 // ================================ Customer  =======================================
 module.exports = router;
