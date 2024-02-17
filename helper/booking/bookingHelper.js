@@ -172,6 +172,21 @@ const CancelBookingAndProceed = async (bookingid, id, fromdata) => {
         },
         { new: true }
       );
+    } else {
+      const _bookingpending = await Booking.findOneAndUpdate(
+        { bookingId: bookingid },
+        {
+          bookingStatus: "canceled",
+          "cancellation.status": "pending",
+          "cancellation.requestedBy": id,
+          "cancellation.requestedDate": new Date(),
+          "cancellation.reason": fromdata.reason,
+          "cancellation.notes": "",
+          "cancellation.refundAmount": "",
+          "cancellation.refundStatus": "",
+        },
+        { new: true }
+      );
     }
 
     //   // ================================ Notifcation ==========================

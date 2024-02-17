@@ -15,7 +15,7 @@ const {
 const {
   GetTheRoomAvailiabilityStats,
 } = require("../../helper/hotel/roomManagementHelper");
-const { BookingQue } = require("../../jobs");
+const { BookingQue, RefundQueue } = require("../../jobs");
 const bookingIdGenerate = require("./bookingIdGenerator");
 const BillingSystem = require("./billingSystem");
 const BookingSystem = require("./BookingSystem");
@@ -257,6 +257,28 @@ const ConfirmBookingPayAtHotel = async (req, res) => {
 };
 
 // cancel Bookings
+// const ManageCancelBooking = async (req, res) => {
+//   try {
+//     const formdata = req.body;
+//     const { bookingid } = req.query;
+//     const { id } = req.params;
+//     if (!bookingid)
+//       return res
+//         .status(404)
+//         .json({ error: true, message: "Booking Id is required " });
+
+//     // make the booking cancellation in pending and send it in cancllations Queue
+// const CancelBooking = await CancelBookingAndProceed(bookingid, id, formdata);
+
+//     res.status(200).json({
+//       error: false,
+//       message: "success",
+//       data: CancelBooking,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: true, message: error.message });
+//   }
+// };
 const ManageCancelBooking = async (req, res) => {
   try {
     const formdata = req.body;
@@ -267,18 +289,23 @@ const ManageCancelBooking = async (req, res) => {
         .status(404)
         .json({ error: true, message: "Booking Id is required " });
 
+    const newFormData = {
+      reason: "Find The different booking with low price",
+    };
     // make the booking cancellation in pending and send it in cancllations Queue
-    const CancelBooking = await CancelBookingAndProceed(
+    const bookingsystem = new BookingSystem();
+    const _CancelBooking = await bookingsystem.ManageCanellationsAndProceed(
       bookingid,
       id,
-      formdata
+      newFormData
     );
 
-    res.status(200).json({
-      error: false,
-      message: "success",
-      data: CancelBooking,
-    });
+    if (_CancelBooking.error)
+      return res
+        .status(400)
+        .json({ error: true, message: _CancelBooking.message });
+
+    res.status(200).json(_CancelBooking);
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
@@ -624,6 +651,25 @@ const GetUserhotelBookingsAdmin = async (req, res) => {
   }
 };
 
+const RefundTesting = async (req, res) => {
+  const _updated = req.body;
+  try {
+    await RefundQueue.add(
+      `Handle The Cancellations refund of ${_updated.bookingId}`,
+      {
+        ..._updated,
+      }
+    );
+    res.status(200).json({
+      error: false,
+      message: "success",
+      data: "successfully added in queue",
+    });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   RegisterBooking,
   CancleBooking,
@@ -637,4 +683,5 @@ module.exports = {
   CalculateBilling,
   GetUserhotelBookings,
   GetUserhotelBookingsAdmin,
+  RefundTesting,
 };
