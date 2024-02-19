@@ -1,4 +1,5 @@
 const GenerateNotificatonsData = (data) => {
+  console.log(data);
   const generatedData = {
     customer: {
       ...data.customer,
@@ -24,6 +25,8 @@ const GenerateNotificatonsData = (data) => {
       inAppId: data?.agent?._id,
     },
   };
+
+ 
   return generatedData;
 };
 
