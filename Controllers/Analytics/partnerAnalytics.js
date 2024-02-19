@@ -358,7 +358,7 @@ const HotelroomInfoAnalytics = async (req, res) => {
 
 const HotelRoomInfoByDateAnalytics = async (req, res) => {
   const { vendorid } = req.params;
-  const { from, to } = req.query;
+  const { date } = req.query;
   try {
     const response = await VendorModel.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(vendorid) } },
@@ -380,14 +380,38 @@ const HotelRoomInfoByDateAnalytics = async (req, res) => {
                       $or: [
                         {
                           $and: [
-                            { from: { $lte: new Date(to) } }, // Changed $gte to $lte
-                            { to: { $gte: new Date(from) } }, // Changed $gte to $lte
+                            {
+                              from: {
+                                $lte: new Date(
+                                  new Date(date).setHours(24, 0, 0, 0)
+                                ),
+                              },
+                            },
+                            {
+                              to: {
+                                $gte: new Date(
+                                  new Date(date).setHours(0, 0, 0, 0)
+                                ),
+                              },
+                            },
                           ],
                         },
                         {
                           $and: [
-                            { from: { $gte: new Date(from) } },
-                            { to: { $lte: new Date(to) } },
+                            {
+                              from: {
+                                $gte: new Date(
+                                  new Date(date).setHours(0, 0, 0, 0)
+                                ),
+                              },
+                            },
+                            {
+                              to: {
+                                $lte: new Date(
+                                  new Date(date).setHours(24, 0, 0, 0)
+                                ),
+                              },
+                            },
                           ],
                         },
                       ],
@@ -460,6 +484,7 @@ const HotelRoomInfoByDateAnalytics = async (req, res) => {
             {
               $project: {
                 totalRooms: { $sum: "$rooms.counts" },
+                roomCountData: "$roomCountData",
                 totalRoomDecreased: {
                   $sum: {
                     $let: {
@@ -468,11 +493,16 @@ const HotelRoomInfoByDateAnalytics = async (req, res) => {
                           $filter: {
                             input: "$roomCountData",
                             as: "roomconf",
-                            cond: { $eq: ["$$roomconf._id", "dec"] },
+                            cond: {
+                              $and: [
+                                { $ne: ["$$roomconf", []] },
+                                { $eq: ["$$roomconf._id", "dec"] },
+                              ],
+                            },
                           },
                         },
                       },
-                      in: { $sum: "$$totalConfigData.totalRooms" }, // Assuming totalRooms is the field in totalConfigData
+                      in: { $sum: "$$totalConfigData.totalRooms" },
                     },
                   },
                 },
@@ -492,7 +522,6 @@ const HotelRoomInfoByDateAnalytics = async (req, res) => {
                     },
                   },
                 },
-                // roomCountData: 1,
               },
             },
           ],
@@ -509,16 +538,37 @@ const HotelRoomInfoByDateAnalytics = async (req, res) => {
                 $expr: {
                   $and: [
                     { $in: ["$hotel", "$$hotels"] },
+                    { $eq: ["$bookingStatus", "confirmed"] },
                     {
-                      $gte: [
-                        "$dateOfBooking",
-                        new Date(new Date(from).setHours(0, 0, 0, 0)),
+                      $and: [
+                        {
+                          $gte: [
+                            "$bookingDate.checkIn",
+                            new Date(new Date(date).setHours(0, 0, 0, 0)),
+                          ],
+                        },
+                        {
+                          $lt: [
+                            "$bookingDate.checkIn",
+                            new Date(new Date(date).setHours(23, 59, 59, 999)),
+                          ],
+                        },
                       ],
                     },
                     {
-                      $lt: [
-                        "$dateOfBooking",
-                        new Date(new Date(to).setHours(24, 0, 0, 0)),
+                      $and: [
+                        {
+                          $gte: [
+                            "$bookingDate.checkOut",
+                            new Date(new Date(date).setHours(0, 0, 0, 0)),
+                          ],
+                        },
+                        {
+                          $lt: [
+                            "$bookingDate.checkOut",
+                            new Date(new Date(date).setHours(23, 59, 59, 999)),
+                          ],
+                        },
                       ],
                     },
                   ],
@@ -526,26 +576,81 @@ const HotelRoomInfoByDateAnalytics = async (req, res) => {
               },
             },
             {
-              $group: {
-                _id: "$bookingStatus",
-                totalBookings: { $sum: 1 },
-                totalRoomsBooked: { $sum: "$numberOfRooms" },
+              $project: {
+                totalRoomFilledToday: { $sum: "$numberOfRooms" },
+                totalGuests: { $sum: "$numberOfGuests.adults" },
               },
             },
           ],
-          as: "bookings",
+          as: "filledBookings",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "bookings",
+          let: { hotels: "$hotels" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ["$hotel", "$$hotels"] },
+                    { $eq: ["$bookingStatus", "confirmed"] },
+                    {
+                      $gte: [
+                        "$dateOfBooking",
+                        new Date(new Date(date).setHours(0, 0, 0, 0)),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$dateOfBooking",
+                        new Date(new Date(date).setHours(24, 0, 0, 0)),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                totalBookings: { $sum: 1 },
+                totalRoomsBooked: { $sum: "$numberOfRooms" },
+                totalGuests: { $sum: "$numberOfGuests.adults" },
+              },
+            },
+          ],
+          as: "todaysCreatedbookings",
         },
       },
       {
         $project: {
-          bookings: 1,
+          todaysConfirmedBookingsCreated: {
+            $sum: "$todaysCreatedbookings.totalBookings",
+          },
+          todaysTotalRoomBooked: {
+            $sum: "$todaysCreatedbookings.totalRoomsBooked",
+          },
+          totaysBookingTotalGuests: {
+            $sum: "$todaysCreatedbookings.totalGuests",
+          },
+          todaysFilledRoom: { $sum: "$filledBookings.totalRoomFilledToday" },
+          totalFilledRoomGuests: { $sum: "$filledBookings.totalGuests" },
           totalRooms: { $sum: "$allHotels.totalRooms" },
-          totalIncreasedRooms: { $sum: "$allHotels.totalIncreasedRooms" },
-          totalDecreasedRooms: { $sum: "$allHotels.totalDecreasedRooms" },
+          totalIncreasedRooms: { $sum: "$allHotels.totalIncreasedRoom" },
+          totalDecreasedRooms: { $sum: "$allHotels.totalRoomDecreased" },
+          // roomCountData: "$allHotels.roomCountData",
+          filledRooms: "$filledBookings",
           availableRooms: {
             $add: [
-              { $subtract: ["$totalRooms", "$totalDecreasedRooms"] },
-              "$totalIncreasedRooms",
+              {
+                $subtract: [
+                  { $sum: "$allHotels.totalRooms" },
+                  { $sum: "$allHotels.totalRoomDecreased" },
+                ],
+              },
+              { $sum: "$allHotels.totalIncreasedRooms" },
             ],
           },
         },

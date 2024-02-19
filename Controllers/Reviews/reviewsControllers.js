@@ -1,6 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const ReviewsModel = require("../../Model/Reviews/Reviews");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
+const VendorModel = require("../../Model/HotelModel/vendorModel");
 
 // create Review api
 const CreateReview = async (req, res) => {
@@ -342,6 +343,91 @@ const GetTheTimelineReviews = async (req, res) => {
   }
 };
 
+const VendorAllHotelsReviewTogether = async (req, res) => {
+  const { vendorid } = req.params;
+  try {
+    const response = await VendorModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(vendorid) } },
+      {
+        $lookup: {
+          from: "hotels",
+          localField: "hotels",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $lookup: {
+                from: "reviews",
+                localField: "reviews",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: "hotels",
+                      localField: "hotel",
+                      foreignField: "_id",
+                      pipeline: [
+                        {
+                          $project: {
+                            _id: 1,
+                            hotelName: 1,
+                            hotelType: 1,
+                            address: 1,
+                            hotelCoverImg: 1,
+                            hotelRatings: 1,
+                          },
+                        },
+                      ],
+                      as: "hotel",
+                    },
+                  },
+                  {
+                    $lookup: {
+                      from: "customers",
+                      localField: "customer",
+                      foreignField: "_id",
+                      pipeline: [
+                        {
+                          $project: {
+                            _id: 1,
+                            mobileNo: 1,
+                            name: 1,
+                            email: 1,
+                            avatar: 1,
+                          },
+                        },
+                      ],
+                      as: "customer",
+                    },
+                  },
+                  { $sort: { createdAt: -1 } },
+                ],
+                as: "reviews",
+              },
+            },
+            { $unwind: "$reviews" },
+            {
+              $project: {
+                reviews: 1,
+              },
+            },
+          ],
+          as: "hotels",
+        },
+      },
+      {
+        $project: {
+          reviews: "$hotels.reviews",
+        },
+      },
+    ]);
+    res
+      .status(200)
+      .json({ error: false, message: "success", data: response[0].reviews });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   CreateReview,
   GetTheReviewsByMatchingFields,
@@ -352,4 +438,5 @@ module.exports = {
   GethotelReviews,
   MakeTimeLineReview,
   GetTheTimelineReviews,
+  VendorAllHotelsReviewTogether,
 };
