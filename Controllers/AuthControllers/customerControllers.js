@@ -11,7 +11,11 @@ const SendMail = require("../Others/Mailer");
 const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 const { default: mongoose } = require("mongoose");
-const { EmailNotification } = require("../../jobs");
+const {
+  EmailNotification,
+  NotificationManagementQueue,
+} = require("../../jobs");
+const GenerateNotificatonsData = require("../../functions/GenerateNotificationsData");
 
 const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
   let verification;
@@ -71,23 +75,24 @@ const Authentication = async (req, res) => {
     // });
     // assign jwt
 
-    // const notifyData = await GenerateNotificatonsData({
-    //   customer: {
-    //     name: user.name || user.email || user.mobileNo,
-    //     ...user,
-    //   },
-    //   admin: {
-    //     ...user,
-    //   },
-    // });
+    const notifyData = await GenerateNotificatonsData({
+      customer: {
+        ...user._doc, // Spread operator comes first to include all properties
+        name: user._doc.name || user._doc.email || user._doc.mobileNo,
+      },
+      admin: {
+        name: user._doc.name || user._doc.email || user._doc.mobileNo,
+        ...user._doc,
+      },
+    });
 
-    // NotificationManagementQueue.add(
-    //   `eventNotification: 65cc49bc8722df6236019f6a`,
-    //   {
-    //     eventId: "65cc49bc8722df6236019f6a",
-    //     data: notifyData,
-    //   }
-    // );
+    NotificationManagementQueue.add(
+      `eventNotification: 65cc49bc8722df6236019f6a`,
+      {
+        eventId: "65cc49bc8722df6236019f6a",
+        data: notifyData,
+      }
+    );
 
     const jwtPayload = {
       _id: user._id,
@@ -148,6 +153,29 @@ const GetAuthWIthGoogle = async (req, res) => {
       name: formdata.name,
       googleId: formdata.id,
     }).save();
+
+    // ======================= Notification Implemented ==============================
+    const notifyData = await GenerateNotificatonsData({
+      customer: {
+        ...finalUser._doc, // Spread operator comes first to include all properties
+        name:
+          finalUser._doc.name ||
+          finalUser._doc.email ||
+          finalUser._doc.mobileNo,
+      },
+      admin: {
+        ...finalUser._doc,
+      },
+    });
+
+    NotificationManagementQueue.add(
+      `eventNotification: 65cc49bc8722df6236019f6a`,
+      {
+        eventId: "65cc49bc8722df6236019f6a",
+        data: notifyData,
+      }
+    );
+    // ==========================Notificaton Implementations end  ==============================
   } else {
     finalUser = user;
   }
@@ -446,7 +474,6 @@ const UpdateTheUser = async (req, res) => {
     const response = await CustomerAuthModel.findById(id);
     if (!response)
       return res.status(404).json({ error: true, message: "No user Found" });
-
     if (formData.password) {
       const hashedPassword = EncryptPassword(req.body.password);
       formData.password = hashedPassword.hashedPassword;

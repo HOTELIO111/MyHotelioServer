@@ -50,6 +50,25 @@ const AddVendor = async (req, res) => {
       secretKey: hashPassword.salt,
     }).save();
 
+    // const notifyData = await GenerateNotificatonsData({
+    //   partner: {
+    //     ...result._doc, // Spread operator comes first to include all properties
+    //     name: result._doc.name || result._doc.email || result._doc.mobileNo,
+    //   },
+    //   admin: {
+    //     name: result._doc.name || result._doc.email || result._doc.mobileNo,
+    //     ...user._doc,
+    //   },
+    // });
+
+    // NotificationManagementQueue.add(
+    //   `eventNotification: 65d33d6f104407d761573803`,
+    //   {
+    //     eventId: "65d33d6f104407d761573803",
+    //     data: notifyData,
+    //   }
+    // );
+
     const jwtTokenValue = {
       _id: result._id,
       name: result.name,
