@@ -4,7 +4,7 @@ const AddAmenity = async (req, res) => {
     const formdata = req.body;
 
     try {
-        const isAvailable = await AmenityModel.findOne({ amenity: formdata.amenity })
+        const isAvailable = await AmenityModel.findOne({ title: formdata.title })
         if (isAvailable) return res.status(409).json({ error: true, message: "Already Registered" })
 
         const isReg = await new AmenityModel(formdata).save()
@@ -38,8 +38,8 @@ const UpdateAmenity = async (req, res) => {
 
     try {
         const amenityData = await AmenityModel.findById(id)
-        if (formdata.amenity !== amenityData.amenity) {
-            const oldOne = await AmenityModel.findOne({ amenity: formdata.amenity })
+        if (formdata.title !== amenityData.title) {
+            const oldOne = await AmenityModel.findOne({ title: formdata.title })
             if (oldOne) return res.status(409).json({ error: true, message: "already Amenity is available" })
         }
 
