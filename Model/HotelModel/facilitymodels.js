@@ -4,9 +4,7 @@ const schema = new Schema(
   {
     title: {
       type: String,
-    },
-    icon: {
-      type: String,
+      required: true,
     },
     isPaid: {
       type: Boolean,
@@ -14,6 +12,9 @@ const schema = new Schema(
     },
     price: {
       type: String,
+      required: function () {
+        return this.isPaid === true;
+      },
     },
   },
   {

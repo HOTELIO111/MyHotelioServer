@@ -48,7 +48,7 @@ const AddVendor = async (req, res) => {
       role: formData.role ? formData.role : "vendor",
       password: hashPassword.hashedPassword,
       secretKey: hashPassword.salt,
-    }).save();
+    }).save(); 
 
     // const notifyData = await GenerateNotificatonsData({
     //   partner: {
