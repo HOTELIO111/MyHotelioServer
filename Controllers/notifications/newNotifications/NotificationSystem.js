@@ -6,6 +6,7 @@ const NotificationModel = require("../../../Model/Notifications/newNotifications
 const InAppNotifyModel = require("../../../Model/Notifications/newNotifications/InAppNotifications");
 const handlebars = require("handlebars");
 const { NotificationsQueue } = require("../../../jobs");
+require("dotenv").config();
 
 class NotificationSystem {
   // ======================================= event list ======================================================================
@@ -75,6 +76,34 @@ class NotificationSystem {
       return { error: true, message: error.message };
     }
   }
+  static async UpdateNotifyEvents({ id, formdata }) {
+    try {
+      const response = await NotificationEvent.findByIdAndUpdate(
+        { _id: id },
+        formdata,
+        { new: true }
+      );
+      return { error: false, message: "success", data: response };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+  static async DeactivateEvent({ id, status }) {
+    try {
+      const response = await NotificationEvent.findByIdAndUpdate(
+        id,
+        {
+          active: status,
+        },
+        {
+          new: true,
+        }
+      );
+      return { error: false, message: "success", data: response };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
 
   // ================================================= Notification events Creation ends ===========================================================
 
@@ -108,6 +137,47 @@ class NotificationSystem {
       return { error: true, message: error.message };
     }
   }
+
+  static async GetAllTemplatesWithFilter({ eventId, search, type, person }) {
+    try {
+      let allSearch = {};
+      if (eventId) {
+        allSearch["eventId"] = eventId;
+      }
+      if (search) {
+        allSearch = { ...allSearch, ...search, title: { $regex: search } };
+      }
+      if (type) {
+        allSearch = { ...allSearch, type: type };
+      }
+      if (person) {
+        allSearch.person = person;
+      }
+      const response = await TemplatesModel.aggregate([{ $match: allSearch }]);
+      return { error: false, message: "success", data: response };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+  static async DeleteTemplates({ id, eventId }) {
+    const _delete = {};
+    if (id) {
+      _delete._id = id;
+    }
+    if (eventId) {
+      _delete.eventId = eventId;
+    }
+
+    try {
+      const response = await TemplatesModel.deleteMany(_delete);
+      if (!response.deletedCount > 0)
+        return { error: false, message: "no data found to delete" };
+      return { error: false, message: "success", data: reponse };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+
   //   ================================================== Create Template End ==================================================================
   static async CreateNotification(formdata) {
     try {
@@ -129,6 +199,7 @@ class NotificationSystem {
       await this.GetTempalteByID(eventId);
     }
     try {
+      console.log(this.notificationEventData, this.notificationTemplates);
       // now check the user and generate the template
       const templateKeys = this.notificationEventData[0].templateKeys;
       console.log(templateKeys);
@@ -244,7 +315,7 @@ class NotificationSystem {
         );
         const recipient = userData.inAppId;
         const mood = "info";
-        const sender = "ADMINID";
+        const sender = process.env.SERVERID;
         await this.CreateInAppNotification({
           subject,
           message,

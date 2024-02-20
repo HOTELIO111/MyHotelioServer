@@ -20,26 +20,32 @@ const { isOtpVerify } = require("../../helper/misc");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const { _isUserKyc } = require("../../helper/vendor/kycHelpers");
 const { default: mongoose } = require("mongoose");
+const GenerateNotificatonsData = require("../../functions/GenerateNotificationsData");
+const { NotificationManagementQueue } = require("../../jobs");
+const { events } = require("../../config/notificationEvents");
 
 const AddVendor = async (req, res) => {
   const formData = req.body;
 
-  // check the user is already present or not
+  // Check if the user is already present by email
   const isUser = await VendorModel.findOne({ email: req.body.email });
-  if (isUser)
+  if (isUser) {
     return res
       .status(409)
       .json({ error: true, message: "Email Already Registered" });
-  // mobile no check
+  }
+
+  // Check if the user is already present by mobile number
   const isUserWithMobile = await VendorModel.findOne({
     mobileNo: req.body.mobileNo,
   });
-  if (isUserWithMobile)
+  if (isUserWithMobile) {
     return res
       .status(409)
       .json({ error: true, message: "Mobile Number Already Registered" });
+  }
 
-  // make the password as a hash password
+  // Make the password a hashed password
   const hashPassword = EncryptPassword(req.body.password);
 
   try {
@@ -48,40 +54,42 @@ const AddVendor = async (req, res) => {
       role: formData.role ? formData.role : "vendor",
       password: hashPassword.hashedPassword,
       secretKey: hashPassword.salt,
-    }).save(); 
+    }).save();
 
-    // const notifyData = await GenerateNotificatonsData({
-    //   partner: {
-    //     ...result._doc, // Spread operator comes first to include all properties
-    //     name: result._doc.name || result._doc.email || result._doc.mobileNo,
-    //   },
-    //   admin: {
-    //     name: result._doc.name || result._doc.email || result._doc.mobileNo,
-    //     ...user._doc,
-    //   },
-    // });
+    // ================================ Notification System ===================================
+    const notifyData = await GenerateNotificatonsData({
+      partner: {
+        ...result._doc,
+        name: result._doc.name || result._doc.email || result._doc.mobileNo,
+      },
+      admin: {
+        name: result._doc.name || result._doc.email || result._doc.mobileNo,
+        ...result._doc, // Fix the typo here
+      },
+    });
 
-    // NotificationManagementQueue.add(
-    //   `eventNotification: 65d33d6f104407d761573803`,
-    //   {
-    //     eventId: "65d33d6f104407d761573803",
-    //     data: notifyData,
-    //   }
-    // );
+    NotificationManagementQueue.add(
+      `eventNotification: ${events.PARTNER_REGISTER}`,
+      {
+        eventId: events.PARTNER_REGISTER,
+        data: notifyData,
+      }
+    );
+    // ================================ Notification System ===================================
 
     const jwtTokenValue = {
       _id: result._id,
       name: result.name,
     };
-    const accesstoken = jwt.sign(jwtTokenValue, process.env.SECRET_CODE);
-    res.header("Authorization", `Bearer ${accesstoken}`);
+    const accessToken = jwt.sign(jwtTokenValue, process.env.SECRET_CODE);
+    res.header("Authorization", `Bearer ${accessToken}`);
     res.status(200).json({
       error: false,
       data: result,
-      token: accesstoken,
+      token: accessToken,
     });
   } catch (error) {
-    res.status(500).json({ error: error });
+    res.status(500).json({ error: error.message });
   }
 };
 

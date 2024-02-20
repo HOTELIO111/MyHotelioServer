@@ -16,6 +16,7 @@ const {
   NotificationManagementQueue,
 } = require("../../jobs");
 const GenerateNotificatonsData = require("../../functions/GenerateNotificationsData");
+const { events } = require("../../config/notificationEvents");
 
 const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
   let verification;
@@ -67,14 +68,6 @@ const Authentication = async (req, res) => {
         .status(404)
         .json({ error: true, message: "please check the data and try again" });
 
-    // send notification of joining
-    // await EmailNotification.add("your new Job", {
-    //   eventId: eventId,
-    //   customerName: user.name,
-    //   recipient: user.email,
-    // });
-    // assign jwt
-
     const notifyData = await GenerateNotificatonsData({
       customer: {
         ...user._doc, // Spread operator comes first to include all properties
@@ -87,9 +80,9 @@ const Authentication = async (req, res) => {
     });
 
     NotificationManagementQueue.add(
-      `eventNotification: 65cc49bc8722df6236019f6a`,
+      `eventNotification: ${events.CUSTOMER_REGISTER}`,
       {
-        eventId: "65cc49bc8722df6236019f6a",
+        eventId: events.CUSTOMER_REGISTER,
         data: notifyData,
       }
     );
@@ -169,9 +162,9 @@ const GetAuthWIthGoogle = async (req, res) => {
     });
 
     NotificationManagementQueue.add(
-      `eventNotification: 65cc49bc8722df6236019f6a`,
+      `eventNotification: ${events.CUSTOMER_REGISTER}`,
       {
-        eventId: "65cc49bc8722df6236019f6a",
+        eventId: events.CUSTOMER_DELETED,
         data: notifyData,
       }
     );
