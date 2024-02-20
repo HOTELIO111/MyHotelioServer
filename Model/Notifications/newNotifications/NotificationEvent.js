@@ -8,6 +8,10 @@ const schema = new Schema(
       unique: true,
       required: true,
     },
+    active: {
+      type: Boolean,
+      default: true,
+    },
     templateKeys: {
       type: Array,
     },
