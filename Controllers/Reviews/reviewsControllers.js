@@ -428,6 +428,9 @@ const VendorAllHotelsReviewTogether = async (req, res) => {
   }
 };
 
+
+
+
 module.exports = {
   CreateReview,
   GetTheReviewsByMatchingFields,

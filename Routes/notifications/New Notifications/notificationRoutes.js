@@ -8,7 +8,18 @@ const {
   sendNotification,
   UpdateNotificationEvent,
   UpdateStatusNotificationEvent,
+  SendCustomBulkEmailNotification,
+  GetAllTemplatesWithFilters,
+  DeleteTheTemplateByid,
+  UpdateThemTemplate,
+  GetUserInappNotifications,
+  ReadTheInAppNotifications,
+  CreateInAppNotificationApi,
+  GetALlInAppNotifications,
 } = require("../../../Controllers/notifications/newNotifications/NotificationController");
+const {
+  CreateInAppNotificationValidate,
+} = require("../../../validator/notification/InAppNotificatins");
 
 const router = require("express").Router();
 
@@ -33,10 +44,24 @@ router.get(
 
 router.post("/notification-templates/create", RegisterNotification);
 router.get("/notification-templates/get", GetTempalates);
-router.get("/notification-templates/get-with-filter");
-router.delete("/notification-templates/delete/:id");
-router.patch("/notifications-templates/update/:id");
+router.get(
+  "/notification-templates/get-with-filter",
+  GetAllTemplatesWithFilters
+);
+router.delete("/notification-templates/delete", DeleteTheTemplateByid);
+router.patch("/notifications-templates/update/:id", UpdateThemTemplate);
 
 // ============================================================Create Tempaltes End ==================================================
 router.post("/notification/send", sendNotification);
+
+router.post("/notification-custom-bulk/email", SendCustomBulkEmailNotification);
+// ===================================================In APP notifications =================================
+router.post(
+  "/app-notifications/create",
+  CreateInAppNotificationValidate,
+  CreateInAppNotificationApi
+);
+router.get("/app-notifications/:id", GetUserInappNotifications);
+router.get("/app-notifications/read/:id", ReadTheInAppNotifications);
+router.get("/app-notifications/get/all-notification", GetALlInAppNotifications);
 module.exports = router;

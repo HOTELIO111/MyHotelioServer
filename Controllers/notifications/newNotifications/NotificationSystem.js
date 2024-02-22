@@ -6,6 +6,7 @@ const NotificationModel = require("../../../Model/Notifications/newNotifications
 const InAppNotifyModel = require("../../../Model/Notifications/newNotifications/InAppNotifications");
 const handlebars = require("handlebars");
 const { NotificationsQueue } = require("../../../jobs");
+const AdminModel = require("../../../Model/AdminModel/adminModel");
 require("dotenv").config();
 
 class NotificationSystem {
@@ -140,19 +141,22 @@ class NotificationSystem {
 
   static async GetAllTemplatesWithFilter({ eventId, search, type, person }) {
     try {
+      console.log(eventId, search, type, person);
       let allSearch = {};
       if (eventId) {
-        allSearch["eventId"] = eventId;
+        allSearch["eventId"] = new mongoose.Types.ObjectId(eventId);
       }
       if (search) {
-        allSearch = { ...allSearch, ...search, title: { $regex: search } };
+        allSearch = { ...allSearch, title: { $regex: search, $options: "i" } };
       }
       if (type) {
         allSearch = { ...allSearch, type: type };
       }
       if (person) {
-        allSearch.person = person;
+        allSearch.for = person;
       }
+
+      console.log(allSearch);
       const response = await TemplatesModel.aggregate([{ $match: allSearch }]);
       return { error: false, message: "success", data: response };
     } catch (error) {
@@ -172,7 +176,7 @@ class NotificationSystem {
       const response = await TemplatesModel.deleteMany(_delete);
       if (!response.deletedCount > 0)
         return { error: false, message: "no data found to delete" };
-      return { error: false, message: "success", data: reponse };
+      return { error: false, message: "success", data: response };
     } catch (error) {
       return { error: true, message: error.message };
     }
@@ -184,6 +188,7 @@ class NotificationSystem {
       });
       if (!response)
         return { error: true, message: "missing required credentials" };
+      return { error: false, message: "success", date: response };
     } catch (error) {
       return { error: true, message: error.message };
     }
@@ -210,18 +215,20 @@ class NotificationSystem {
       await this.GetTempalteByID(eventId);
     }
     try {
-      console.log(this.notificationEventData, this.notificationTemplates);
       // now check the user and generate the template
+      // collect the templates
       const templateKeys = this.notificationEventData[0].templateKeys;
-      console.log(templateKeys);
+      // collect the notification Model data
       const notificationsTo = this.notificationEventData[0].notificationTo;
 
+      // find the notiifcation templates as per event and filterout
       for (const [key, value] of Object.entries(notificationsTo)) {
         const template = this.notificationTemplates?.find(
           (item) => item.for === key
         );
+        // filter out the person data from the data
         const roleData = data[key];
-
+        // send the person data to the send notificatin function
         await this.SendNotification(key, [template], value, roleData);
       }
       return {
@@ -324,6 +331,11 @@ class NotificationSystem {
           InAppTemplate.message,
           templateData
         );
+        // added button if the button in userdata then it will add
+        let button;
+        if (userData?.button) {
+          button = userData.button;
+        }
         const recipient = userData.inAppId;
         const mood = "info";
         const sender = process.env.SERVERID;
@@ -333,6 +345,7 @@ class NotificationSystem {
           recipient,
           mood,
           sender,
+          button,
         });
       } else {
         console.log("No Template found to send Notification for ", person);
@@ -355,6 +368,8 @@ class NotificationSystem {
         notification_mood: data.mood,
         sender: data.sender,
         title: data.subject,
+        html: data?.html,
+        button: data?.button,
       }).save();
       if (!response)
         return {
@@ -390,10 +405,22 @@ class NotificationSystem {
     }
   }
 
+  static async GetInappAllNotifications() {
+    try {
+      const response = await InAppNotifyModel.find({}).sort({
+        read: 1,
+        createdAt: -1,
+      });
+      return { error: false, message: "success", data: response };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+
   static async ReadTheInAppNotification(id) {
     try {
       const response = await InAppNotifyModel.findByIdAndUpdate(
-        id,
+        { _id: id },
         { read: true },
         { new: true }
       );
@@ -402,6 +429,42 @@ class NotificationSystem {
       return { error: true, message: error.message };
     }
   }
+
+  static async SendEmailToCategory({ template, recievers, Subject, message }) {
+    const recieversMail = recievers.join(",");
+    try {
+      for (let reciver in recievers) {
+        NotificationsQueue.add(`email To ${recieversMail}`, {
+          type: "email",
+          subject: Subject,
+          message: message,
+          html: template,
+          recipient: reciver,
+          cc: "sharmag226025@gmail.com",
+        });
+      }
+
+      const response = await new InAppNotifyModel({
+        recipient: process.env.ADMIN,
+        message: `we successfully sended the emails to the id's ${recieversMail} \n  message : - ${message}`,
+        notification_mood: "success",
+        sender: process.env.SERVERID,
+        html: template,
+        title: `Email Sent : ${Subject}`,
+      }).save();
+
+      if (!response)
+        return {
+          error: true,
+          message: "failed to send the inAPp Notification to Admin",
+        };
+      return { error: false, message: "success" };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+
+  static async;
 }
 
 module.exports = NotificationSystem;

@@ -112,7 +112,7 @@ const GetTempalates = async (req, res) => {
     res.status(500).json({ error: true, message: error.message });
   }
 };
-const GetAllTemplatesWithFilter = async (res, res) => {
+const GetAllTemplatesWithFilters = async (req, res) => {
   const { eventId, search, person, type } = req.query;
 
   // query se chek kro fir aage kro
@@ -129,6 +129,34 @@ const GetAllTemplatesWithFilter = async (res, res) => {
       .json({ error: false, message: "success", data: response.data });
   } catch (error) {
     return { error: true, message: error.message };
+  }
+};
+
+const DeleteTheTemplateByid = async (req, res) => {
+  const { id, evntId } = req.query;
+  try {
+    const response = await NotificationSystem.DeleteTemplates({
+      id: id,
+      eventId: evntId,
+    });
+    if (response.error) return res.status(400).json(response);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const UpdateThemTemplate = async (req, res) => {
+  const { id } = req.params;
+  const formdata = req.body;
+  try {
+    const response = await NotificationSystem.UpdateTemplate({
+      id: id,
+      formdata: formdata,
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
   }
 };
 
@@ -190,6 +218,73 @@ const sendNotification = async (req, res) => {
   }
 };
 
+const SendCustomBulkEmailNotification = async (req, res) => {
+  const { message, recievers, Subject, template } = req.body;
+  try {
+    const response = await NotificationSystem.SendEmailToCategory({
+      message: message ? message : undefined,
+      recievers: recievers ? recievers : undefined,
+      Subject: Subject ? Subject : undefined,
+      template: template ? template : undefined,
+    });
+    if (response.error) return res.status(400).json(response);
+    res.status(200).json({ error: false, message: "success" });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const GetUserInappNotifications = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const response = await NotificationSystem.GetInAppNotificationByUser(id);
+    if (response.error) res.status(400).json(response);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const ReadTheInAppNotifications = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const response = await NotificationSystem.ReadTheInAppNotification(id);
+    if (response.error) return res.status(400).json(response);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const CreateInAppNotificationApi = async (req, res) => {
+  const formdata = req.body;
+  try {
+    const response = await NotificationSystem.CreateInAppNotification({
+      recipient: formdata.recipient,
+      message: formdata.message,
+      mood: formdata.mood,
+      sender: formdata.sender,
+      subject: formdata.subject,
+      html: formdata.html ? formdata.html : undefined,
+      button: formdata.button ? formdata.button : undefined,
+    });
+    if (response.error) return res.status(400).json(response);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const GetALlInAppNotifications = async (req, res) => {
+  try {
+    const response = await NotificationSystem.GetInappAllNotifications();
+    if (response.error) return res.status(400).json(response);
+    return res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   AddEventInList,
   GetAllEvents,
@@ -200,5 +295,12 @@ module.exports = {
   sendNotification,
   UpdateNotificationEvent,
   UpdateStatusNotificationEvent,
-  GetAllTemplatesWithFilter
+  GetAllTemplatesWithFilters,
+  SendCustomBulkEmailNotification,
+  DeleteTheTemplateByid,
+  UpdateThemTemplate,
+  GetUserInappNotifications,
+  ReadTheInAppNotifications,
+  CreateInAppNotificationApi,
+  GetALlInAppNotifications,
 };
