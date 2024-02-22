@@ -177,6 +177,17 @@ class NotificationSystem {
       return { error: true, message: error.message };
     }
   }
+  static async UpdateTemplate({ id, formdata }) {
+    try {
+      const response = await TemplatesModel.findByIdAndUpdate(id, formdata, {
+        new: true,
+      });
+      if (!response)
+        return { error: true, message: "missing required credentials" };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
 
   //   ================================================== Create Template End ==================================================================
   static async CreateNotification(formdata) {
@@ -363,6 +374,33 @@ class NotificationSystem {
     const templateData = handlebars.compile(template);
     const generatedTemplate = templateData(data);
     return generatedTemplate;
+  }
+
+  // ========================================Get In app Notification  ==============================
+
+  static async GetInAppNotificationByUser(userid) {
+    try {
+      const response = await InAppNotifyModel.find({ recipient: userid }).sort({
+        read: 1,
+        createdAt: -1,
+      });
+      return { error: false, message: "success", data: response };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
+  }
+
+  static async ReadTheInAppNotification(id) {
+    try {
+      const response = await InAppNotifyModel.findByIdAndUpdate(
+        id,
+        { read: true },
+        { new: true }
+      );
+      return { error: false, message: "success", data: response };
+    } catch (error) {
+      return { error: true, message: error.message };
+    }
   }
 }
 
