@@ -105,19 +105,19 @@ const DashboardCountings = async (req, res) => {
             },
             // Yha se project krna hai hotel ke room count se increased or decreased count minus krke
 
-            {
-              $project: {
-                $map: {
-                  input: "$rooms",
-                  as: "roomsArray",
-                  in: {
-                    $cond: {
-                      if: "",
-                    },
-                  },
-                },
-              },
-            },
+            // {
+            //   $project: {
+            //     $map: {
+            //       input: "$rooms",
+            //       as: "roomsArray",
+            //       in: {
+            //         $cond: {
+            //           if: "",
+            //         },
+            //       },
+            //     },
+            //   },
+            // },
           ],
           as: "hotels",
         },
@@ -724,10 +724,60 @@ const BookingAnalyticsPartner = async (req, res) => {
   }
 };
 
+const Last30DaysBookings = async (req, res) => {
+  const { vendorid } = req.params;
+  try {
+    const response = await VendorModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(vendorid) } },
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "hotels",
+          foreignField: "hotel",
+          pipeline: [
+            {
+              $group: {
+                _id: {
+                  date: {
+                    $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+                  },
+                  bookingStatus: "$bookingStatus",
+                },
+                totalRooms: { $sum: "$numberOfRooms" },
+              },
+            },
+            {
+              $group: {
+                _id: "$_id.date",
+                totalBooking: {
+                  $push: {
+                    bookingStatus: "$_id.bookingStatus",
+                    totalRooms: "$totalRooms",
+                  },
+                },
+                totalRooms: { $sum: "$totalRooms" },
+              },
+            },
+            { $sort: { _id: -1 } },
+          ],
+          as: "bookings",
+        },
+      },
+    ]);
+
+    res
+      .status(200)
+      .json({ error: false, message: "success", data: response[0].bookings });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   PartnerHotelsInfo,
   DashboardCountings,
   HotelroomInfoAnalytics,
   BookingAnalyticsPartner,
   HotelRoomInfoByDateAnalytics,
+  Last30DaysBookings,
 };

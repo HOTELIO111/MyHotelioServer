@@ -12,13 +12,28 @@ const schema = new Schema(
     },
     notification_mood: {
       type: String,
-      enum: ["warning", "info", "danger"],
+      enum: ["warning", "info", "success", "danger"],
       default: "info",
     },
     sender: {
       type: String,
       required: true,
     },
+    html: {
+      type: String,
+    },
+    button: [
+      {
+        title: {
+          type: String,
+          required: true,
+        },
+        path: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
     title: {
       type: String,
       required: true,

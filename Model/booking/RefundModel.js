@@ -1,41 +1,80 @@
 const mongoose = require("mongoose");
 
+// const schema = new mongoose.Schema(
+//   {
+//     totalRefundAmount: {
+//       type: Number,
+//       default: 0,
+//     },
+//     refundPolicyPercentage: {
+//       type: Number,
+//       default: 0,
+//     },
+//     dateOfCancellation: {
+//       type: Date,
+//       required: true,
+//     },
+//     bookingId: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "bookings",
+//     },
+//     notes: {
+//       type: String,
+//     },
+//     refundReason: {
+//       type: String,
+//     },
+//     refundApproval: {
+//       type: String,
+//       required: true,
+//     },
+//   },
+//   {
+//     timestamps: true,
+//   }
+// );
+
 const refundSchema = new mongoose.Schema(
   {
-    totalAmount: {
+    totalBookingAmount: {
       type: Number,
       required: true,
     },
-    refundedAmount: {
+    refundableAmount: {
       type: Number,
       default: 0,
+    },
+    bookingid: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "bookings",
     },
     dateOfCancellation: {
       type: Date,
       required: true,
     },
-    deductionPercentage: {
+    policyDeductPercentage: {
       type: Number,
       default: 0,
-    },
-    cancellationReason: {
-      type: String,
     },
     cancelledBy: {
       type: String,
       enum: ["customer", "office", "admin"],
       default: "customer",
     },
+    refundResultInfo: {
+      type: String,
+    },
+    refundApproval: {
+      type: Boolean,
+      default: false,
+    },
     notes: {
       type: String,
     },
     status: {
       type: String,
-      enum: ["pending", "processed", "declined"],
+      enum: ["pending", "in-process", "declined", "success"],
       default: "pending",
-    },
-    refundMethod: {
-      type: String,
     },
     paymentDetails: {
       type: Object,
