@@ -254,7 +254,7 @@ class BookingSystem {
         return { error: true, message: "failed to create booking try again" };
       }
       // add the 10 min timer to cancelBooking
-      cron.schedule(`*/10 * * * *`, async () => {
+      cron.schedule(`*/15 * * * *`, async () => {
         await this.handleCancelWithoutPayment({ bookingId: this.bookingId });
       });
 
