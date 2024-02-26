@@ -976,6 +976,37 @@ const GetSearch = async (req, res) => {
 
 // Get NearBy Hotels
 
+const GetNearByHotelList = async (req, res) => {
+  const { lat, lng } = req.query;
+  if (!lat && !lng)
+    return res
+      .status(400)
+      .json({ error: true, message: "location lat lng requred " });
+  try {
+    let search = {};
+
+    if (lat && lng) {
+      search = {
+        location: {
+          $nearSphere: {
+            $geometry: {
+              type: "Point",
+              coordinates: [parseFloat(lat), parseFloat(lng)],
+            },
+            $maxDistance: parseInt(50) * 1000,
+          },
+        },
+      };
+    }
+    const response = await HotelModel.find(search);
+    res.status(200).json({ error: true, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+
+
 module.exports = {
   RegisterHotel,
   GetAllHotel,
@@ -997,4 +1028,5 @@ module.exports = {
   GetCheckInCheckOut,
   MapAPi,
   GetSingleHotelDataNew,
+  GetNearByHotelList,
 };

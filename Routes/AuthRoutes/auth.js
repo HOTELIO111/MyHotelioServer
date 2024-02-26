@@ -17,6 +17,7 @@ const {
   RemoveHotelFromFavourite,
   GetALLFavouritesHotels,
   GetAllCustomerBookings,
+  GetAllCustomerBookingsWithFilter,
 } = require("../../Controllers/AuthControllers/customerControllers");
 const {
   AddVendor,
@@ -88,7 +89,7 @@ router.get("/favourite/remove/:customerid/:hotelid", RemoveHotelFromFavourite);
 // get all the favourites hotels
 router.get("/favourite/get/:customerid", GetALLFavouritesHotels);
 // get all bookings
-router.get("/booking/:customerid", GetAllCustomerBookings);
+router.get("/booking/:customerid", GetAllCustomerBookingsWithFilter);
 // router.post("/sendOtp/:number", SendOtpForVerify);
 
 // ==================================================== Vendor Routes =========================================================================
