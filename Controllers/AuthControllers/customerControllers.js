@@ -17,6 +17,7 @@ const {
 } = require("../../jobs");
 const GenerateNotificatonsData = require("../../functions/GenerateNotificationsData");
 const { events } = require("../../config/notificationEvents");
+const Booking = require("../../Model/booking/bookingModel");
 
 const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
   let verification;
@@ -723,7 +724,11 @@ const GetAllCustomerBookings = async (req, res) => {
   const { customerid } = req.params;
   try {
     const response = await CustomerAuthModel.aggregate([
-      { $match: { _id: new mongoose.Types.ObjectId(customerid) } },
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(customerid),
+        },
+      },
       {
         $lookup: {
           from: "bookings",
@@ -801,65 +806,6 @@ const GetAllCustomerBookings = async (req, res) => {
                           input: "$rooms",
                           as: "room",
                           in: {
-                            // counts: {
-                            //   $sum: {
-                            //     $subtract: [
-                            //       { $toInt: "$$room.counts" }, // Convert to integer if not already
-                            //       {
-                            //         $let: {
-                            //           vars: {
-                            //             decreasedArray: {
-                            //               $filter: {
-                            //                 input: "$roomCountData",
-                            //                 as: "roomCo",
-                            //                 cond: {
-                            //                   $and: [
-                            //                     {
-                            //                       $eq: [
-                            //                         "$$roomCo.roomid",
-                            //                         "$$room._id",
-                            //                       ],
-                            //                     },
-                            //                     {
-                            //                       $eq: ["$$roomCo.will", "dec"],
-                            //                     },
-                            //                   ],
-                            //                 },
-                            //               },
-                            //             },
-                            //             increasedArray: {
-                            //               $filter: {
-                            //                 input: "$roomCountData",
-                            //                 as: "roomCo",
-                            //                 cond: {
-                            //                   $and: [
-                            //                     {
-                            //                       $eq: [
-                            //                         "$$roomCo.roomid",
-                            //                         "$$room._id",
-                            //                       ],
-                            //                     },
-                            //                     {
-                            //                       $eq: ["$$roomCo.will", "inc"],
-                            //                     },
-                            //                   ],
-                            //                 },
-                            //               },
-                            //             },
-                            //           },
-                            //           in: {
-                            //             $sum: {
-                            //               $subtract: [
-                            //                 { $sum: "$$decreasedArray.rooms" },
-                            //                 { $sum: "$$increasedArray.rooms" },
-                            //               ],
-                            //             },
-                            //           },
-                            //         },
-                            //       },
-                            //     ],
-                            //   },
-                            // },
                             roomType: {
                               $arrayElemAt: [
                                 {
@@ -912,6 +858,42 @@ const GetAllCustomerBookings = async (req, res) => {
   }
 };
 
+const GetAllCustomerBookingsWithFilter = async (req, res) => {
+  const { customerid } = req.params;
+  const { from, to, status } = req.query;
+  try {
+    let otherFilter = {};
+    if (from && to) {
+      otherFilter.dateOfBooking = {
+        $gte: new Date(from),
+        $lt: new Date(to),
+      };
+    }
+    if (status) {
+      otherFilter.bookingStatus = status;
+    }
+    const response = await Booking.aggregate([
+      {
+        $match: {
+          customer: new mongoose.Types.ObjectId(customerid),
+          ...otherFilter,
+        },
+      },
+      {
+        $lookup: {
+          from: "hotels",
+          foreignField: "_id",
+          localField: "hotel",
+          as: "hotel",
+        },
+      },
+    ]);
+    res.status(200).json({ error: true, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   SignupUser,
   LoginUser,
@@ -929,4 +911,5 @@ module.exports = {
   RemoveHotelFromFavourite,
   GetALLFavouritesHotels,
   GetAllCustomerBookings,
+  GetAllCustomerBookingsWithFilter,
 };
