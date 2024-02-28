@@ -674,6 +674,8 @@ const SearchHotelApi = async (req, res) => {
     const bookings = await FindBookingsAvaliablity({
       checkIn: checkInDate,
       checkOut: checkOutDate,
+      totalRooms: parseInt(totalRooms),
+      roomType: roomType,
     });
 
     const amenitiesArray = amenities?.split(",");
@@ -894,12 +896,11 @@ const SearchHotelApi = async (req, res) => {
       return res
         .status(400)
         .json({ error: true, message: "No Hotels Found At this Location" });
-    res.status(200).json({ error: false, data: response });
+    res.status(200).json({ error: false, data: bookings });
   } catch (error) {
     res.status(500).json({ error: true, error: error.message });
   }
 };
-
 const FindBookingsAvaliablity = async ({
   checkIn,
   checkOut,
@@ -910,18 +911,54 @@ const FindBookingsAvaliablity = async ({
     const response = await Booking.aggregate([
       {
         $match: {
-          bookingStatus: { $in: ["confirmed", "pending"] },
+          bookingStatus: { $in: ["confirmed", "pending", "expired"] },
           $or: [
-            {
-              "bookingDate.checkIn": { $gte: checkIn, $lte: checkOut },
-            },
-            {
-              "bookingDate.checkOut": { $gte: checkIn, $lte: checkOut },
-            },
+            { "bookingDate.checkIn": { $gte: checkIn, $lte: checkOut } },
+            { "bookingDate.checkOut": { $gte: checkIn, $lte: checkOut } },
           ],
         },
       },
+      {
+        $addFields: {
+          roomid: "$room",
+        },
+      },
+      {
+        $lookup: {
+          from: "hotels",
+          foreignField: "_id",
+          localField: "hotel",
+          pipeline: [
+            {
+              $project: {
+                rooms: {
+                  $filter: {
+                    input: "$rooms",
+                    as: "singleRoom",
+                    cond: {
+                      $eq: [
+                         "$$singleRoom._id" ,
+                        { $toObjectId: "$roomid" },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+          as: "hotelData",
+        },
+      },
+      { $unwind: "$hotelData" },
     ]);
+
+    // {
+    //   $project: {
+    //     hotelData: 1, // Add the totalRooms parameter to the total rooms booked for each hotel
+    //   },
+    // },
+    // ]);
+
     return { error: false, message: response };
   } catch (error) {
     return { error: true, message: error.message };

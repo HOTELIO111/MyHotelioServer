@@ -2,12 +2,10 @@ const { reseller } = require("googleapis/build/src/apis/reseller");
 const PropertyTypes = require("../../Model/HotelModel/propertyTypesModel");
 
 const AddPropertyType = async (req, res) => {
-  const { title } = req.query;
+  const formdata = req.body;
 
   try {
-    const isAdded = await new PropertyTypes({
-      title,
-    }).save();
+    const isAdded = await new PropertyTypes(formdata).save();
     if (!isAdded)
       return res.status(400).json({
         error: true,
@@ -60,22 +58,18 @@ const GetThePropertyTypes = async (req, res) => {
 
 const GetUpdatePropertyType = async (req, res) => {
   const { id } = req.params;
-  const { title } = req.query;
+  const formdata = req.body;
   try {
     // Check the property type is already assigned or not
-    const isAvailable = await PropertyTypes.findOne({ title: title });
+    const isAvailable = await PropertyTypes.findOne({ title: formdata.title });
     if (isAvailable)
       return res
         .status(409)
         .json({ error: true, message: "Already RoomType is Defined" });
 
-    const updateOne = await PropertyTypes.findByIdAndUpdate(
-      id,
-      { title: title },
-      {
-        new: true,
-      }
-    );
+    const updateOne = await PropertyTypes.findByIdAndUpdate(id, formdata, {
+      new: true,
+    });
     res.status(200).json({ error: false, message: "success", data: updateOne });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
