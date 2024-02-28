@@ -770,6 +770,22 @@ const SearchHotelApi = async (req, res) => {
       },
       {
         $lookup: {
+          from: "bookings",
+          let: { hotelId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$hotel", "$$hotelId"],
+                },
+              },
+            },
+          ],
+          as: "hotelBookings",
+        },
+      },
+      {
+        $lookup: {
           from: "offers",
           pipeline: [
             {
@@ -783,6 +799,21 @@ const SearchHotelApi = async (req, res) => {
         },
       },
       { $unwind: "$hotelType" },
+      // {
+      //   $lookup: {
+      //     from: "bookings",
+      //     pipeline: [
+      //       {
+      //         $match: {
+      //           $expr: {
+      //             $in: ["$_id", "$bookings"],
+      //           },
+      //         },
+      //       },
+      //     ],
+      //     as: "hotelBookings",
+      //   },
+      // },
       {
         $facet: {
           data: [
@@ -880,6 +911,7 @@ const SearchHotelApi = async (req, res) => {
                     in: { $concatArrays: ["$$value", "$$this"] },
                   },
                 },
+                hotelBookings: 1,
                 score: { $meta: "textScore" },
               },
             },
@@ -896,7 +928,7 @@ const SearchHotelApi = async (req, res) => {
       return res
         .status(400)
         .json({ error: true, message: "No Hotels Found At this Location" });
-    res.status(200).json({ error: false, data: bookings });
+    res.status(200).json({ error: false, data: response });
   } catch (error) {
     res.status(500).json({ error: true, error: error.message });
   }
@@ -936,10 +968,7 @@ const FindBookingsAvaliablity = async ({
                     input: "$rooms",
                     as: "singleRoom",
                     cond: {
-                      $eq: [
-                         "$$singleRoom._id" ,
-                        { $toObjectId: "$roomid" },
-                      ],
+                      $eq: ["$$singleRoom._id", { $toObjectId: "$roomid" }],
                     },
                   },
                 },
