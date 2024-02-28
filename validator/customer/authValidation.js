@@ -1,20 +1,21 @@
-const Joi = require('joi');
+const Joi = require("joi");
 
+const customerSignUp = (req, res, next) => {
+  const formdata = req.query;
 
-const signUpLoginSchema = Joi.object({
-    email: Joi.string()
-        .email({ tlds: { allow: false } })
-        .when('mobile', {
-            is: Joi.string().required(),
-            then: Joi.forbidden(),
-        }),
+  try {
+    const eventValidateSchema = joi.object({
+      mobileNo: joi.String(),
+    });
 
-    mobile: Joi.string()
-        .pattern(/^[0-9]{10}$/)
-        .when('email', {
-            is: Joi.string().required(),
-            then: Joi.forbidden(),
-        }),
+    const { value, error } = eventValidateSchema.validate(formdata);
 
-    password: Joi.string().min(6).required(),
-});
+    if (error)
+      return res
+        .status(400)
+        .json({ error: true, message: error.details[0].message });
+    next();
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
