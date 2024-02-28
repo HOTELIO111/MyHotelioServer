@@ -7,6 +7,7 @@ const {
 const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
 const Booking = require("../../Model/booking/bookingModel");
 const PopularLocations = require("../../Model/popularLocations/Locations");
+const BookingSystem = require("../booking/BookingSystem");
 
 // const GetSearchHotels = async (req, res) => {
 //   const {
@@ -143,6 +144,7 @@ const GetSearchHotels = async (req, res) => {
     amenities,
     payment,
     kmRadius,
+
     page,
     pageSize,
     sort,
@@ -457,11 +459,10 @@ const GetSearchedLocationData = async (req, res) => {
     kmRadius,
   } = req.query;
   const skip = (page - 1) * pageSize;
-
-  const amenitiesArray = amenities?.split(",");
-
   const checkInDate = new Date(checkIn);
   const checkOutDate = new Date(checkOut);
+
+  const amenitiesArray = amenities?.split(",");
 
   // // Room Filter
   // const roomFilter = (roomType) => {
@@ -645,4 +646,286 @@ const GetSearchedLocationData = async (req, res) => {
   }
 };
 
-module.exports = { GetSearchHotels, GetSearchedLocationData };
+// city wise search
+
+const SearchHotelApi = async (req, res) => {
+  const {
+    location,
+    checkIn,
+    checkOut,
+    lat,
+    lng,
+    totalRooms,
+    roomType,
+    priceMin,
+    priceMax,
+    hotelType,
+    amenities,
+    payment,
+    page,
+    pageSize,
+    sort,
+  } = req.query;
+  try {
+    const skip = (page - 1) * pageSize;
+
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const bookings = await FindBookingsAvaliablity({
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
+    });
+
+    const amenitiesArray = amenities?.split(",");
+
+    const hotelIds = await RoomsTypeModel.find({
+      amenties: { $all: amenitiesArray },
+    }).distinct("_id");
+
+    const MatchCriteria = {
+      $text: { $search: location },
+    };
+
+    const otherSearch = {
+      $and: [
+        MatchCriteria,
+        hotelType ? { hotelType: new mongoose.Types.ObjectId(hotelType) } : {},
+        priceMax && priceMin && roomType
+          ? {
+              "rooms.roomType": new mongoose.Types.ObjectId(roomType),
+              "rooms.price": {
+                $gte: parseInt(priceMin),
+                $lte: parseInt(priceMax),
+              },
+            }
+          : priceMax && priceMin
+          ? {
+              "rooms.price": {
+                $gte: parseInt(priceMin),
+                $lte: parseInt(priceMax),
+              },
+            }
+          : {},
+        payment
+          ? { isPostpaidAllowed: payment === "payathotel" ? true : false }
+          : {},
+        hotelIds.length > 0
+          ? {
+              "rooms.roomType": { $in: hotelIds },
+            }
+          : {},
+        lat && lng
+          ? {
+              "location.coordinates": {
+                $geoWithin: {
+                  $centerSphere: [
+                    [parseFloat(lat), parseFloat(lng)], // Latitude and Longitude
+                    80 / 6371, // Radius in kilometers converted to radians
+                  ],
+                },
+              },
+            }
+          : {},
+      ],
+    };
+
+    const Sorting = (sort) => {
+      switch (sort) {
+        case "popularity":
+          return { score: { $meta: "textScore" } };
+        case "ratings":
+          return { hotelRatings: -1 };
+        case "l2h":
+          return {
+            "rooms.price": 1,
+          };
+        case "h2l":
+          return {
+            "rooms.price": -1,
+          };
+        default:
+          return {};
+      }
+    };
+
+    const response = await HotelModel.aggregate([
+      { $match: otherSearch },
+      {
+        $lookup: {
+          from: "room-categories",
+          localField: "rooms.roomType",
+          foreignField: "_id",
+          as: "roomsTypes",
+        },
+      },
+      {
+        $lookup: {
+          from: "property-types",
+          localField: "hotelType",
+          foreignField: "_id",
+          as: "hotelType",
+        },
+      },
+      {
+        $lookup: {
+          from: "offers",
+          pipeline: [
+            {
+              $match: {
+                "validation.upto": { $gte: new Date() },
+                "validation.validFor": "customer",
+              },
+            },
+          ],
+          as: "offers",
+        },
+      },
+      { $unwind: "$hotelType" },
+      {
+        $facet: {
+          data: [
+            {
+              $project: {
+                _id: 1,
+                hotelName: 1,
+                hotelEmail: 1,
+                hotelCoverImg: 1,
+                hotelType: 1,
+                hotelMapLink: 1,
+                locality: 1,
+                city: 1,
+                state: 1,
+                hotelRatings: 1,
+                rooms: {
+                  $map: {
+                    input: {
+                      $cond: {
+                        if: { $ifNull: [roomType, false] },
+                        then: {
+                          $filter: {
+                            input: "$rooms",
+                            as: "room",
+                            cond: {
+                              $eq: [
+                                "$$room.roomType",
+                                new mongoose.Types.ObjectId(roomType),
+                              ],
+                            },
+                          },
+                        },
+                        else: "$rooms",
+                      },
+                    },
+                    as: "room",
+                    in: {
+                      _id: "$$room._id",
+                      count: "$$room.counts",
+                      price: {
+                        roomPrice: "$$room.price",
+                        offer: {
+                          $filter: {
+                            input: "$offers",
+                            as: "singleOffer",
+                            cond: {
+                              $and: [
+                                {
+                                  $lte: [
+                                    "$$singleOffer.validation.minTransactions",
+                                    "$$room.price",
+                                  ],
+                                },
+                                {
+                                  $cond: {
+                                    if: {
+                                      $isArray:
+                                        "$$singleOffer.validation.roomtype",
+                                    },
+                                    then: {
+                                      $in: [
+                                        new mongoose.Types.ObjectId(roomType),
+                                        "$$singleOffer.validation.roomtype",
+                                      ],
+                                    },
+                                    else: false,
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        },
+                      },
+                      roomType: "$$room.roomType",
+                      status: "$$room.status",
+                      additionAmenities: "$$room.additionAmenities",
+                      additionalFacilties: "$$room.additionalFacilties",
+                      roomConfig: "$$room.roomConfig",
+                    },
+                  },
+                },
+                amenties: {
+                  $reduce: {
+                    input: "$roomsTypes.amenties",
+                    initialValue: [],
+                    in: {
+                      $concatArrays: ["$$value", "$$this"],
+                    },
+                  },
+                },
+                additionalAmenties: {
+                  $reduce: {
+                    input: "$rooms.additionAmenities",
+                    initialValue: [],
+                    in: { $concatArrays: ["$$value", "$$this"] },
+                  },
+                },
+                score: { $meta: "textScore" },
+              },
+            },
+            { $sort: Sorting(sort) },
+            { $skip: parseInt(skip) },
+            { $limit: parseInt(pageSize) },
+          ],
+          pagination: [{ $count: "counts" }],
+        },
+      },
+    ]);
+
+    if (!response)
+      return res
+        .status(400)
+        .json({ error: true, message: "No Hotels Found At this Location" });
+    res.status(200).json({ error: false, data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, error: error.message });
+  }
+};
+
+const FindBookingsAvaliablity = async ({
+  checkIn,
+  checkOut,
+  totalRooms,
+  roomType,
+}) => {
+  try {
+    const response = await Booking.aggregate([
+      {
+        $match: {
+          bookingStatus: { $in: ["confirmed", "pending"] },
+          $or: [
+            {
+              "bookingDate.checkIn": { $gte: checkIn, $lte: checkOut },
+            },
+            {
+              "bookingDate.checkOut": { $gte: checkIn, $lte: checkOut },
+            },
+          ],
+        },
+      },
+    ]);
+    return { error: false, message: response };
+  } catch (error) {
+    return { error: true, message: error.message };
+  }
+};
+
+module.exports = { GetSearchHotels, GetSearchedLocationData, SearchHotelApi };

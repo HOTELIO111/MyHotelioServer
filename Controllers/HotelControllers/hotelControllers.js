@@ -1005,8 +1005,6 @@ const GetNearByHotelList = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   RegisterHotel,
   GetAllHotel,

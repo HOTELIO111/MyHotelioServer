@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.static("./static"));
 
 // routes
-app.use("/", UserVerify, AppRoutes);
+app.use("/", AppRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Hotelio Backend");

@@ -1,6 +1,7 @@
 const {
   GetSearchHotels,
   GetSearchedLocationData,
+  SearchHotelApi,
 } = require("../../Controllers/HotelControllers/Search");
 const {
   RegisterHotel,
@@ -90,5 +91,10 @@ router.get("/filter", fitlerDataCreate);
 router.get("/search", GetSearchTheHotelList);
 router.get("/search-it", GetSearchHotels);
 router.get("/search-loc", GetSearchedLocationData);
+
+// city wise search Routes
+
+router.get("/city-wise/search");
+router.get("/search/hotels", SearchHotelApi);
 
 module.exports = router;
