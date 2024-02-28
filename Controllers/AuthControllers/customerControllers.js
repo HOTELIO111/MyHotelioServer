@@ -894,6 +894,46 @@ const GetAllCustomerBookingsWithFilter = async (req, res) => {
   }
 };
 
+const SetRecommendation = async (req, res) => {
+  const { customerid } = req.params;
+  try {
+    const response = await CustomerAuthModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(customerid) } },
+      {
+        $lookup: {
+          from: "bookings",
+          foreignField: "_id",
+          localField: "bookings",
+          pipeline: [
+            {
+              $lookup: {
+                from: "hotels",
+                localField: "hotel",
+                foreignField: "_id",
+                as: "hotel",
+              },
+            },
+          ],
+          as: "bookings",
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          bookings: "$bookings.hotel",
+        },
+      },
+    ]);
+    res.status(200).json({
+      error: false,
+      message: "success",
+      data: response[0].bookings[0],
+    });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   SignupUser,
   LoginUser,
@@ -912,4 +952,5 @@ module.exports = {
   GetALLFavouritesHotels,
   GetAllCustomerBookings,
   GetAllCustomerBookingsWithFilter,
+  SetRecommendation,
 };

@@ -85,17 +85,7 @@ const GetUpdatePropertyType = async (req, res) => {
 // mobile Our Collections
 const OurCollectionsMobile = async (req, res) => {
   try {
-    const response = await PropertyTypes.aggregate([
-      { $match: {} },
-      // {
-      //   $lookup: {
-      //     from: "hotels",
-      //     localField: "_id",
-      //     foreignField: "hotelType",
-      //     as: "hotel",
-      //   },
-      // },
-    ]);
+    const response = await PropertyTypes.aggregate([{ $match: {} }]);
     res.status(200).json({ error: false, message: "success", data: response });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });

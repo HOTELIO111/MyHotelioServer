@@ -18,6 +18,7 @@ const {
   GetALLFavouritesHotels,
   GetAllCustomerBookings,
   GetAllCustomerBookingsWithFilter,
+  SetRecommendation,
 } = require("../../Controllers/AuthControllers/customerControllers");
 const {
   AddVendor,
@@ -91,6 +92,8 @@ router.get("/favourite/get/:customerid", GetALLFavouritesHotels);
 // get all bookings
 router.get("/booking/:customerid", GetAllCustomerBookingsWithFilter);
 // router.post("/sendOtp/:number", SendOtpForVerify);
+//
+router.get("/set/recommend/:customerid", SetRecommendation);
 
 // ==================================================== Vendor Routes =========================================================================
 
