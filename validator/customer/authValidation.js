@@ -1,11 +1,13 @@
 const Joi = require("joi");
 
-const customerSignUp = (req, res, next) => {
+const customerSignUp = async (req, res, next) => {
   const formdata = req.query;
 
   try {
-    const eventValidateSchema = joi.object({
-      mobileNo: joi.String(),
+    const eventValidateSchema = Joi.object({
+      mobileNo: Joi.string().required(),
+      otp: Joi.string().min(4).max(4),
+      password: Joi.string(),
     });
 
     const { value, error } = eventValidateSchema.validate(formdata);
@@ -19,3 +21,7 @@ const customerSignUp = (req, res, next) => {
     res.status(500).json({ error: true, message: error.message });
   }
 };
+
+
+
+module.exports = { customerSignUp };
