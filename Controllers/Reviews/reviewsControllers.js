@@ -184,6 +184,30 @@ const GethotelReviews = async (req, res) => {
           data: [
             { $match: { hotel: new mongoose.Types.ObjectId(hotelid) } },
             {
+              $lookup: {
+                from: "hotels",
+                localField: "hotel",
+                foreignField: "_id",
+                as: "hotel",
+              },
+            },
+            {
+              $lookup: {
+                from: "customers",
+                localField: "customer",
+                foreignField: "_id",
+                as: "customer",
+              },
+            },
+            {
+              $lookup: {
+                from: "bookings",
+                localField: "booking",
+                foreignField: "_id",
+                as: "booking",
+              },
+            },
+            {
               $sort: {
                 ratings: -1,
                 valueOfMoney: -1,
@@ -198,63 +222,98 @@ const GethotelReviews = async (req, res) => {
         $project: {
           ratings: {
             overall: {
-              $divide: [{ $sum: "$data.ratings" }, { $size: "$data" }],
+              $cond: {
+                if: { $eq: [{ $size: "$data" }, 0] },
+                then: 0,
+                else: {
+                  $divide: [{ $sum: "$data.ratings" }, { $size: "$data" }],
+                },
+              },
             },
             fiveStars: {
               $size: {
-                $filter: {
-                  input: "$data",
-                  as: "singleData",
-                  cond: { $eq: ["$$singleData.ratings", 5] },
-                },
+                $ifNull: [
+                  {
+                    $filter: {
+                      input: "$data",
+                      as: "singleData",
+                      cond: { $eq: ["$$singleData.ratings", 5] },
+                    },
+                  },
+                  [],
+                ],
               },
             },
             fourStars: {
               $size: {
-                $filter: {
-                  input: "$data",
-                  as: "singleData",
-                  cond: { $eq: ["$$singleData.ratings", 4] },
-                },
+                $ifNull: [
+                  {
+                    $filter: {
+                      input: "$data",
+                      as: "singleData",
+                      cond: { $eq: ["$$singleData.ratings", 4] },
+                    },
+                  },
+                  [],
+                ],
               },
             },
             threeStars: {
               $size: {
-                $filter: {
-                  input: "$data",
-                  as: "singleData",
-                  cond: { $eq: ["$$singleData.ratings", 3] },
-                },
+                $ifNull: [
+                  {
+                    $filter: {
+                      input: "$data",
+                      as: "singleData",
+                      cond: { $eq: ["$$singleData.ratings", 3] },
+                    },
+                  },
+                  [],
+                ],
               },
             },
             twoStars: {
               $size: {
-                $filter: {
-                  input: "$data",
-                  as: "singleData",
-                  cond: { $eq: ["$$singleData.ratings", 2] },
-                },
+                $ifNull: [
+                  {
+                    $filter: {
+                      input: "$data",
+                      as: "singleData",
+                      cond: { $eq: ["$$singleData.ratings", 2] },
+                    },
+                  },
+                  [],
+                ],
               },
             },
             oneStars: {
               $size: {
-                $filter: {
-                  input: "$data",
-                  as: "singleData",
-                  cond: { $eq: ["$$singleData.ratings", 1] },
-                },
+                $ifNull: [
+                  {
+                    $filter: {
+                      input: "$data",
+                      as: "singleData",
+                      cond: { $eq: ["$$singleData.ratings", 1] },
+                    },
+                  },
+                  [],
+                ],
               },
             },
           },
           valueOfMoney: {
             $multiply: [
               {
-                $divide: [
-                  {
-                    $sum: "$data.valueOfMoney",
+                $cond: {
+                  if: { $eq: [{ $size: "$data" }, 0] },
+                  then: 0,
+                  else: {
+                    $divide: [
+                      { $sum: { $ifNull: ["$data.valueOfMoney", 0] } },
+                      { $multiply: [{ $size: "$data" }, 5] },
+                    ],
                   },
-                  { $multiply: [{ $size: "$data" }, 5] },
-                ],
+                },
               },
               100,
             ],
@@ -262,12 +321,16 @@ const GethotelReviews = async (req, res) => {
           cleanliness: {
             $multiply: [
               {
-                $divide: [
-                  {
-                    $sum: "$data.cleanliness",
+                $cond: {
+                  if: { $eq: [{ $size: "$data" }, 0] },
+                  then: 0,
+                  else: {
+                    $divide: [
+                      { $sum: { $ifNull: ["$data.cleanliness", 0] } },
+                      { $multiply: [{ $size: "$data" }, 5] },
+                    ],
                   },
-                  { $multiply: [{ $size: "$data" }, 5] },
-                ],
+                },
               },
               100,
             ],
@@ -275,12 +338,16 @@ const GethotelReviews = async (req, res) => {
           comfort: {
             $multiply: [
               {
-                $divide: [
-                  {
-                    $sum: "$data.comfort",
+                $cond: {
+                  if: { $eq: [{ $size: "$data" }, 0] },
+                  then: 0,
+                  else: {
+                    $divide: [
+                      { $sum: { $ifNull: ["$data.comfort", 0] } },
+                      { $multiply: [{ $size: "$data" }, 5] },
+                    ],
                   },
-                  { $multiply: [{ $size: "$data" }, 5] },
-                ],
+                },
               },
               100,
             ],
@@ -427,9 +494,6 @@ const VendorAllHotelsReviewTogether = async (req, res) => {
     res.status(500).json({ error: true, message: error.message });
   }
 };
-
-
-
 
 module.exports = {
   CreateReview,

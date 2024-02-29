@@ -671,12 +671,6 @@ const SearchHotelApi = async (req, res) => {
 
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
-    const bookings = await FindBookingsAvaliablity({
-      checkIn: checkInDate,
-      checkOut: checkOutDate,
-      totalRooms: parseInt(totalRooms),
-      roomType: roomType,
-    });
 
     const amenitiesArray = amenities?.split(",");
 
@@ -770,6 +764,35 @@ const SearchHotelApi = async (req, res) => {
       },
       {
         $lookup: {
+          from: "room-configs",
+          localField: "rooms.roomConfig",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $match: {
+                $or: [
+                  {
+                    $and: [
+                      { from: { $gte: new Date(checkIn) } },
+                      { from: { $lte: new Date(checkOut) } },
+                    ],
+                  },
+                  {
+                    $and: [
+                      { to: { $gte: new Date(checkIn) } },
+                      { to: { $lte: new Date(checkOut) } },
+                    ],
+                  },
+                ],
+              },
+            },
+            // Yha pe Room Calculation baki hai wo kro uske baad booking ka caculated nikalo then sab ok hai
+          ],
+          as: "roomCountData",
+        },
+      },
+      {
+        $lookup: {
           from: "bookings",
           let: { hotelId: "$_id" },
           pipeline: [
@@ -778,6 +801,27 @@ const SearchHotelApi = async (req, res) => {
                 $expr: {
                   $eq: ["$hotel", "$$hotelId"],
                 },
+                bookingStatus: { $in: ["confirmed", "pending", "expired"] },
+                $or: [
+                  {
+                    "bookingDate.checkIn": {
+                      $gte: checkInDate,
+                      $lte: checkOutDate,
+                    },
+                  },
+                  {
+                    "bookingDate.checkOut": {
+                      $gte: checkInDate,
+                      $lte: checkOutDate,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $group: {
+                _id: "$room",
+                totalRoomsBooked: { $sum: "$numberOfRooms" },
               },
             },
           ],
@@ -799,21 +843,6 @@ const SearchHotelApi = async (req, res) => {
         },
       },
       { $unwind: "$hotelType" },
-      // {
-      //   $lookup: {
-      //     from: "bookings",
-      //     pipeline: [
-      //       {
-      //         $match: {
-      //           $expr: {
-      //             $in: ["$_id", "$bookings"],
-      //           },
-      //         },
-      //       },
-      //     ],
-      //     as: "hotelBookings",
-      //   },
-      // },
       {
         $facet: {
           data: [
@@ -852,7 +881,128 @@ const SearchHotelApi = async (req, res) => {
                     as: "room",
                     in: {
                       _id: "$$room._id",
-                      count: "$$room.counts",
+                      count: {
+                        $subtract: [
+                          {
+                            $sum: {
+                              $subtract: [
+                                { $toInt: "$$room.counts" }, // Convert to integer if not already
+                                {
+                                  $let: {
+                                    vars: {
+                                      decreasedArray: {
+                                        $filter: {
+                                          input: "$roomCountData",
+                                          as: "roomCo",
+                                          cond: {
+                                            $and: [
+                                              {
+                                                $eq: [
+                                                  "$$roomCo.roomid",
+                                                  "$$room._id",
+                                                ],
+                                              },
+                                              { $eq: ["$$roomCo.will", "dec"] },
+                                            ],
+                                          },
+                                        },
+                                      },
+                                      totalBookings: {
+                                        $filter: {
+                                          input: "$hotelBookings",
+                                          as: "singleBookingRoom",
+                                          cond: {
+                                            $eq: [
+                                              {
+                                                $toObjectId:
+                                                  "$$singleBookingRoom._id",
+                                              },
+                                              "$$room._id",
+                                            ],
+                                          },
+                                        },
+                                      },
+                                      increasedArray: {
+                                        $filter: {
+                                          input: "$roomCountData",
+                                          as: "roomCo",
+                                          cond: {
+                                            $and: [
+                                              {
+                                                $eq: [
+                                                  "$$roomCo.roomid",
+                                                  "$$room._id",
+                                                ],
+                                              },
+                                              { $eq: ["$$roomCo.will", "inc"] },
+                                            ],
+                                          },
+                                        },
+                                      },
+                                    },
+                                    in: {
+                                      $sum: {
+                                        $subtract: [
+                                          {
+                                            $add: [
+                                              {
+                                                $add: [
+                                                  {
+                                                    $sum: "$$decreasedArray.rooms",
+                                                  },
+                                                  {
+                                                    $arrayElemAt: [
+                                                      "$$totalBookings.totalRoomsBooked",
+                                                      0,
+                                                    ],
+                                                  },
+                                                ],
+                                              },
+                                              { $toInt: totalRooms },
+                                            ],
+                                          },
+                                          {
+                                            $sum: "$$increasedArray.rooms",
+                                          },
+                                        ],
+                                      },
+                                    },
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                          {
+                            $toInt: {
+                              $let: {
+                                vars: {
+                                  roomCounts: {
+                                    $filter: {
+                                      input: "$hotelBookings",
+                                      as: "singleBookings",
+                                      cond: {
+                                        $eq: [
+                                          "$$singleBookings._id",
+                                          "$$room._id",
+                                        ],
+                                      },
+                                    },
+                                  },
+                                },
+                                in: {
+                                  $cond: {
+                                    if: { $eq: [{ $size: "$$roomCounts" }, 0] },
+                                    then: 0,
+                                    else: {
+                                      $toInt: "$$roomCounts.totalRoomsBooked",
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        ],
+                      },
                       price: {
                         roomPrice: "$$room.price",
                         offer: {
@@ -931,66 +1081,6 @@ const SearchHotelApi = async (req, res) => {
     res.status(200).json({ error: false, data: response });
   } catch (error) {
     res.status(500).json({ error: true, error: error.message });
-  }
-};
-const FindBookingsAvaliablity = async ({
-  checkIn,
-  checkOut,
-  totalRooms,
-  roomType,
-}) => {
-  try {
-    const response = await Booking.aggregate([
-      {
-        $match: {
-          bookingStatus: { $in: ["confirmed", "pending", "expired"] },
-          $or: [
-            { "bookingDate.checkIn": { $gte: checkIn, $lte: checkOut } },
-            { "bookingDate.checkOut": { $gte: checkIn, $lte: checkOut } },
-          ],
-        },
-      },
-      {
-        $addFields: {
-          roomid: "$room",
-        },
-      },
-      {
-        $lookup: {
-          from: "hotels",
-          foreignField: "_id",
-          localField: "hotel",
-          pipeline: [
-            {
-              $project: {
-                rooms: {
-                  $filter: {
-                    input: "$rooms",
-                    as: "singleRoom",
-                    cond: {
-                      $eq: ["$$singleRoom._id", { $toObjectId: "$roomid" }],
-                    },
-                  },
-                },
-              },
-            },
-          ],
-          as: "hotelData",
-        },
-      },
-      { $unwind: "$hotelData" },
-    ]);
-
-    // {
-    //   $project: {
-    //     hotelData: 1, // Add the totalRooms parameter to the total rooms booked for each hotel
-    //   },
-    // },
-    // ]);
-
-    return { error: false, message: response };
-  } catch (error) {
-    return { error: true, message: error.message };
   }
 };
 
