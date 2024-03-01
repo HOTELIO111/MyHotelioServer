@@ -26,6 +26,7 @@ const EmailEventRoutes = require("./notifications/EmailEventsRoutes");
 const BankDetials = require("./HotelRoutes/BankDetails");
 const EnquiryRoutes = require("./EnquiryRoutes");
 const WalletRoutes = require("./walletRoutes");
+const CouponRoutes = require("./coupons");
 
 router.use("/util", Utils);
 router.use("/api", CustomerRoutes);
@@ -55,5 +56,6 @@ router.use("/bank", BankDetials);
 router.use("/analytics", AnalyticsRoutes);
 router.use("/enquiry", EnquiryRoutes);
 router.use("/wallet", WalletRoutes);
+router.use("/coupon", CouponRoutes);
 
 module.exports = router;
