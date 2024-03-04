@@ -19,6 +19,9 @@ const {
   GetNearByHotels,
   GetHotelBookingAsperhotel,
   GetNearByHotelList,
+  GetAllUnaprovedHotels,
+  ApproveTheHotelByAdmin,
+  ApproveAllhotelsinBulk,
 } = require("../../Controllers/HotelControllers/hotelControllers");
 const {
   UpdateRoomData,
@@ -68,7 +71,12 @@ router.get("/get/near-by/hotels", GetNearByHotelList);
 
 // Get the Hotels Bookings as per Hotels
 router.get("/get/hotel-bookings/:hotelid", GetHotelBookingAsperhotel);
-
+// Get Unapprooved hotels list
+router.get("/get/unaproved-hotels/:id", GetAllUnaprovedHotels);
+// get Approve or unapprove the hotel
+router.get("/get/approve/:id/:status", ApproveTheHotelByAdmin);
+// get approve or unapprove the hotel in bulk
+router.get("/get/approve-unapprove/:status", ApproveAllhotelsinBulk);
 // -------------------------------------- rooms APi --------------------------------------------------------
 
 // room added
