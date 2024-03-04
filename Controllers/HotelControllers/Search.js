@@ -685,6 +685,7 @@ const SearchHotelApi = async (req, res) => {
     const otherSearch = {
       $and: [
         MatchCriteria,
+        { isAdminApproved: true, status: true },
         hotelType ? { hotelType: new mongoose.Types.ObjectId(hotelType) } : {},
         priceMax && priceMin && roomType
           ? {
