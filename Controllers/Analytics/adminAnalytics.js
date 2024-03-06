@@ -2,6 +2,9 @@ const { default: mongoose } = require("mongoose");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const Booking = require("../../Model/booking/bookingModel");
+const CustomerAuthModel = require("../../Model/CustomerModels/customerModel");
+const AdminModel = require("../../Model/AdminModel/adminModel");
+const AgentModel = require("../../Model/AgentModel/agentModel");
 
 const FindHotelsAddedByCount = async (req, res) => {
   try {
@@ -214,9 +217,63 @@ const Last30DaysBookingsAdmin = async (req, res) => {
   }
 };
 
+const GetUsersAndBookingInfo = async (req, res) => {
+  try {
+    const [customer, vendor, agents, bookings] = await Promise.all([
+      CustomerAuthModel.find({}),
+      VendorModel.find({}),
+      AgentModel.find({}),
+      Booking.find({ bookingStatus: ["confirmed", "pending"] }),
+    ]);
+    res.status(200).json({
+      error: false,
+      message: "success",
+      data: {
+        customer: customer.length,
+        agents: agents.length,
+        vendor: vendor.length,
+        bookings: bookings.length,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+const GetDashboardHotelAndBookingInfo = async (req, res) => {
+  try {
+    const response = await HotelModel.aggregate([
+      { $match: {} },
+      {
+        $group: {
+          _id: "totals",
+          hotels: { $sum: 1 },
+          rooms: { $sum: { $sum: "$rooms.counts" } },
+          newlyAddedHotels: {
+            $sum: {
+              $cond: {
+                if: {
+                  $gte: ["$createdAt", { $subtract: [new Date(), 604800000] }], // 604800000 milliseconds = 7 days
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+        },
+      },
+    ]);
+    res.status(200).json({ error: true, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   FindHotelsAddedByCount,
   AdminHotelInfo,
   BookingAnalyticsAdmin,
   Last30DaysBookingsAdmin,
+  GetUsersAndBookingInfo,
+  GetDashboardHotelAndBookingInfo,
 };
