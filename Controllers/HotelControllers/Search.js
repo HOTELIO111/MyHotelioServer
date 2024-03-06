@@ -853,6 +853,7 @@ const SearchHotelApi = async (req, res) => {
                 hotelName: 1,
                 hotelEmail: 1,
                 hotelCoverImg: 1,
+                offer: "$offers",
                 hotelType: 1,
                 hotelMapLink: 1,
                 locality: 1,
@@ -1004,40 +1005,7 @@ const SearchHotelApi = async (req, res) => {
                           },
                         ],
                       },
-                      price: {
-                        roomPrice: "$$room.price",
-                        offer: {
-                          $filter: {
-                            input: "$offers",
-                            as: "singleOffer",
-                            cond: {
-                              $and: [
-                                {
-                                  $lte: [
-                                    "$$singleOffer.validation.minTransactions",
-                                    "$$room.price",
-                                  ],
-                                },
-                                {
-                                  $cond: {
-                                    if: {
-                                      $isArray:
-                                        "$$singleOffer.validation.roomtype",
-                                    },
-                                    then: {
-                                      $in: [
-                                        new mongoose.Types.ObjectId(roomType),
-                                        "$$singleOffer.validation.roomtype",
-                                      ],
-                                    },
-                                    else: false,
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                        },
-                      },
+                      price: "$$room.price",
                       roomType: "$$room.roomType",
                       status: "$$room.status",
                       additionAmenities: "$$room.additionAmenities",
