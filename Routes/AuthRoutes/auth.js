@@ -33,6 +33,7 @@ const {
   GetVendorById,
   GetVendorPasswordUpdate,
   GetTheHotelBooking,
+  GetVendorStatusUpdate,
 } = require("../../Controllers/AuthControllers/vendorControllers");
 const {
   GetAddTheAdmin,
@@ -52,6 +53,7 @@ const {
 const {
   UploadAvatar,
 } = require("../../Controllers/AuthControllers/universalControllers");
+const { HotelModifyStatus } = require("../../middlewares/hotels");
 
 // authenticate the customer '
 router.get("/authenticate", Authentication);
@@ -120,6 +122,12 @@ router.delete("/vendor/deleteall", DeleteVendors);
 router.patch("/vendor/update/:id", GetVendorUpdate);
 // verify the email and update the data
 router.patch("/vendor/verified", GetVendorDataUpdate);
+
+router.get(
+  "/vendor/update-status/:id/:status",
+  HotelModifyStatus,
+  GetVendorStatusUpdate
+);
 // router.get("/hotel/bookings/:hotelid", GetTheHotelBooking);
 
 // =====================================================Adming Routes ===================================================================================

@@ -1,12 +1,17 @@
 require("dotenv").config();
 const AgentModel = require("../../Model/AgentModel/agentModel");
+const { EmailForResetLink } = require("../../Model/other/EmailFormats");
 const {
   CreateAgent,
   AgentAlreadyRegistered,
   CheckOtpVerify,
 } = require("../../helper/agent/agentAuthHelper");
 const { isOtpVerify } = require("../../helper/misc");
-const { comparePassword } = require("../Others/PasswordEncryption");
+const SendMail = require("../Others/Mailer");
+const {
+  comparePassword,
+  EncryptPassword,
+} = require("../Others/PasswordEncryption");
 const {
   VerifyOtp,
 } = require("../VerificationController/VerificationControllers");
@@ -89,7 +94,113 @@ const AgentLogin = async (req, res) => {
   }
 };
 
-// Update the Hotelio agent profile
-const UpdateProfileAgent = () => {};
+const UpdateAgentProfile = async (req, res) => {
+  const { id } = req.params;
+  const formdata = req.body;
+  try {
+    const response = await AgentModel.findByIdAndUpdate(id, formdata, {
+      new: true,
+    });
+    if (!response)
+      return res
+        .status(400)
+        .json({ error: true, message: "missing required data" });
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
 
-module.exports = { RegisterAgent, AgentLogin };
+const DeleteAgentProfile = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const response = await AgentModel.findByIdAndDelete(id);
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
+// forgot Password
+
+const ForgotPasswordAgent = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    // Check if the user is registered with the provided email
+    const user = await AgentModel.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ error: true, message: "No user found with this email" });
+    }
+
+    // Generate a unique reset link
+    const resetToken = crypto.randomBytes(20).toString("hex");
+
+    // Store the reset link and expiration date in the user's record
+    user.resetLink = resetToken;
+    user.resetDateExpires = Date.now() + 3600000; // Reset link valid for 1 hour
+    await user.save();
+
+    // Prepare email content for sending the reset link
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: req.body.email,
+      subject: "Password Reset",
+      html: EmailTemplateForResetLink(
+        user.name,
+        `${req.headers.origin}/reset-password/${resetToken}`
+      ),
+    };
+
+    // Send the reset email
+    await SendMail(mailOptions);
+
+    res.status(200).json("Reset email sent successfully");
+  } catch (error) {
+    console.error("Error in forgot password agent:", error);
+    res.status(500).json({ error: true, message: "Internal server error" });
+  }
+};
+
+// reset my password
+
+const ResetPassword = async (req, res) => {
+  const { resetLink, newPassword } = req.body;
+
+  // find user with reset Link
+  const user = await AgentModel.findOne({
+    resetLink: resetLink,
+    resetDateExpires: { $gt: new Date(Date.now()) },
+  });
+  if (!user)
+    return res
+      .status(400)
+      .json({ error: true, message: "Invalid or expired token'" });
+
+  try {
+    // convert the password in encryptedway
+    const hashedPassword = EncryptPassword(newPassword);
+    // check the the reset time is expired or not
+    user.password = hashedPassword.hashedPassword;
+    user.secretKey = hashedPassword.salt;
+    user.resetLink = undefined;
+    user.resetDateExpires = undefined;
+    await user.save();
+    res
+      .status(200)
+      .json({ error: false, message: "password Changed Successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
+
+module.exports = {
+  RegisterAgent,
+  AgentLogin,
+  DeleteAgentProfile,
+  UpdateAgentProfile,
+  ForgotPasswordAgent,
+  ResetPassword,
+};

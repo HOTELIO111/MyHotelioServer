@@ -17,7 +17,11 @@ const schema = new Schema(
       type: Array,
     },
     commission: {
-      type: Number,
+      percentage: {
+        type: Number,
+        default: 0,
+      },
+       
     },
     wallet: {
       type: Number,

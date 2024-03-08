@@ -598,6 +598,22 @@ const GetVendorPasswordUpdate = async (req, res) => {
 //   }
 // };
 
+const GetVendorStatusUpdate = async (req, res) => {
+  const { id, status } = req.params;
+  try {
+    const response = await VendorModel.findByIdAndUpdate(
+      id,
+      {
+        status: status,
+      },
+      { new: true }
+    );
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   AddVendor,
   VendorLogin,
@@ -610,5 +626,6 @@ module.exports = {
   DeleteVendorById,
   GetVendorById,
   GetVendorPasswordUpdate,
+  GetVendorStatusUpdate,
   // GetTheHotelBooking,
 };

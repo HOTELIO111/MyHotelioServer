@@ -5,6 +5,7 @@ const {
   Last30DaysBookingsAdmin,
   GetUsersAndBookingInfo,
   GetDashboardHotelAndBookingInfo,
+  GetPartnersInfoStats,
 } = require("../../Controllers/Analytics/adminAnalytics");
 
 const router = require("express").Router();
@@ -16,5 +17,6 @@ router.get("/booking-info", BookingAnalyticsAdmin);
 router.get("/booking-graph/last-30-days", Last30DaysBookingsAdmin);
 router.get("/dashboard/info/users", GetUsersAndBookingInfo);
 router.get("/dashboard/info/booking", GetDashboardHotelAndBookingInfo);
+router.get("/partners/info", GetPartnersInfoStats);
 
 module.exports = router;
