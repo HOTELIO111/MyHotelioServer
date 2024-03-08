@@ -76,7 +76,7 @@ router.get("/get/unaproved-hotels/:id", GetAllUnaprovedHotels);
 // get Approve or unapprove the hotel
 router.get("/get/approve/:id/:status", ApproveTheHotelByAdmin);
 // get approve or unapprove the hotel in bulk
-router.get("/get/approve-unapprove/:status", ApproveAllhotelsinBulk);
+router.get("/get/approve-unapprove/:status",  ApproveAllhotelsinBulk);
 // -------------------------------------- rooms APi --------------------------------------------------------
 
 // room added

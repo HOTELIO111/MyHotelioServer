@@ -111,30 +111,20 @@ const AdminHotelInfo = async (req, res) => {
 
 const BookingAnalyticsAdmin = async (req, res) => {
   try {
-    const response = await VendorModel.aggregate([
+    const response = await Booking.aggregate([
       { $match: {} },
       {
-        $lookup: {
-          from: "bookings",
-          foreignField: "hotel",
-          localField: "hotels",
-          pipeline: [
-            {
-              $group: {
-                _id: "$bookingStatus",
-                total: { $sum: "$numberOfRooms" },
-              },
-            },
-          ],
-          as: "bookings",
+        $group: {
+          _id: "$bookingStatus",
+          total: { $sum: "$numberOfRooms" },
         },
       },
-      {
-        $project: {
-          _status: "$bookings",
-          allBookings: { $sum: "$bookings.total" },
-        },
-      },
+      // {
+      //   $project: {
+      //     _status: "$bookings",
+      //     allBookings: { $sum: "$bookings.total" },
+      //   },
+      // },
     ]);
 
     res.status(200).json({ error: false, message: "success", data: response });
@@ -269,6 +259,41 @@ const GetDashboardHotelAndBookingInfo = async (req, res) => {
   }
 };
 
+const GetPartnersInfoStats = async (req, res) => {
+  try {
+    const response = await VendorModel.aggregate([
+      { $match: {} },
+      {
+        $group: {
+          _id: "partners",
+          partner: { $sum: 1 },
+          activePartners: {
+            $sum: {
+              $cond: {
+                if: { $eq: ["$status", true] },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+          inActivePartners: {
+            $sum: {
+              $cond: {
+                if: { $eq: ["$status", false] },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+        },
+      },
+    ]);
+    res.status(200).json({ error: false, message: "success", data: response });
+  } catch (error) {
+    res.status(500).json({ error: true, message: error.message });
+  }
+};
+
 module.exports = {
   FindHotelsAddedByCount,
   AdminHotelInfo,
@@ -276,4 +301,5 @@ module.exports = {
   Last30DaysBookingsAdmin,
   GetUsersAndBookingInfo,
   GetDashboardHotelAndBookingInfo,
+  GetPartnersInfoStats,
 };
