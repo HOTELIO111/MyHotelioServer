@@ -547,7 +547,9 @@ const GetSingleHotelDataNew = async (req, res) => {
       },
     ]);
 
-    res.status(200).json({ error: false, message: "success", data: _hotel });
+    res
+      .status(200)
+      .json({ error: false, message: "success", data: _hotel, newData: true });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
