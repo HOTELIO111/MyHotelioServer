@@ -371,6 +371,7 @@ const GetSearchHotels = async (req, res) => {
     }
 
     const { data, pagination } = response[0];
+
     res.status(200).json({ error: false, data, pagination });
   } catch (error) {
     res.status(500).json({ error: true, error: error.message });
