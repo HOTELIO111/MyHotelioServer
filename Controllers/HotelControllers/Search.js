@@ -218,12 +218,15 @@ const GetSearchHotels = async (req, res) => {
               "rooms.roomType": { $in: hotelIds },
             }
           : {},
-        !isNaN(parsedLat) && !isNaN(parsedLng)
+        !isNaN(parsedLat) &&
+        !isNaN(parsedLng) &&
+        kmRadius &&
+        !isNaN(parseFloat(kmRadius))
           ? {
               "location.coordinates": {
                 $geoWithin: {
                   $centerSphere: [
-                    [parsedLng, parsedLat],
+                    [parsedLat, parsedLng],
                     parseFloat(kmRadius) / 6371,
                   ],
                 },
