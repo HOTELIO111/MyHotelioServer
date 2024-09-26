@@ -182,7 +182,7 @@ const GetSearchHotels = async (req, res) => {
 
     if (!lat && !lng) {
       MatchCriteria = {
-        $text: { $search: `"${location}"` },
+        $text: { $search: `${location}` },
       };
     }
 
@@ -226,7 +226,7 @@ const GetSearchHotels = async (req, res) => {
               "location.coordinates": {
                 $geoWithin: {
                   $centerSphere: [
-                    [parsedLat, parsedLng],
+                    [parsedLng, parsedLat],
                     parseFloat(kmRadius) / 6371,
                   ],
                 },
