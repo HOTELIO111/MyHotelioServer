@@ -106,10 +106,10 @@ const schema = new mongoose.Schema(
       type: Array,
     },
     checkOut: {
-      type: Date,
+      type: String,
     },
     checkIn: {
-      type: Date,
+      type: String,
     },
 
     // Legal Documents
