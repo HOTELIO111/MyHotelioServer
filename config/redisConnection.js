@@ -2,7 +2,7 @@
 const Redis = require("ioredis");
 
 let redisConfig =
-  "redis://default:MtOhStZTAjQ8iEDtxPOAtLLFgtTzxZzz@redis-13130.c276.us-east-1-2.ec2.redns.redis-cloud.com:13130";
+  "redis://default:hooxrdnjAjGfazS0izbh587AiOlfrqwa@redis-14012.c257.us-east-1-3.ec2.redns.redis-cloud.com:14012";
 
 if (process.env.ENV !== "production") {
   redisConfig = {
