@@ -1,8 +1,7 @@
 // redis-connection.js
 const Redis = require("ioredis");
 
-let redisConfig =
-  "redis://default:hooxrdnjAjGfazS0izbh587AiOlfrqwa@redis-14012.c257.us-east-1-3.ec2.redns.redis-cloud.com:14012";
+let redisConfig = process.env.REDIS_URL;
 
 if (process.env.ENV !== "production") {
   redisConfig = {

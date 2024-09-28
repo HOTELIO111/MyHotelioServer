@@ -53,6 +53,8 @@ const AddRoomType = async (req, res) => {
       roomType: req.body.roomType,
       price: req.body.price,
       prevPrice: req.body.prevPrice,
+      roomImages: req.body.roomImages || [],
+      description: req.body.description || "",
       status: req.body.status || true,
       additionAmenities: req.body.additionAmenities || [],
       additionalFacilties: req.body.additionalFacilties || [],
