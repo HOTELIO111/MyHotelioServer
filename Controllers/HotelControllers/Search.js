@@ -349,6 +349,9 @@ const GetSearchHotels = async (req, res) => {
                     },
                   },
                 },
+                amenities: 1,
+                facilities: 1,
+                rules: 1,
                 additionalAmenties: {
                   $reduce: {
                     input: "$rooms.additionAmenities",
