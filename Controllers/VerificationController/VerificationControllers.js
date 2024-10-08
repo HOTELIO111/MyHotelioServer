@@ -58,29 +58,14 @@ const SendEmailVerify = async (req, res) => {
     res.status(400).json({ error: true, message: error.message });
   }
 };
-
+console.log("Inside sendmobile otp");
 const SendMobileVefication = async (req, res) => {
   try {
     // Extract the mobile number from the request parameters
     const { number } = req.params;
     const otp = crypto.randomInt(1000, 9999);
-
-    const optData = {
-      user: process.env.W_USER,
-      password: process.env.W_PASSWORD,
-      senderid: process.env.W_SENDERID,
-      mobiles: `+91${number}`,
-      sms: `${otp} is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
-    };
-
-    const queryString = Object.keys(optData)
-      .map(
-        (key) =>
-          `${encodeURIComponent(key)}=${encodeURIComponent(optData[key])}`
-      )
-      .join("&");
-
-    const response = await axios.get(process.env.W_URL + queryString);
+console.log("Hello from mobile otp", otp, number);
+    const response = await axios.get(`https://sms.whistle.mobi/sendsms.jsp?user=Houdact&password=912be393a7XX&senderid=HOTLIO&mobiles=+91${number}&sms=${otp}%20is%20your%20account%20verification%20OTP.%20Treat%20this%20as%20confidential.%20Don%27t%20share%20this%20with%20anyone%20(otp)%20Houda%20Carjour%20Tourism`);
 
     if (response.status !== 200) {
       return res
