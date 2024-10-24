@@ -11,6 +11,8 @@ const roomSchema = new mongoose.Schema(
       ref: "room-category",
     },
     price: Number,
+    description: String,
+    roomImage: String,
     prevPrice: String,
     status: {
       type: Boolean,
@@ -26,6 +28,9 @@ const roomSchema = new mongoose.Schema(
       },
     ],
     additionalFacilties: {
+      type: Array,
+    },
+    roomImages: {
       type: Array,
     },
   },
@@ -91,12 +96,9 @@ const schema = new mongoose.Schema(
     },
     // Hotel rooms info
     rooms: [roomSchema],
-    amenities: {
-      type: Array,
-    },
-    facilities: {
-      type: Array,
-    },
+    amenities: [String],
+    facilities: [String],
+    rules: [String],
     hotelCoverImg: {
       type: String,
     },
@@ -163,6 +165,10 @@ const schema = new mongoose.Schema(
       default: 3,
     },
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "reviews" }],
+    blacklistedDates: {
+      type: [Date],
+      default: [],
+    },
   },
   {
     timestamps: true,

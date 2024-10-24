@@ -10,14 +10,14 @@ const CreateReviewDataValidate = async (req, res, next) => {
     valueOfMoney: joi.number(),
     cleanliness: joi.number(),
     comfort: joi.number(),
-    customer: joi.objectId(),
-    hotel: joi.objectId(),
-    booking: joi.objectId(),
+    customer: joi.string(),
+    hotel: joi.string(),
+    booking: joi.string().required(),
   });
 
   try {
     // Validate the request body against the schema
-    const { error } = await validateSchema.validate(req.body);
+    const { error } = validateSchema.validate(req.body);
     if (error)
       return res
         .status(400)

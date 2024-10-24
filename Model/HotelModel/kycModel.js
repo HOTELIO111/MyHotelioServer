@@ -5,7 +5,7 @@ const schema = new Schema(
     vendorId: String,
     name: String,
     email: String,
-    aadharNo: Number,
+    aadharNo: String,
     panNo: String,
     aadharImg: [],
     panImg: String,

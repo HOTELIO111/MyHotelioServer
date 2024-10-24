@@ -32,10 +32,8 @@ const emailFormat = (Code) => {
     <br>
     Hotelio India
   </p>
-`
-}
-
-
+`;
+};
 
 const EmailForResetLink = (senderName, resetLink) => {
   return ` <h3>Hotelio - Password Reset</h3>
@@ -48,9 +46,22 @@ const EmailForResetLink = (senderName, resetLink) => {
   <p>${resetLink}</p>
   <p>Please note that this reset link is valid for <b>5 Min</b>. After that, you will need to request a new reset link if you still require assistance.</p>
   <p>If you did not initiate this password reset request, please ignore this email. Your account remains secure, and no changes have been made.</p>
-  <p>If you have any further questions or require additional assistance, please don't hesitate to contact our support team at hotelio@gmail.com.</p>`
-}
+  <p>If you have any further questions or require additional assistance, please don't hesitate to contact our support team at hotelio@gmail.com.</p>`;
+};
 
+const EmailForOTP = (senderName, otp) => {
+  return `
+    <h3>Hotelio - OTP Verification</h3>
+    <p>Dear ${senderName},</p>
+    <p>We have received a request to verify your account for your Hotelio account. Please use the following OTP to complete your verification:</p>
+    <h2 style="color: #4CAF50;">${otp}</h2>
+    <p>Please note that this OTP is valid for <b>10 minutes</b>. After that, you will need to request a new OTP if you still require assistance.</p>
+    <p>If you did not initiate this request, please ignore this email. Your account remains secure, and no changes have been made.</p>
+    <p>If you have any further questions or require additional assistance, please don't hesitate to contact our support team at hotelio@gmail.com.</p>
+  `;
+};
+
+module.exports = EmailForOTP;
 
 const Contactus = ({ name, email }) => {
   return `<!DOCTYPE html>
@@ -77,8 +88,7 @@ const Contactus = ({ name, email }) => {
     <p>Hotelio Rooms</p>
   </body>
   </html>
-  `
-}
+  `;
+};
 
-
-module.exports = { emailFormat, EmailForResetLink, Contactus }
+module.exports = { emailFormat, EmailForResetLink, Contactus, EmailForOTP };

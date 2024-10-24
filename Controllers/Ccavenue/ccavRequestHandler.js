@@ -1,11 +1,9 @@
-var http = require("http"),
-  fs = require("fs"),
-  ccav = require("./ccavutils"),
-  qs = require("querystring");
+const ccav = require("./ccavutils");
 const { Gateway } = require("../../config/config");
 
 exports.postReq = function (request, response) {
   var body = "",
+    merchant_id = Gateway().merchant_id,
     workingKey = Gateway().workingKey, //Put in the 32-Bit key shared by CCAvenues.
     accessCode = Gateway().accessKey, //Put in the Access Code shared by CCAvenues.
     encRequest = "",
@@ -17,6 +15,8 @@ exports.postReq = function (request, response) {
     formbody =
       '<form id="nonseamless" method="post" name="redirect" action="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction"/> <input type="hidden" id="encRequest" name="encRequest" value="' +
       encRequest +
+      '"> <input type="hidden" id="merchant_id" name="merchant_id" value="' +
+      merchant_id +
       '"><input type="hidden" name="access_code" id="access_code" value="' +
       accessCode +
       '"><script language="javascript">document.redirect.submit();</script></form>';

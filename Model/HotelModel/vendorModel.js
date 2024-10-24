@@ -33,6 +33,11 @@ const schema = new mongoose.Schema(
     resetLink: String,
     resetDateExpire: Date,
 
+    // otp for verification
+    otp: String,
+    otpExpire: Date,
+    fcmToken: String,
+
     // verify the email or number or kyc
     isNumberVarified: Boolean,
     isEmailVerified: Boolean,

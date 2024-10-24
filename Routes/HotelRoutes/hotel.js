@@ -35,12 +35,20 @@ const BookingRoutes = require("./../booking/bookingRoutes");
 const RoomConfigRoutes = require("./roomCofigRoutes");
 const CreateIndexRoute = require("./../createIndex");
 const HotelFilterRoutes = require("./hotelFitlerCategories");
+const RevenueReportRoute = require("./RevenueRoutes");
+const ReviewRoutes = require("../Reviews/ReviewsRoutes");
+const {
+  addToWishlist,
+  removeFromWishlist,
+} = require("../../Controllers/HotelControllers/WishlistController");
 
 // add the booking route
 router.use("/book", BookingRoutes);
 router.use("/room-confg", RoomConfigRoutes);
 router.use("/room-filter", HotelFilterRoutes);
 router.use("/index", CreateIndexRoute);
+router.use("/report", RevenueReportRoute);
+router.use("/review", ReviewRoutes);
 
 // add the hotel
 router.post("/register/:id", RegisterHotel);
@@ -76,7 +84,7 @@ router.get("/get/unaproved-hotels/:id", GetAllUnaprovedHotels);
 // get Approve or unapprove the hotel
 router.get("/get/approve/:id/:status", ApproveTheHotelByAdmin);
 // get approve or unapprove the hotel in bulk
-router.get("/get/approve-unapprove/:status",  ApproveAllhotelsinBulk);
+router.get("/get/approve-unapprove/:status", ApproveAllhotelsinBulk);
 // -------------------------------------- rooms APi --------------------------------------------------------
 
 // room added
@@ -104,5 +112,10 @@ router.get("/search-loc", GetSearchedLocationData);
 
 router.get("/city-wise/search");
 router.get("/search/hotels", SearchHotelApi);
+
+// Wishlist a hotel
+
+router.post("/wishlist/add", addToWishlist);
+router.post("/wishlist/remove", removeFromWishlist);
 
 module.exports = router;

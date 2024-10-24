@@ -9,7 +9,10 @@ const crypto = require("crypto");
 require("dotenv").config();
 // const fast2sms = require('fast-two-sms');
 const jwt = require("jsonwebtoken");
-const { EmailForResetLink } = require("../../Model/other/EmailFormats");
+const {
+  EmailForResetLink,
+  EmailForOTP,
+} = require("../../Model/other/EmailFormats");
 const VerificationModel = require("../../Model/other/VerificationModel");
 const {
   DeleteTheSingleVendor,
@@ -23,6 +26,8 @@ const { default: mongoose } = require("mongoose");
 const GenerateNotificatonsData = require("../../functions/GenerateNotificationsData");
 const { NotificationManagementQueue } = require("../../jobs");
 const { events } = require("../../config/notificationEvents");
+const { default: axios } = require("axios");
+const xml2js = require("xml2js");
 
 const AddVendor = async (req, res) => {
   const formData = req.body;
@@ -57,14 +62,14 @@ const AddVendor = async (req, res) => {
     }).save();
 
     // ================================ Notification System ===================================
-    const notifyData = await GenerateNotificatonsData({
+    const notifyData = GenerateNotificatonsData({
       partner: {
         ...result._doc,
         name: result._doc.name || result._doc.email || result._doc.mobileNo,
       },
       admin: {
         name: result._doc.name || result._doc.email || result._doc.mobileNo,
-        ...result._doc, // Fix the typo here
+        ...result._doc,
       },
     });
 
@@ -176,62 +181,218 @@ const VendorForgotPasword = async (req, res) => {
     return res.status(404).json({ error: true, message: "No User Found" });
 
   // generate the resetlink
-  const resetUrl = crypto.randomBytes(20).toString("hex");
+  // const resetUrl = crypto.randomBytes(20).toString("hex");
 
-  // store the link in the person db
-  isUser.resetLink = resetUrl;
-  isUser.resetDateExpire = Date.now() + 120000; // resetLink Valid only for 1 hour
+  // // store the link in the person db
+  // isUser.resetLink = resetUrl;
+  // isUser.resetDateExpire = Date.now() + 120000; // resetLink Valid only for 1 hour
+  // await isUser.save();
+
+  // Generate otp
+  const otp = crypto.randomInt(1000, 9999).toString();
+  const otpExpire = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+  // Send this otp via mail if isLoginWith is email else send with mobile
+
+  isUser.otp = otp;
+  isUser.otpExpire = otpExpire;
   await isUser.save();
-
   // prepare a mail to send reset mail
   const mailOptions = {
     from: process.env.SENDEREMAIL,
     to: req.body.email,
     subject: "Reset Password",
-    html: EmailForResetLink(
-      isUser.name,
-      `${req.header.origin}/reset-password/${resetUrl}`
-    ),
+    html: EmailForOTP(isUser.name, otp),
   };
 
-  // send Mail
-  const send = SendMail(mailOptions);
-  if (!send) return res.status(400).json("Email Not Sent");
+  const smsOptions = {
+    user: process.env.W_USER,
+    password: process.env.W_PASSWORD,
+    senderid: process.env.W_SENDERID,
+    mobiles: `+91${req.body.email}`,
+    sms: `${otp} is your account verification OTP. Treat this as confidential. Don't share this with anyone @www.hoteliorooms.com # (otp)`,
+  };
 
-  res.status(200).json("reset email sended successfully");
+  if (isLoginwith === "email") {
+    // Send Mail
+    const send = SendMail(mailOptions);
+    if (!send) {
+      return res.status(400).json({
+        error: true,
+        msg: "Email Not Sent",
+      });
+    }
+
+    return res.status(200).json({
+      error: false,
+      msg: `OTP sent successfully to ${req.body.email}`,
+    });
+  } else {
+    // Send sms
+    const queryString = Object.keys(smsOptions)
+      .map(
+        (key) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(smsOptions[key])}`
+      )
+      .join("&");
+
+    const response = await axios.get(`${process.env.W_URL}?${queryString}`);
+    const parser = new xml2js.Parser();
+    parser.parseString(response.data, (err, result) => {
+      if (err) {
+        return res.status(500).json({
+          error: true,
+          msg: "Error parsing SMS API response",
+        });
+      }
+
+      const status = result.smslist.sms[0].status[0];
+      const reason = result.smslist.sms[0].reason[0];
+
+      if (status === "error") {
+        return res.status(400).json({
+          error: true,
+          msg: `SMS Not Sent: ${reason}`,
+        });
+      }
+
+      return res.status(200).json({
+        error: false,
+        msg: `OTP sent successfully to ${req.body.email}`,
+      });
+    });
+  }
+};
+
+// Verify otp
+const VerifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
+  // Validate input
+  if (!email || !otp) {
+    return res
+      .status(400)
+      .json({ error: true, message: "All fields are required" });
+  }
+
+  // Check if the user is logging in with email or mobile number
+  const isLoginWith = isMobileNumber(email)
+    ? "mobileNo"
+    : isEmail(email)
+    ? "email"
+    : "Invalid Input";
+
+  if (isLoginWith === "Invalid Input") {
+    return res.status(400).json({
+      error: true,
+      message: "Please Enter a Valid Email or Mobile Number",
+    });
+  }
+
+  const credential = { [isLoginWith]: email };
+
+  // Find the user
+  const isUser = await VendorModel.findOne(credential);
+  if (!isUser) {
+    return res.status(404).json({ error: true, message: "No User Found" });
+  }
+
+  // Check if OTP is valid
+  if (isUser.otp !== otp || Date.now() > isUser.otpExpire) {
+    return res
+      .status(400)
+      .json({ error: true, message: "Invalid or Expired OTP" });
+  }
+
+  res.status(200).json({
+    error: false,
+    message: "OTP verified successfully",
+  });
+};
+
+// Reset password
+const VendorResetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  // Validate input
+  if (!email || !otp || !newPassword) {
+    return res
+      .status(400)
+      .json({ error: true, message: "All fields are required" });
+  }
+
+  // Check if the user is logging in with email or mobile number
+  const isLoginWith = isMobileNumber(email)
+    ? "mobileNo"
+    : isEmail(email)
+    ? "email"
+    : "Invalid Input";
+
+  if (isLoginWith === "Invalid Input") {
+    return res.status(400).json({
+      error: true,
+      message: "Please Enter a Valid Email or Mobile Number",
+    });
+  }
+
+  const credential = { [isLoginWith]: email };
+
+  // Find the user
+  const isUser = await VendorModel.findOne(credential);
+  if (!isUser) {
+    return res.status(404).json({ error: true, message: "No User Found" });
+  }
+
+  // Check if OTP is valid
+  if (isUser.otp !== otp || Date.now() > isUser.otpExpire) {
+    return res
+      .status(400)
+      .json({ error: true, message: "Invalid or Expired OTP" });
+  }
+
+  // Reset password
+  const hashPassword = EncryptPassword(newPassword);
+  isUser.password = hashPassword.hashedPassword;
+  isUser.secretKey = hashPassword.salt;
+  isUser.otp = null;
+  isUser.otpExpire = null;
+  await isUser.save();
+
+  res.status(200).json({
+    error: false,
+    message: "Password has been reset successfully",
+  });
 };
 
 // reset my password
 
-const VendorResetPassword = async (req, res) => {
-  const { resetLink, newPassword } = req.body;
+// const VendorResetPassword = async (req, res) => {
+//   const { resetLink, newPassword } = req.body;
 
-  // find user with reset Link
-  const user = await VendorModel.findOne({
-    resetLink: resetLink,
-    resetDateExpire: { $gt: new Date(Date.now()) },
-  });
-  if (!user)
-    return res
-      .status(400)
-      .json({ error: true, message: "Invalid or expired token'" });
+//   // find user with reset Link
+//   const user = await VendorModel.findOne({
+//     resetLink: resetLink,
+//     resetDateExpire: { $gt: new Date(Date.now()) },
+//   });
+//   if (!user)
+//     return res
+//       .status(400)
+//       .json({ error: true, message: "Invalid or expired token'" });
 
-  try {
-    // convert the password in encryptedway
-    const hashedPassword = EncryptPassword(newPassword);
-    // check the the reset time is expired or not
-    user.password = hashedPassword.hashedPassword;
-    user.secretKey = hashedPassword.salt;
-    user.resetLink = undefined;
-    user.resetDateExpire = undefined;
-    await user.save();
-    res
-      .status(200)
-      .json({ error: false, message: "password Changed Successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error });
-  }
-};
+//   try {
+//     // convert the password in encryptedway
+//     const hashedPassword = EncryptPassword(newPassword);
+//     // check the the reset time is expired or not
+//     user.password = hashedPassword.hashedPassword;
+//     user.secretKey = hashedPassword.salt;
+//     user.resetLink = undefined;
+//     user.resetDateExpire = undefined;
+//     await user.save();
+//     res
+//       .status(200)
+//       .json({ error: false, message: "password Changed Successfully" });
+//   } catch (error) {
+//     res.status(500).json({ error: error });
+//   }
+// };
 
 // delete al the user
 const DeleteVendors = async (req, res) => {
@@ -627,5 +788,6 @@ module.exports = {
   GetVendorById,
   GetVendorPasswordUpdate,
   GetVendorStatusUpdate,
+  VerifyOTP,
   // GetTheHotelBooking,
 };

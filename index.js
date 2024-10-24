@@ -1,4 +1,5 @@
 const express = require("express");
+const admin = require("firebase-admin");
 const { createServer } = require("http");
 const AppRoutes = require("./Routes/app");
 require("./jobs/worker/index");
@@ -9,7 +10,11 @@ const UserVerify = require("./middlewares/Reviews/VerifyUser");
 const app = express();
 const server = createServer(app);
 
-const port = process.env.ENV === "production" ? process.env.PORT : 3001 || 8080;
+const port = process.env.PORT || 8080;
+// const serviceAccount = require("hotelio-4eb3d-firebase-adminsdk-i2rph-5b189ed3ed.json");
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 app.use(cors());
 

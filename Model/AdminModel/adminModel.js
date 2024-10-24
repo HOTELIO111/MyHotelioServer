@@ -28,6 +28,7 @@ const schema = new mongoose.Schema(
     resetLink: String,
     resetDateExpires: Date,
     secretKey: String,
+    fcmToken: String,
   },
   {
     timestamps: true,

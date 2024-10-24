@@ -2,22 +2,30 @@ const { default: mongoose } = require("mongoose");
 const ReviewsModel = require("../../Model/Reviews/Reviews");
 const HotelModel = require("../../Model/HotelModel/hotelModel");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
+const Booking = require("../../Model/booking/bookingModel");
 
 // create Review api
 const CreateReview = async (req, res) => {
   const data = req.body;
   try {
-    const response = await new ReviewsModel({ ...data }).save();
-
-    const add_id_inHotel = await HotelModel.findByIdAndUpdate(response.hotel, {
-      $push: { reviews: response._id },
+    const booking = await Booking.findById(data.booking).lean();
+    const hotel = booking.hotel;
+    const customer = booking.customer;
+    const review = await ReviewsModel({
+      ...data,
+      customer,
+      hotel,
     });
-    if (!response && !add_id_inHotel)
-      return res
-        .status(400)
-        .json({ error: true, message: "please fill the required data" });
 
-    res.status(200).json({ error: false, message: "success", data: response });
+    const savedReview = await review.save();
+
+    await HotelModel.findByIdAndUpdate(savedReview.hotel, {
+      $push: { reviews: savedReview._id },
+    });
+
+    res
+      .status(200)
+      .json({ error: false, message: "Success", data: savedReview });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
@@ -25,18 +33,23 @@ const CreateReview = async (req, res) => {
 
 //  Update the review
 const UpdateTheReview = async (req, res) => {
-  const data = req.body;
   const { id } = req.params;
+  const data = req.body;
+
   try {
-    const response = await ReviewsModel.aggregate([
-      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+    const updatedReview = await ReviewsModel.findByIdAndUpdate(
+      id,
       { $set: data },
-    ]);
-    if (!response)
-      return res
-        .status(400)
-        .json({ error: true, message: "please Fill the required fields" });
-    res.status(200).json({ error: false, message: "success", data: response });
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedReview) {
+      return res.status(404).json({ error: true, message: "Review not found" });
+    }
+
+    res
+      .status(200)
+      .json({ error: false, message: "Success", data: updatedReview });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }

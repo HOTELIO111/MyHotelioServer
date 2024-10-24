@@ -42,6 +42,26 @@ class WalletSystem {
         },
       ]);
 
+      if (!findCustomerWallet) {
+        return { error: true, message: "Customer not found or wallet expired" };
+      }
+
+      // Calculate new wallet values
+      const newAmount = findCustomerWallet.wallet.amount + topupAmount;
+      const newExpireDate = new Date(findCustomerWallet.wallet.expire);
+      newExpireDate.setMonth(newExpireDate.getMonth() + validity);
+
+      const response = await CustomerAuthModel.findByIdAndUpdate(
+        customerid,
+        {
+          $set: {
+            "wallet.amount": newAmount,
+            "wallet.expire": newExpireDate,
+          },
+        },
+        { new: true }
+      );
+
       //   topup ka logic likho
       //   const monthDate =
 

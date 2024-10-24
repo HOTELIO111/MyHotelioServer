@@ -10,6 +10,7 @@ const { BookingQue, CancelWithOutPayment, RefundQueue } = require("../../jobs");
 const bookingIdGenerate = require("./bookingIdGenerator");
 const ManageCancellationsWithPolicy = require("../../helper/booking/CancellationsPolicy");
 const RefundModel = require("../../Model/booking/RefundModel");
+const { log } = require("handlebars");
 
 class BookingSystem {
   constructor() {}
@@ -242,6 +243,10 @@ class BookingSystem {
         cancellationDueDate:
           new Date(formdata.bookingDate.checkIn).getTime() -
           24 * 60 * 60 * 1000,
+        additionalCharges: {
+          gst: formdata.amount * (formdata.amount < 2500 ? 0.12 : 0.18),
+          serviceFee: 250,
+        },
       }).save();
       if (!created) return { error: true, message: "missing required data" };
 
@@ -299,6 +304,8 @@ class BookingSystem {
           paymentType,
         }
       );
+      // deducting 100rs from customer wallet ammount
+      await this.UpdateCustomer(this.bookingData.customer, {});
       // const paymentReg = formData;
       if (paymentReg.order_status === "Success") {
         return {

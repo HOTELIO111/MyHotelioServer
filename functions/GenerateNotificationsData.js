@@ -1,5 +1,4 @@
 const GenerateNotificatonsData = (data) => {
-  console.log(data);
   const generatedData = {
     customer: {
       ...data.customer,
@@ -26,7 +25,6 @@ const GenerateNotificatonsData = (data) => {
     },
   };
 
- 
   return generatedData;
 };
 

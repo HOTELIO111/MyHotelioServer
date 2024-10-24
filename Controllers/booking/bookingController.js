@@ -21,6 +21,7 @@ const BillingSystem = require("./billingSystem");
 const BookingSystem = require("./BookingSystem");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { default: mongoose } = require("mongoose");
+const { log } = require("handlebars");
 
 const RegisterBooking = async (req, res) => {
   const formData = req.body;
@@ -75,6 +76,16 @@ const GetBookings = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "An error occurred" });
   }
+};
+
+//get single booking by booking id
+const GetSingleBooking = async (req, res) => {
+  const { bookingId } = req.params;
+  let booking = await Booking.findOne({ bookingId: bookingId });
+  if (!booking) {
+    return res.status(404).json({ error: true, message: "No booking found" });
+  }
+  res.status(200).json(booking);
 };
 
 const GetDeleteBooking = async (req, res) => {
@@ -147,15 +158,16 @@ const CreatePreBooking = async (req, res) => {
     bookingData?.bookingDate?.checkIn,
     bookingData?.bookingDate?.checkOut
   );
-
+  
   if (bookingData?.numberOfRooms > roomCount.data) {
-    return res
+      return res
       .status(404)
       .json({ error: true, message: "Oops! Room not available" });
-  }
-  try {
-    const _bookingPre = await bookingHandler.CreatePreBooking(bookingData);
-
+    }
+    try {
+        const _bookingPre = await bookingHandler.CreatePreBooking(bookingData);
+        // console.log("bookingPre", _bookingPre);
+        
     if (_bookingPre.error) return res.status(400).json(_bookingPre);
 
     res
@@ -221,7 +233,7 @@ const CollectPaymentInfoAndConfirmBooking = async (req, res) => {
       });
     const bookingHandler = new BookingSystem();
     // Store the payment info
-    const booking = await bookingHandler.FinalizeBooking(formData);
+    const booking = await bookingHandler.FinalizeBooking(formData, paymentType);
 
     if (booking.error) return res.status(400).json(booking);
     res
@@ -322,6 +334,7 @@ const CalculateBilling = async (req, res) => {
     customer,
     agent,
     OfferId,
+    addWalletOffer = true,
   } = req.query;
   try {
     const billing = new BillingSystem(
@@ -335,7 +348,9 @@ const CalculateBilling = async (req, res) => {
       OfferId
     );
     await billing.GetRoomInfoAndOffer(roomid, OfferId);
-    await billing.customerWalletManage(customer);
+    if (addWalletOffer === "true") {
+      await billing.customerWalletManage(customer);
+    }
     const billingData = await billing.Calculate();
     if (billingData.error)
       return res
@@ -676,6 +691,7 @@ module.exports = {
   GetBookings,
   GetDeleteBooking,
   generateBookingId,
+  GetSingleBooking,
   CreatePreBooking,
   ConfirmBookingPayAtHotel,
   CollectPaymentInfoAndConfirmBooking,

@@ -53,6 +53,8 @@ const AddRoomType = async (req, res) => {
       roomType: req.body.roomType,
       price: req.body.price,
       prevPrice: req.body.prevPrice,
+      roomImages: req.body.roomImages || [],
+      description: req.body.description || "",
       status: req.body.status || true,
       additionAmenities: req.body.additionAmenities || [],
       additionalFacilties: req.body.additionalFacilties || [],
@@ -82,13 +84,104 @@ const GetAllRoomOfSingleHotel = async (req, res) => {
       .status(401)
       .json({ error: true, message: "Invalid Credentials" });
   try {
-    const data = await HotelModel.findById(hotelid ? hotelid : hotelId);
+    // const data = await HotelModel.findById(
+    //   hotelid ? hotelid : hotelId
+    // ).populate("rooms.roomType");
+    const currentHotelId = hotelid || hotelId;
+    const data = await HotelModel.aggregate([
+      {
+        $match: {
+          $expr: { $eq: ["$_id", { $toObjectId: currentHotelId }] },
+        },
+      },
+      {
+        $lookup: {
+          from: "room-categories",
+          localField: "rooms.roomType",
+          foreignField: "_id",
+          as: "roomTypeDetails",
+        },
+      },
+      {
+        $unwind: "$roomTypeDetails",
+      },
+      {
+        $lookup: {
+          from: "facilities",
+          localField: "roomTypeDetails.includeFacilities",
+          foreignField: "_id",
+          as: "facilityDetails",
+        },
+      },
+      {
+        $lookup: {
+          from: "amenities",
+          localField: "roomTypeDetails.amenties",
+          foreignField: "_id",
+          as: "amenityDetails",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          rooms: { $first: "$rooms" },
+          roomTypeDetails: {
+            $push: {
+              $mergeObjects: [
+                "$roomTypeDetails",
+                {
+                  facilityDetails: "$facilityDetails",
+                  amenityDetails: "$amenityDetails",
+                },
+              ],
+            },
+          },
+        },
+      },
+      {
+        $set: {
+          rooms: {
+            $map: {
+              input: "$rooms",
+              as: "room",
+              in: {
+                $mergeObjects: [
+                  "$$room",
+                  {
+                    roomInfo: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: "$roomTypeDetails",
+                            as: "roomTypeDetail",
+                            cond: {
+                              $eq: ["$$roomTypeDetail._id", "$$room.roomType"],
+                            },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          roomTypeDetails: 0,
+        },
+      },
+    ]);
+
     if (!data)
       return res.status(404).json({ error: true, message: "hotel not found" });
 
-    res
-      .status(200)
-      .json({ error: false, message: "success", data: data.rooms });
+    let rooms = data?.[0]?.rooms;
+
+    res.status(200).json({ error: false, message: "success", data: rooms });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
@@ -172,10 +265,12 @@ const GetSingleRoomAvailibility = async (req, res) => {
     //   },
     // ]);
 
-    res.status(200).json({ success: true, result: resultData });
+    res.status(200).json({ success: true, error: false, result: resultData });
   } catch (error) {
     console.error("Error in GetSingleRoomAvailability:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res
+      .status(500)
+      .json({ success: false, error: true, message: "Internal Server Error" });
   }
 };
 

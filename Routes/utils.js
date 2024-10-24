@@ -58,7 +58,8 @@ router.get("/s3/upload", async (req, res) => {
   if (
     fileExtension !== ".jpeg" &&
     fileExtension !== ".jpg" &&
-    fileExtension !== ".png"
+    fileExtension !== ".png" &&
+    fileExtension !== ".pdf"
   ) {
     return res
       .status(400)
@@ -71,7 +72,10 @@ router.get("/s3/upload", async (req, res) => {
   const command = new PutObjectCommand({
     Bucket: "hotelio-images",
     Key: GeneratePath,
-    ContentType: `image/${fileExtension.substr(1)}`,
+    ContentType:
+      fileExtension === ".pdf"
+        ? "application/pdf"
+        : `image/${fileExtension.slice(1)}`,
   });
 
   const UploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 120 });

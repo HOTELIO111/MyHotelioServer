@@ -13,6 +13,7 @@ const {
   GetUserhotelBookings,
   GetUserhotelBookingsAdmin,
   RefundTesting,
+  GetSingleBooking,
 } = require("../../Controllers/booking/bookingController");
 const {
   CheckBookingAvailability,
@@ -48,6 +49,9 @@ router.post("/create", CheckBookingAvailability, RegisterBooking);
 router.get("/cancel", CancleBooking);
 
 router.get("/get-booking", GetBookings);
+
+// get single booking by booking id
+router.get("/get-booking/:bookingId", GetSingleBooking);
 
 // delete all the booking
 router.get("/delete", GetDeleteBooking);

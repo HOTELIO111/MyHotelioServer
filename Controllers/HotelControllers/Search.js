@@ -8,6 +8,7 @@ const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
 const Booking = require("../../Model/booking/bookingModel");
 const PopularLocations = require("../../Model/popularLocations/Locations");
 const BookingSystem = require("../booking/BookingSystem");
+const RoomConfigModel = require("../../Model/HotelModel/RoomsConfigModel");
 
 // const GetSearchHotels = async (req, res) => {
 //   const {
@@ -144,54 +145,58 @@ const GetSearchHotels = async (req, res) => {
     amenities,
     payment,
     kmRadius,
-
-    page,
-    pageSize,
+    page = 1,
+    pageSize = 10,
     sort,
     fields,
   } = req.query;
+
   try {
     const skip = (page - 1) * pageSize;
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        throw new Error(`Invalid date format: ${dateString}`);
+      }
+      return date.toISOString();
+    };
 
     const amenitiesArray = amenities?.split(",");
 
-    // Room Filter
-    const roomFilter = (roomType) => {
-      let result;
-      if (!roomType) {
-        result = 1;
-      } else {
-        result = {
-          $filter: {
-            input: "$rooms",
-            as: "room",
-            cond: {
-              $eq: ["$$room.roomType", new mongoose.Types.ObjectId(roomType)],
-            },
-          },
-        };
-      }
-      return result;
-    };
+    // Validate and convert roomType to ObjectId if it exists
+    const roomTypeId =
+      roomType && mongoose.Types.ObjectId.isValid(roomType)
+        ? new mongoose.Types.ObjectId(roomType)
+        : null;
+    const hotelTypeId =
+      hotelType && mongoose.Types.ObjectId.isValid(hotelType)
+        ? new mongoose.Types.ObjectId(hotelType)
+        : null;
 
     const hotelIds = await RoomsTypeModel.find({
       amenties: { $all: amenitiesArray },
     }).distinct("_id");
 
-    const MatchCriteria = {
-      $text: { $search: location },
-    };
+    let MatchCriteria = {};
+
+    if (!lat && !lng) {
+      MatchCriteria = {
+        $text: { $search: `${location}` },
+      };
+    }
+
+    // Validate lat and lng
+    const parsedLat = parseFloat(lat);
+    const parsedLng = parseFloat(lng);
 
     const otherSearch = {
       $and: [
         MatchCriteria,
-        hotelType ? { hotelType: new mongoose.Types.ObjectId(hotelType) } : {},
-        priceMax && priceMin && roomType
+        hotelTypeId ? { hotelType: hotelTypeId } : {},
+        priceMax && priceMin && roomTypeId
           ? {
-              "rooms.roomType": new mongoose.Types.ObjectId(roomType),
+              "rooms.roomType": roomTypeId,
               "rooms.price": {
                 $gte: parseInt(priceMin),
                 $lte: parseInt(priceMax),
@@ -213,13 +218,16 @@ const GetSearchHotels = async (req, res) => {
               "rooms.roomType": { $in: hotelIds },
             }
           : {},
-        lat && lng
+        !isNaN(parsedLat) &&
+        !isNaN(parsedLng) &&
+        kmRadius &&
+        !isNaN(parseFloat(kmRadius))
           ? {
               "location.coordinates": {
                 $geoWithin: {
                   $centerSphere: [
-                    [parseFloat(lat), parseFloat(lng)], // Latitude and Longitude
-                    80 / 6371, // Radius in kilometers converted to radians
+                    [parsedLng, parsedLat],
+                    parseFloat(kmRadius) / 6371,
                   ],
                 },
               },
@@ -230,31 +238,43 @@ const GetSearchHotels = async (req, res) => {
 
     const Sorting = (sort) => {
       switch (sort) {
-        case "popularity":
-          return { score: { $meta: "textScore" } };
         case "ratings":
           return { hotelRatings: -1 };
         case "l2h":
-          return {
-            "rooms.price": 1,
-          };
+          return { "rooms.price": 1 };
         case "h2l":
-          return {
-            "rooms.price": -1,
-          };
+          return { "rooms.price": -1 };
         default:
-          return {};
+          return { hotelRatings: -1 };
       }
     };
 
     const response = await HotelModel.aggregate([
       { $match: otherSearch },
+      { $unwind: "$rooms" },
       {
         $lookup: {
           from: "room-categories",
           localField: "rooms.roomType",
           foreignField: "_id",
-          as: "roomsTypes",
+          as: "rooms.roomType",
+        },
+      },
+      { $unwind: "$rooms.roomType" },
+      {
+        $lookup: {
+          from: "facilities",
+          localField: "rooms.roomType.includeFacilities",
+          foreignField: "_id",
+          as: "rooms.includedFacilities",
+        },
+      },
+      {
+        $lookup: {
+          from: "amenities",
+          localField: "rooms.roomType.amenities",
+          foreignField: "_id",
+          as: "rooms.includedAmenities",
         },
       },
       {
@@ -263,6 +283,26 @@ const GetSearchHotels = async (req, res) => {
           localField: "hotelType",
           foreignField: "_id",
           as: "hotelType",
+        },
+      },
+      {
+        $lookup: {
+          from: "room-configs",
+          localField: "rooms._id",
+          foreignField: "roomid",
+          as: "rooms.roomConfigDetails",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          hotelData: { $first: "$$ROOT" },
+          rooms: { $push: "$rooms" },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: { $mergeObjects: ["$hotelData", { rooms: "$rooms" }] },
         },
       },
       { $unwind: "$hotelType" },
@@ -275,24 +315,25 @@ const GetSearchHotels = async (req, res) => {
                 hotelName: 1,
                 hotelEmail: 1,
                 hotelCoverImg: 1,
+                hotelImages: 1,
                 hotelType: 1,
                 hotelMapLink: 1,
                 locality: 1,
                 city: 1,
                 state: 1,
                 hotelRatings: 1,
+                address: 1,
+                checkIn: 1,
+                checkOut: 1,
                 rooms: {
                   $cond: {
-                    if: { $ifNull: [roomType, false] },
+                    if: { $ifNull: [roomTypeId, false] },
                     then: {
                       $filter: {
                         input: "$rooms",
                         as: "room",
                         cond: {
-                          $eq: [
-                            "$$room.roomType",
-                            new mongoose.Types.ObjectId(roomType),
-                          ],
+                          $eq: ["$$room.roomType", roomTypeId],
                         },
                       },
                     },
@@ -308,6 +349,9 @@ const GetSearchHotels = async (req, res) => {
                     },
                   },
                 },
+                amenities: 1,
+                facilities: 1,
+                rules: 1,
                 additionalAmenties: {
                   $reduce: {
                     input: "$rooms.additionAmenities",
@@ -315,7 +359,6 @@ const GetSearchHotels = async (req, res) => {
                     in: { $concatArrays: ["$$value", "$$this"] },
                   },
                 },
-                score: { $meta: "textScore" },
               },
             },
             { $sort: Sorting(sort) },
@@ -327,11 +370,15 @@ const GetSearchHotels = async (req, res) => {
       },
     ]);
 
-    if (!response)
+    if (!response || !response.length) {
       return res
         .status(400)
         .json({ error: true, message: "No Hotels Found At this Location" });
-    res.status(200).json({ error: false, data: response });
+    }
+
+    const { data, pagination } = response[0];
+
+    res.status(200).json({ error: false, data, pagination });
   } catch (error) {
     res.status(500).json({ error: true, error: error.message });
   }
