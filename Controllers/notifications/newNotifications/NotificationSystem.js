@@ -336,6 +336,7 @@ class NotificationSystem {
         if (userData?.button) {
           button = userData.button;
         }
+
         const recipient = userData.inAppId;
         const mood = "info";
         const sender = process.env.SERVERID;

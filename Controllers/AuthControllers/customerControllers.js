@@ -42,7 +42,7 @@ const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
 };
 
 const Authentication = async (req, res) => {
-  const { mobileNo, otp, password } = req.query;
+  const { mobileNo, otp, password, referVia } = req.query;
 
   // check the input is email or mobile no
   const isInput = verifyInput(mobileNo);
@@ -60,10 +60,17 @@ const Authentication = async (req, res) => {
     // create a new user
     if (!isOtpVerified)
       return res.status(401).json({ error: true, message: "Otp Invalid" });
-    user = await new CustomerAuthModel({
+
+    const newUser = {
       [isInput]: mobileNo,
       isVerified: [isInput],
-    }).save();
+    };
+
+    // Add referVia if it exists
+    if (referVia) {
+      newUser.referVia = referVia;
+    }
+    user = await new CustomerAuthModel(newUser).save();
     if (!user)
       return res
         .status(404)
@@ -71,7 +78,7 @@ const Authentication = async (req, res) => {
 
     const notifyData = await GenerateNotificatonsData({
       customer: {
-        ...user._doc, // Spread operator comes first to include all properties
+        ...user._doc,
         name: user._doc.name || user._doc.email || user._doc.mobileNo,
       },
       admin: {
@@ -96,6 +103,7 @@ const Authentication = async (req, res) => {
     res.header("Authorization", `Bearer ${token}`);
     return res.status(201).json({
       error: false,
+      isNewRegistered: true,
       data: user,
       message: "user created successfully",
       token: token,
@@ -118,7 +126,9 @@ const Authentication = async (req, res) => {
     const token = jwt.sign(jwtPayload, process.env.SECRET_CODE);
     // res.header("access-token", token)
     res.header("Authorization", `Bearer ${token}`);
-    res.status(200).json({ error: false, data: user, token: token });
+    res
+      .status(200)
+      .json({ error: false, isNewRegistered: false, data: user, token: token });
   } else {
     // For example, log an error or track failed login attempts
     return res
@@ -250,6 +260,7 @@ const GetAuthWIthGoogle = async (req, res) => {
 // signup
 const SignupUser = async (req, res) => {
   try {
+    const referalCode = req.query.referVia;
     // // lets validate the data
     // const { error, value } = SingupValidate(req.body);
     // if (error) return res.status(400).json(error.details[0].message);
@@ -259,8 +270,14 @@ const SignupUser = async (req, res) => {
     // if (isUserFound) return res.status(409).json("Email Already Registered")
 
     // check the mobile no is registered or not
+
     const isMobile = await CustomerAuthModel.findOne({
-      mobileNo: req.body.mobileNo,
+      $and: [
+        { mobileNo: req.body.mobileNo },
+        { mobileNo: { $exists: true } },
+        { mobileNo: { $ne: null } },
+        { mobileNo: { $ne: "" } },
+      ],
     });
     if (isMobile) return res.status(409).json("Mobile No Already Registered");
 
@@ -286,6 +303,8 @@ const SignupUser = async (req, res) => {
       // secretKey: hashPassword.salt,
       isNumberVerified: true,
     });
+
+    if (referalCode) formdata.referVia = referalCode;
 
     const saveData = await formdata.save();
     res.status(200).json(saveData);
@@ -860,9 +879,29 @@ const GetAllCustomerBookings = async (req, res) => {
 
 const GetAllCustomerBookingsWithFilter = async (req, res) => {
   const { customerid } = req.params;
-  const { from, to, status } = req.query;
+  const { from, to, status, sortby } = req.query;
   try {
+    let sortFilter = { _id: -1 };
     let otherFilter = {};
+    if (sortby) {
+      switch (sortby) {
+        case "time-asc":
+          sortFilter = { _id: 1 };
+          break;
+        case "time-desc":
+          sortFilter = { _id: -1 };
+          break;
+        case "price-asc":
+          sortFilter = { "payment.paidamount": 1 };
+          break;
+        case "price-desc":
+          sortFilter = { "payment.paidamount": -1 };
+          break;
+        default:
+          sortFilter = { _id: -1 };
+          break;
+      }
+    }
     if (from && to) {
       otherFilter.dateOfBooking = {
         $gte: new Date(from),
@@ -887,9 +926,13 @@ const GetAllCustomerBookingsWithFilter = async (req, res) => {
           as: "hotel",
         },
       },
+      {
+        $sort: sortFilter,
+      },
     ]);
-    res.status(200).json({ error: true, message: "success", data: response });
+    res.status(200).json({ error: false, message: "success", data: response });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: true, message: error.message });
   }
 };

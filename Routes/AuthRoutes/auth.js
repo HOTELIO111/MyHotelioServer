@@ -34,6 +34,7 @@ const {
   GetVendorPasswordUpdate,
   GetTheHotelBooking,
   GetVendorStatusUpdate,
+  VerifyOTP,
 } = require("../../Controllers/AuthControllers/vendorControllers");
 const {
   GetAddTheAdmin,
@@ -102,9 +103,9 @@ router.get("/set/recommend/:customerid", SetRecommendation);
 // vendor Login And Signup
 router.post("/vendor/signup", AddVendor);
 router.post("/vendor/login", VendorLogin);
-
 // vendor forgot password
 router.post("/vendor/forgot-password", VendorForgotPasword);
+router.post("/vendor/verify-otp", VerifyOTP);
 router.post("/vendor/reset-password", VendorResetPassword);
 // get all the vendor
 router.get("/vendor/getall", GetAllVendor);

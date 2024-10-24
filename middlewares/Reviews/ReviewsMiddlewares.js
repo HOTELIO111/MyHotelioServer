@@ -4,6 +4,11 @@ const ReviewsModel = require("../../Model/Reviews/Reviews");
 const DeleteReviewsMiddleWare = async (req, res, next) => {
   const { id } = req.params;
   try {
+    if (!id) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Review ID is required" });
+    }
     const _find = await ReviewsModel.findById(id);
     if (!_find)
       return res

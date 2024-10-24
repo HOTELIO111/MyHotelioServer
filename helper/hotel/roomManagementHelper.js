@@ -77,13 +77,18 @@ const GetSingleRoomAllBookings = async (
 
 const TotalRoomCount = async (
   roomid,
-  checkIn = "2023-01-01T12:00:00Z",
-  checkOut = "2023-01-01T14:00:00Z"
+  checkIn = new Date("1970-01-01T00:00:00Z"),
+  checkOut = new Date("2100-01-01T23:59:59Z")
 ) => {
   try {
-    // const response = await HotelModel.find({ "rooms._id": roomid });
+    // const responseold = await HotelModel.find({ "rooms._id": roomid });
+    const roomObjectId = new mongoose.Types.ObjectId(roomid);
     const response = await HotelModel.aggregate([
-      { $match: { "rooms._id": new mongoose.Types.ObjectId(roomid) } },
+      {
+        $match: {
+          "rooms._id": new mongoose.Types.ObjectId(roomid),
+        },
+      },
       {
         $lookup: {
           from: "room-configs",
@@ -140,7 +145,9 @@ const TotalRoomCount = async (
       },
       {
         $project: {
-          TotalRooms: "$totalRooms.counts",
+          TotalRooms: {
+            $ifNull: ["$totalRooms.counts", 0],
+          },
           decreasedRoom: {
             $let: {
               vars: {
@@ -157,7 +164,9 @@ const TotalRoomCount = async (
                   ],
                 },
               },
-              in: "$$filteredRoom.totalRooms",
+              in: {
+                $ifNull: ["$$filteredRoom.totalRooms", 0],
+              },
             },
           },
           increasedRoom: {
@@ -176,12 +185,173 @@ const TotalRoomCount = async (
                   ],
                 },
               },
-              in: "$$filteredRoom.totalRooms",
+              in: {
+                $ifNull: ["$$filteredRoom.totalRooms", 0],
+              },
             },
           },
         },
       },
     ]);
+
+    // const testingReponse = await HotelModel.aggregate([
+    //   {
+    //     $unwind: "$rooms",
+    //   },
+    //   {
+    //     $match: {
+    //       "rooms._id": roomObjectId,
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "room-configs",
+    //       localField: "rooms._id",
+    //       foreignField: "roomid",
+    //       pipeline: [
+    //         {
+    //           $match: {
+    //             roomid: roomObjectId,
+    //             $or: [
+    //               {
+    //                 $and: [
+    //                   { from: { $gte: new Date(checkIn) } },
+    //                   { from: { $lte: new Date(checkOut) } },
+    //                 ],
+    //               },
+    //               {
+    //                 $and: [
+    //                   { to: { $gte: new Date(checkIn) } },
+    //                   { to: { $lte: new Date(checkOut) } },
+    //                 ],
+    //               },
+    //             ],
+    //           },
+    //         },
+    //         {
+    //           $group: {
+    //             _id: "$will",
+    //             roomid: { $first: "$roomid" },
+    //             totalRooms: { $sum: "$rooms" },
+    //           },
+    //         },
+    //       ],
+    //       as: "roomconfig",
+    //     },
+    //   },
+    // ]);
+
+    // console.log(testingReponse);
+
+    // const CompleteReponse = await HotelModel.aggregate([
+    //   {
+    //     $unwind: "$rooms",
+    //   },
+    //   {
+    //     $match: {
+    //       "rooms._id": roomObjectId,
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "room-configs",
+    //       localField: "rooms._id",
+    //       foreignField: "roomid",
+    //       pipeline: [
+    //         {
+    //           $match: {
+    //             roomid: roomObjectId,
+    //             $or: [
+    //               {
+    //                 $and: [
+    //                   { from: { $gte: new Date(checkIn) } },
+    //                   { from: { $lte: new Date(checkOut) } },
+    //                 ],
+    //               },
+    //               {
+    //                 $and: [
+    //                   { to: { $gte: new Date(checkIn) } },
+    //                   { to: { $lte: new Date(checkOut) } },
+    //                 ],
+    //               },
+    //             ],
+    //           },
+    //         },
+    //         {
+    //           $group: {
+    //             _id: "$will",
+    //             roomid: { $first: "$roomid" },
+    //             totalRooms: { $sum: "$rooms" },
+    //           },
+    //         },
+    //       ],
+    //       as: "roomconfig",
+    //     },
+    //   },
+    //   { $unwind: "$roomconfig" },
+    //   {
+    //     $group: {
+    //       _id: "$_id",
+    //       totalRooms: { $sum: "$roomconfig.totalRooms" },
+    //       decreasedRooms: {
+    //         $sum: {
+    //           $cond: [
+    //             { $eq: ["$roomconfig._id", "dec"] },
+    //             "$roomconfig.totalRooms",
+    //             0,
+    //           ],
+    //         },
+    //       },
+    //       increasedRooms: {
+    //         $sum: {
+    //           $cond: [
+    //             { $eq: ["$roomconfig._id", "inc"] },
+    //             "$roomconfig.totalRooms",
+    //             0,
+    //           ],
+    //         },
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 0,
+    //       totalRooms: { $ifNull: ["$totalRooms", 0] },
+    //       decreasedRooms: { $ifNull: ["$decreasedRooms", 0] },
+    //       increasedRooms: { $ifNull: ["$increasedRooms", 0] },
+    //     },
+    //   },
+    //   // {
+    //   //   $addFields: {
+    //   //     totalRooms: {
+    //   //       $arrayElemAt: [
+    //   //         {
+    //   //           $filter: {
+    //   //             input: "$roomConfig",
+    //   //             as: "roominfo",
+    //   //             cond: {
+    //   //               $eq: ["$$roominfo._id", "dec"],
+    //   //             },
+    //   //           },
+    //   //         },
+    //   //         0,
+    //   //       ],
+    //   //     },
+    //   //     increasedRoom: {
+    //   //       $arrayElemAt: [
+    //   //         {
+    //   //           $filter: {
+    //   //             input: "$roomconfig",
+    //   //             as: "roominfo",
+    //   //             cond: { $eq: ["$$roominfo._id", "inc"] },
+    //   //           },
+    //   //         },
+    //   //         0,
+    //   //       ],
+    //   //     },
+    //   //   },
+    //   // },
+    // ]);
 
     return response;
   } catch (error) {

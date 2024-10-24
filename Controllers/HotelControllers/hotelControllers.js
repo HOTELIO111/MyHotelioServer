@@ -109,7 +109,7 @@ const GetAllHotel = async (req, res) => {
       .limit(limit);
     if (!AllData)
       return res.status(400).json({ error: true, message: "No Data Found" });
-    res.status(200).json({ error: true, data: AllData });
+    res.status(200).json({ error: false, data: AllData });
   } catch (error) {
     res.status(500).json({ error });
   }
@@ -266,7 +266,6 @@ const GetSingleHotelDataNew = async (req, res) => {
                 ],
               },
             },
-            // Yha pe Room Calculation baki hai wo kro uske baad booking ka caculated nikalo then sab ok hai
           ],
           as: "roomCountData",
         },
@@ -338,6 +337,9 @@ const GetSingleHotelDataNew = async (req, res) => {
           country: 1,
           zipCode: 1,
           location: 1,
+          amenities: 1,
+          facilities: 1,
+          rules: 1,
           rooms: {
             $map: {
               input: "$rooms",
@@ -348,7 +350,7 @@ const GetSingleHotelDataNew = async (req, res) => {
                     {
                       $sum: {
                         $subtract: [
-                          { $toInt: "$$room.counts" }, // Convert to integer if not already
+                          { $toInt: "$$room.counts" },
                           {
                             $let: {
                               vars: {
@@ -474,6 +476,8 @@ const GetSingleHotelDataNew = async (req, res) => {
                     0,
                   ],
                 },
+                roomImages: "$$room.roomImages",
+                description: "$$room.description",
                 price: {
                   roomPrice: "$$room.price",
                   offer: {
@@ -543,7 +547,9 @@ const GetSingleHotelDataNew = async (req, res) => {
       },
     ]);
 
-    res.status(200).json({ error: false, message: "success", data: _hotel });
+    res
+      .status(200)
+      .json({ error: false, message: "success", data: _hotel, newData: true });
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
@@ -554,7 +560,7 @@ const UpdateHotelData = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const isUser = await HotelModel.find({ _id: id });
+    const isUser = await HotelModel.findOne({ _id: id });
     if (!isUser)
       return res.status(404).json({ error: true, message: "No Data Found" });
     // Find the hotel
@@ -562,7 +568,7 @@ const UpdateHotelData = async (req, res) => {
       id,
       {
         ...req.body,
-        hotelEmail: isUser[0].hotelEmail,
+        hotelEmail: isUser.hotelEmail,
       },
       { new: true }
     );
@@ -797,6 +803,8 @@ const GetSearchTheHotelList = async (req, res) => {
 
   let search = {};
   const sortFilter = {};
+  const checkInDate = new Date(checkIn);
+  const checkOutDate = new Date(checkOut);
 
   // location split =
 
@@ -850,6 +858,15 @@ const GetSearchTheHotelList = async (req, res) => {
     const enumValues = Object.values(allAmenities.keys);
     search["rooms.roomType"] = { $in: enumValues[0] };
   }
+
+  search.blacklistedDates = {
+    $not: {
+      $elemMatch: {
+        $gte: checkInDate,
+        $lte: checkOutDate,
+      },
+    },
+  };
 
   // Check-in and checkout
   if (checkIn && checkOut) {

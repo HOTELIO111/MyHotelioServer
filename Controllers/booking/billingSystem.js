@@ -45,7 +45,7 @@ class BillingSystem {
     };
     this.gstCharge = function () {
       let charge;
-      if (this.totalRoomAmount() > 7500) {
+      if (this.totalRoomAmount() > 2500) {
         charge = 18;
       } else {
         charge = 12;
@@ -177,8 +177,10 @@ class BillingSystem {
             customerWallet: {
               $cond: {
                 if: {
-                  $gte: ["$wallet.amount", 0],
-                  $gte: ["$wallet.amount", 100],
+                  $and: [
+                    { $gte: ["$wallet.amount", 0] },
+                    { $gte: ["$wallet.amount", 100] },
+                  ],
                 },
                 then: 100,
                 else: "$wallet.amount",
@@ -217,12 +219,12 @@ class BillingSystem {
       const discountedAmount = this.customerwallet + this.discountAmount();
       const priceAfterDiscount = this.totalRoomAmount() - discountedAmount;
       const taxAndServices = [
-        { type: "Service Fee", amount: this.serviceCharge },
         {
           type: "Hotel GST",
           amount: this.gstAmount(),
           percentage: `${this.gstCharge()}%`,
         },
+        { type: "Other Taxes", amount: this.serviceCharge },
       ];
       const totalTaxAndServiceAmount = this.serviceCharge + this.gstAmount();
       const totalAmountToPay = priceAfterDiscount + totalTaxAndServiceAmount;

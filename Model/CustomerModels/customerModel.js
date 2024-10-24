@@ -1,4 +1,9 @@
 const mongoose = require("mongoose");
+const crypto = require("crypto");
+
+function generateReferralCode() {
+  return crypto.randomBytes(3).toString("hex").toUpperCase();
+}
 
 const schema = new mongoose.Schema(
   {
@@ -7,7 +12,6 @@ const schema = new mongoose.Schema(
     },
     name: {
       type: String,
-      // required: true
     },
     email: {
       type: String,
@@ -34,7 +38,7 @@ const schema = new mongoose.Schema(
     wallet: {
       amount: {
         type: Number,
-        default: 999,
+        default: 0,
       },
       expire: {
         type: Date,
@@ -62,11 +66,27 @@ const schema = new mongoose.Schema(
     resetLink: String,
     resetDateExpires: Date,
     secretKey: String,
+
+    referralCode: {
+      type: String,
+      unique: true,
+    },
+    referVia: {
+      type: String,
+    },
+    fcmToken: String,
   },
   {
     timestamps: true,
   }
 );
+
+schema.pre("save", async function (next) {
+  if (this.isNew && !this.referralCode) {
+    this.referralCode = generateReferralCode();
+  }
+  next();
+});
 
 const CustomerAuthModel = mongoose.model("customers", schema);
 

@@ -18,6 +18,8 @@ const {
 const { verifyInput } = require("../utils");
 const jwt = require("jsonwebtoken");
 
+const crypto = require("crypto");
+
 const RegisterAgent = async (req, res) => {
   const data = req.body;
   try {
@@ -146,9 +148,9 @@ const ForgotPasswordAgent = async (req, res) => {
     // Prepare email content for sending the reset link
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
-      to: req.body.email,
+      to: email,
       subject: "Password Reset",
-      html: EmailTemplateForResetLink(
+      html: EmailForResetLink(
         user.name,
         `${req.headers.origin}/reset-password/${resetToken}`
       ),

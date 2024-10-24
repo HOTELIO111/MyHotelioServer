@@ -6,11 +6,13 @@ const ValidateBookingQuery = (req, res, next) => {
     //   bookingId: Joi.string().required(),
     room: Joi.objectId(),
     hotel: Joi.objectId(),
-    guest: Joi.object({
-      name: Joi.string().required(),
-      email: Joi.string().email().required(),
-      mobileNo: Joi.number().min(10).required(),
-    }),
+    // guest: Joi.object({
+    //   name: Joi.string().required(),
+    //   email: Joi.string().email().required(),
+    //   mobileNo: Joi.number().min(10).required(),
+    // }),
+    guest: Joi.object(),
+    merchant_param1: Joi.string().optional(),
     bookingDate: Joi.object({
       checkIn: Joi.string().required(),
       checkOut: Joi.string().required(),
@@ -43,6 +45,8 @@ const ValidateBookingQuery = (req, res, next) => {
   });
 
   const { error } = bookingSchema.validate(req.body);
+
+  console.log(error);
   if (error) {
     return res
       .status(400)
