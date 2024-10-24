@@ -1,7 +1,4 @@
-var http = require("http"),
-  fs = require("fs"),
-  ccav = require("./ccavutils"),
-  qs = require("querystring");
+const ccav = require("./ccavutils");
 const { Gateway } = require("../../config/config");
 
 exports.postReq = function (request, response) {

@@ -879,9 +879,29 @@ const GetAllCustomerBookings = async (req, res) => {
 
 const GetAllCustomerBookingsWithFilter = async (req, res) => {
   const { customerid } = req.params;
-  const { from, to, status } = req.query;
+  const { from, to, status, sortby } = req.query;
   try {
+    let sortFilter = { _id: -1 };
     let otherFilter = {};
+    if (sortby) {
+      switch (sortby) {
+        case "time-asc":
+          sortFilter = { _id: 1 };
+          break;
+        case "time-desc":
+          sortFilter = { _id: -1 };
+          break;
+        case "price-asc":
+          sortFilter = { "payment.paidamount": 1 };
+          break;
+        case "price-desc":
+          sortFilter = { "payment.paidamount": -1 };
+          break;
+        default:
+          sortFilter = { _id: -1 };
+          break;
+      }
+    }
     if (from && to) {
       otherFilter.dateOfBooking = {
         $gte: new Date(from),
@@ -906,9 +926,13 @@ const GetAllCustomerBookingsWithFilter = async (req, res) => {
           as: "hotel",
         },
       },
+      {
+        $sort: sortFilter,
+      },
     ]);
-    res.status(200).json({ error: true, message: "success", data: response });
+    res.status(200).json({ error: false, message: "success", data: response });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: true, message: error.message });
   }
 };
