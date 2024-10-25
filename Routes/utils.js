@@ -1,23 +1,22 @@
 const multer = require("multer");
 require("dotenv").config();
-const {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} = require("@aws-sdk/client-s3");
+const { BlobServiceClient } = require("@azure/storage-blob");
 const router = require("express").Router();
 const fs = require("fs");
 const path = require("path");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { default: axios } = require("axios");
 
-const s3Client = new S3Client({
-  region: process.env.REGION,
-  credentials: {
-    accessKeyId: process.env.ACCESSKEY,
-    secretAccessKey: process.env.SECRETACCESSKEY,
-  },
-});
+const AZURE_STORAGE_CONNECTION_STRING =
+  process.env.AZURE_STORAGE_CONNECTION_STRING;
+if (!AZURE_STORAGE_CONNECTION_STRING) {
+  throw new Error("AZURE_STORAGE_CONNECTION_STRING is missing");
+}
+const blobServiceClient = BlobServiceClient.fromConnectionString(
+  AZURE_STORAGE_CONNECTION_STRING
+);
+const serverImagesContainerClient = blobServiceClient.getContainerClient(
+  "server-images-container"
+);
 
 const newStorage = multer.memoryStorage();
 
@@ -69,14 +68,19 @@ router.get("/s3/upload", async (req, res) => {
   // Generate the file Name And Path
   const GeneratePath = `${id}/${Date.now()}-${fileName}`;
 
-  const command = new PutObjectCommand({
-    Bucket: "hotelio-images",
-    Key: GeneratePath,
-    ContentType:
-      fileExtension === ".pdf"
-        ? "application/pdf"
-        : `image/${fileExtension.slice(1)}`,
-  });
+  // creating a new blob client for the image
+  const imageBlobClient = serverImagesContainerClient.getBlockBlobClient(GeneratePath);
+
+    // Upload the image to the blob
+
+  //   const command = new PutObjectCommand({
+  //     Bucket: "hotelio-images",
+  //     Key: GeneratePath,
+  //     ContentType:
+  //       fileExtension === ".pdf"
+  //         ? "application/pdf"
+  //         : `image/${fileExtension.slice(1)}`,
+  //   });
 
   const UploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 120 });
 
@@ -129,23 +133,10 @@ router.post(
     try {
       const generatePath = `${Date.now()}-${fileName}`;
 
-      const command = new PutObjectCommand({
-        Bucket: "hotelio-images",
-        Key: generatePath,
-        ContentType: file ? file.mimetype : "application/octet-stream",
-      });
+      const fileBlobClient = serverImagesContainerClient.getBlockBlobClient(generatePath)
+      const fileUploadResponse = await fileBlobClient.upload(file.buffer, file.size);
 
-      const uploadUrl = await getSignedUrl(s3Client, command, {
-        expiresIn: 120,
-      });
-
-      const _uploadIt = await axios.put(uploadUrl, file.buffer, {
-        headers: {
-          "Content-Type": file.mimetype,
-        },
-      });
-
-      if (_uploadIt.status !== 200)
+      if( fileUploadResponse._response.status !== 201)
         return res
           .status(400)
           .json({ error: true, message: "Failed to upload file" });
@@ -153,7 +144,7 @@ router.post(
       res.status(200).json({
         error: false,
         message: "Success",
-        fileName: `https://hotelio-images.s3.ap-south-1.amazonaws.com/${generatePath}`,
+        fileName: fileUploadResponse._response.request.url,
       });
     } catch (error) {
       res.status(500).json({ error: true, message: error.message });
