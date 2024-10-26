@@ -1,6 +1,10 @@
 const multer = require("multer");
 require("dotenv").config();
-const { BlobServiceClient } = require("@azure/storage-blob");
+const {
+  BlobServiceClient,
+  generateBlobSASQueryParameters,
+  ContainerSASPermissions,
+} = require("@azure/storage-blob");
 const router = require("express").Router();
 const fs = require("fs");
 const path = require("path");
@@ -41,6 +45,22 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 const storeMemory = multer({ storage: newStorage });
 
+// a function to generate SAS URL for the given container and file name
+async function generateSasUrl(containerClient, fileName) {
+  const sasToken = generateBlobSASQueryParameters(
+    {
+      containerName: containerClient.containerName,
+      blobName: fileName,
+      permissions: ContainerSASPermissions.parse("racwd"),
+      startsOn: new Date(),
+      expiresOn: new Date(new Date().valueOf() + 300 * 1000), // 5 min expiry
+    },
+    blobServiceClient.credential
+  ).toString();
+
+  return `${containerClient.url}/${fileName}?${sasToken}`;
+}
+
 router.post("/uploadfile/:folder", upload.single("myfile"), (req, res) => {
   const fileName = req.file.filename;
   res.status(200).json({
@@ -49,79 +69,69 @@ router.post("/uploadfile/:folder", upload.single("myfile"), (req, res) => {
   });
 });
 
-router.get("/s3/upload", async (req, res) => {
-  const { id, fileName } = req.query;
-  const fileExtension = path.extname(fileName).toLowerCase();
-
-  // Check if the file extension is one of the accepted formats
-  if (
-    fileExtension !== ".jpeg" &&
-    fileExtension !== ".jpg" &&
-    fileExtension !== ".png" &&
-    fileExtension !== ".pdf"
-  ) {
-    return res
-      .status(400)
-      .json({ error: true, message: "Unsupported file format" });
-  }
-
-  // Generate the file Name And Path
-  const GeneratePath = `${id}/${Date.now()}-${fileName}`;
-
-  // creating a new blob client for the image
-  const imageBlobClient = serverImagesContainerClient.getBlockBlobClient(GeneratePath);
-
-    // Upload the image to the blob
-
-  //   const command = new PutObjectCommand({
-  //     Bucket: "hotelio-images",
-  //     Key: GeneratePath,
-  //     ContentType:
-  //       fileExtension === ".pdf"
-  //         ? "application/pdf"
-  //         : `image/${fileExtension.slice(1)}`,
-  //   });
-
-  const UploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 120 });
-
-  res.status(200).json({
-    error: false,
-    url: UploadUrl,
-    UploadedPath: GeneratePath,
-    UploadedUrl: `https://hotelio-images.s3.ap-south-1.amazonaws.com/${GeneratePath}`,
-  });
+router.get("/azure/getsasurl", async (req, res) =>{
+    const { fileName } = req.query;
+    const sasUrl = await generateSasUrl(serverImagesContainerClient, fileName);
+    res.status(200).json({ sasUrl });
 });
 
-// function to genereate objurl
-async function GetSignedUrlOfImage(key) {
-  const command = new GetObjectCommand({
-    Bucket: "hotelio-images",
-    Key: key,
-  });
+// router.get("/s3/upload", async (req, res) => {
+//   const { id, fileName } = req.query;
+//   const fileExtension = path.extname(fileName).toLowerCase();
 
-  try {
-    // Get signed URL
-    const url = await getSignedUrl(s3Client, command);
-    return url;
-  } catch (error) {
-    throw error; // Rethrow the error for proper handling in the route handler
-  }
-}
+//   // Check if the file extension is one of the accepted formats
+//   if (
+//     fileExtension !== ".jpeg" &&
+//     fileExtension !== ".jpg" &&
+//     fileExtension !== ".png" &&
+//     fileExtension !== ".pdf"
+//   ) {
+//     return res
+//       .status(400)
+//       .json({ error: true, message: "Unsupported file format" });
+//   }
 
-router.get("/s3/signedurl", async (req, res) => {
-  try {
-    const { key } = req.query;
+//   // Generate the file Name And Path
+//   const GeneratePath = `${id}/${Date.now()}-${fileName}`;
 
-    const imgUrl = await GetSignedUrlOfImage(key);
+//   // creating a new blob client for the image
+//   const imageBlobClient = serverImagesContainerClient.getBlockBlobClient(GeneratePath);
 
-    res.status(200).json({ error: false, url: imgUrl });
-  } catch (error) {
-    console.error("Error generating signed URL:", error);
-    res
-      .status(500)
-      .json({ error: true, message: "Error generating signed URL" });
-  }
-});
+//     // Upload the image to the blob
+
+//   //   const command = new PutObjectCommand({
+//   //     Bucket: "hotelio-images",
+//   //     Key: GeneratePath,
+//   //     ContentType:
+//   //       fileExtension === ".pdf"
+//   //         ? "application/pdf"
+//   //         : `image/${fileExtension.slice(1)}`,
+//   //   });
+
+//   const UploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 120 });
+
+//   res.status(200).json({
+//     error: false,
+//     url: UploadUrl,
+//     UploadedPath: GeneratePath,
+//     UploadedUrl: `https://hotelio-images.s3.ap-south-1.amazonaws.com/${GeneratePath}`,
+//   });
+// });
+
+// router.get("/s3/signedurl", async (req, res) => {
+//   try {
+//     const { key } = req.query;
+
+//     const imgUrl = await GetSignedUrlOfImage(key);
+
+//     res.status(200).json({ error: false, url: imgUrl });
+//   } catch (error) {
+//     console.error("Error generating signed URL:", error);
+//     res
+//       .status(500)
+//       .json({ error: true, message: "Error generating signed URL" });
+//   }
+// });
 
 router.post(
   "/upload/file/directly",
@@ -133,10 +143,14 @@ router.post(
     try {
       const generatePath = `${Date.now()}-${fileName}`;
 
-      const fileBlobClient = serverImagesContainerClient.getBlockBlobClient(generatePath)
-      const fileUploadResponse = await fileBlobClient.upload(file.buffer, file.size);
+      const fileBlobClient =
+        serverImagesContainerClient.getBlockBlobClient(generatePath);
+      const fileUploadResponse = await fileBlobClient.upload(
+        file.buffer,
+        file.size
+      );
 
-      if( fileUploadResponse._response.status !== 201)
+      if (fileUploadResponse._response.status !== 201)
         return res
           .status(400)
           .json({ error: true, message: "Failed to upload file" });
