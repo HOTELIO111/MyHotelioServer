@@ -153,12 +153,27 @@ const bookingSchema = new mongoose.Schema(
 
 bookingSchema.pre("save", function (next) {
   // calculate the total amount = amount + gst + service fee - discount
-  this.totalAmount =
-    this.amount + this.additionalCharges.gst +
-    this.additionalCharges.serviceFee -
-    this.discountInfo.reduce((acc, item) => acc + item.amount, 0);
-    // console.log("booking created",this.totalAmount, "amount", this.amount, "gst", this.additionalCharges.gst, "service fee", this.additionalCharges.serviceFee, "discount", this.discountInfo.reduce((acc, item) => acc + item.amount, 0));
-    
+  this.totalAmount = Math.round(
+    this.amount +
+      this.additionalCharges.gst +
+      this.additionalCharges.serviceFee -
+      this.discountInfo.reduce((acc, item) => acc + item.amount, 0)
+  );
+//   console.log(
+//     "booking created",
+//     this.totalAmount,
+//     "amount",
+//     this.amount,
+//     "gst",
+//     this.additionalCharges.gst,
+//     "service fee",
+//     this.additionalCharges.serviceFee,
+//     "discount",
+//     this.discountInfo.reduce((acc, item) => acc + item.amount, 0),
+//     "discount info",
+//     this.discountInfo
+//   );
+
   next();
 });
 

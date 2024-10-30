@@ -10,7 +10,7 @@ if (process.env.ENV !== "production") {
   };
 }
 
-const redisConnection = new Redis(redisConfig);
+const redisConnection = new Redis(redisConfig, { maxRetriesPerRequest: null });
 
 redisConnection.on("connect", () => {
   console.log("Connected to Redis");

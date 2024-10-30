@@ -305,7 +305,7 @@ class BookingSystem {
         }
       );
       // deducting 100rs from customer wallet ammount
-      await this.UpdateCustomer(this.bookingData.customer, {});
+      await this.UpdateCustomer(this.bookingData.customer, {$inc: {"wallet.amount": -100}});
       // const paymentReg = formData;
       if (paymentReg.order_status === "Success") {
         return {

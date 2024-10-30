@@ -7,10 +7,6 @@ const {
   dynamicPageTitle,
 } = require("./templates");
 const Booking = require("../../Model/booking/bookingModel");
-const {
-  GetTheSingleBookingPopulated,
-} = require("../../helper/booking/bookingHelper");
-const { default: mongoose } = require("mongoose");
 require("dotenv").config();
 
 class HandleResponse {

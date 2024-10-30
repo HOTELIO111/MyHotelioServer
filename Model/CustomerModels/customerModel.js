@@ -38,7 +38,7 @@ const schema = new mongoose.Schema(
     wallet: {
       amount: {
         type: Number,
-        default: 0,
+        default: 999,
       },
       expire: {
         type: Date,
