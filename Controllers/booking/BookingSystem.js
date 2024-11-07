@@ -10,7 +10,7 @@ const { BookingQue, CancelWithOutPayment, RefundQueue } = require("../../jobs");
 const bookingIdGenerate = require("./bookingIdGenerator");
 const ManageCancellationsWithPolicy = require("../../helper/booking/CancellationsPolicy");
 const RefundModel = require("../../Model/booking/RefundModel");
-const { log } = require("handlebars");
+const smsService = require("../notifications/sms/smsService");
 
 class BookingSystem {
   constructor() {}
@@ -220,6 +220,7 @@ class BookingSystem {
       return { error: true, message: error.message };
     }
   }
+
   async UpdateHotel(hotelid, updateFields, options = {}) {
     try {
       const id = hotelid ? { _id: hotelid } : {};
@@ -294,6 +295,9 @@ class BookingSystem {
       await this.GetbookingData(formdata.order_id);
     }
     try {
+      if (formdata.paymentStatus === "Success") {
+        this.NotificationHandler("paymentConfirmation");
+      }
       // store the payment
       const paymentReg = await CreateThePaymentInfo(formdata);
       // add the booking in Booking Que for other Steps
@@ -305,7 +309,9 @@ class BookingSystem {
         }
       );
       // deducting 100rs from customer wallet ammount
-      await this.UpdateCustomer(this.bookingData.customer, {$inc: {"wallet.amount": -100}});
+      await this.UpdateCustomer(this.bookingData.customer, {
+        $inc: { "wallet.amount": -100 },
+      });
       // const paymentReg = formData;
       if (paymentReg.order_status === "Success") {
         return {
@@ -420,7 +426,7 @@ class BookingSystem {
         }),
       ]);
       // now send the notification
-      this.NotificationHandler();
+      this.NotificationHandler("bookingConfirmation");
       return {
         error: false,
         message: "success",
@@ -430,6 +436,7 @@ class BookingSystem {
       return { error: true, message: error.message };
     }
   }
+
   async BookingFailed() {
     try {
       const findBookingAndUpdate = await Booking.findOneAndUpdate(
@@ -446,13 +453,14 @@ class BookingSystem {
         }
       );
       // now send the notification
-      this.NotificationHandler();
+      this.NotificationHandler("bookingFailed");
       return { error: false, booking: findBookingAndUpdate };
     } catch (error) {
       console.error("Error updating booking confirmation:", error.message);
       return { error: true, message: error.message };
     }
   }
+
   async BookingPayAtHotel() {
     try {
       const findTheBookingAndUpdate = await Booking.findOneAndUpdate(
@@ -463,9 +471,9 @@ class BookingSystem {
           bookingStatus: "confirmed",
           payment: {
             paymentType: "pay-at-hotel",
-            totalamount: this.bookingData.amount,
+            totalamount: this.bookingData.totalAmount,
             paidamount: 0,
-            balanceAmt: this.bookingData.amount,
+            balanceAmt: this.bookingData.totalAmount,
           },
         }
       );
@@ -474,7 +482,7 @@ class BookingSystem {
       });
       if (response.error) return { error: true, message: response.message };
       // now send the notification
-      this.NotificationHandler();
+      this.NotificationHandler("bookingConfirmation");
       return { error: false, booking: findTheBookingAndUpdate };
     } catch (error) {
       console.error("Error updating booking confirmation:", error.message);
@@ -503,7 +511,68 @@ class BookingSystem {
     }
   }
 
-  async NotificationHandler() {}
+  async NotificationHandler(type) {
+    switch (type) {
+      case "paymentConfirmation":
+        return smsService.sendPaymentConfirmationSMS({
+          bookingId: this.bookingData.bookingId,
+          amount: this.bookingData.totalAmount,
+          customerMobileNumber: this.bookingData.guest.mobileNo,
+        });
+
+      case "bookingConfirmation":
+        let checkIn = new Date(this.bookingData.bookingDate.checkIn);
+        let checkOut = new Date(this.bookingData.bookingDate.checkOut);
+        smsService.sendBookingConfirmationSMS({
+          customerName: this.bookingData.guest.name,
+          hotelName: "Hotel Name",
+          checkIn: `${checkIn.getDate()}/${
+            checkIn.getMonth() + 1
+          }/${checkIn.getFullYear()}`,
+          checkOut: `${checkOut.getDate()}/${
+            checkOut.getMonth() + 1
+          }/${checkOut.getFullYear()}`,
+          roomType: "Room Type",
+          bookingId: this.bookingData.bookingId,
+          customerMobileNumber: this.bookingData.guest.mobileNo,
+        });
+        // send the checkIn reminder sms 1 day before the checkIn
+        cron.schedule(`0 12 ${checkIn.getDate() - 1} * *`, async () => {
+          smsService.sendCheckInReminderSMS({
+            hotelName: "Hotel Name",
+            checkIn: `${checkIn.getDate()}/${
+              checkIn.getMonth() + 1
+            }/${checkIn.getFullYear()}`,
+            bookingId: this.bookingData.bookingId,
+            customerMobileNumber: this.bookingData.guest.mobileNo,
+          });
+        });
+
+        // send the checkOut reminder sms 1 day before the checkOut
+        cron.schedule(`0 12 ${checkOut.getDate() - 1} * *`, async () => {
+          smsService.sendCheckOutReminderSMS({
+            hotelName: "Hotel Name",
+            checkOut: `${checkOut.getDate()}/${
+              checkOut.getMonth() + 1
+            }/${checkOut.getFullYear()}`,
+            bookingId: this.bookingData.bookingId,
+            customerMobileNumber: this.bookingData.guest.mobileNo,
+          });
+        });
+        return;
+
+      case "cancelationConfirmation":
+        smsService.sendCancellationConfirmationSMS({
+          bookingId: this.bookingData.bookingId,
+          customerMobileNumber: this.bookingData.guest.mobileNo,
+        });
+        return;
+
+      default:
+        break;
+    }
+  }
+
   async handleCancelWithoutPayment(data) {
     if (!this.bookingData) {
       await this.GetbookingData(data.bookingId);
@@ -529,6 +598,7 @@ class BookingSystem {
       return { error: true, message: error.message };
     }
   }
+
   async ManageCanellationsAndProceed(bookingId, id, formdata) {
     if (!this.bookingData) {
       await this.GetbookingData(bookingId);
@@ -568,7 +638,7 @@ class BookingSystem {
       }
       if (_updated.error)
         return { error: true, message: "failed to updated cancellations" };
-
+      this.NotificationHandler("cancellationConfirmation");
       return { error: false, message: "success", data: _updated };
     } catch (error) {
       return { error: true, message: error.message };
@@ -586,7 +656,6 @@ class BookingSystem {
     refundStatus,
   }) {
     try {
-      console.log("Booking process Started ");
       const _update = await Booking.findOneAndUpdate(
         {
           bookingId: bookingId,

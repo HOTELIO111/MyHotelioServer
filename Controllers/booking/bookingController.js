@@ -21,7 +21,6 @@ const BillingSystem = require("./billingSystem");
 const BookingSystem = require("./BookingSystem");
 const VendorModel = require("../../Model/HotelModel/vendorModel");
 const { default: mongoose } = require("mongoose");
-const { log } = require("handlebars");
 
 const RegisterBooking = async (req, res) => {
   const formData = req.body;
@@ -158,16 +157,16 @@ const CreatePreBooking = async (req, res) => {
     bookingData?.bookingDate?.checkIn,
     bookingData?.bookingDate?.checkOut
   );
-  
+
   if (bookingData?.numberOfRooms > roomCount.data) {
-      return res
+    return res
       .status(404)
       .json({ error: true, message: "Oops! Room not available" });
-    }
-    try {
-        const _bookingPre = await bookingHandler.CreatePreBooking(bookingData);
-        // console.log("bookingPre", _bookingPre);
-        
+  }
+  try {
+    const _bookingPre = await bookingHandler.CreatePreBooking(bookingData);
+    // console.log("bookingPre", _bookingPre);
+
     if (_bookingPre.error) return res.status(400).json(_bookingPre);
 
     res
@@ -231,6 +230,8 @@ const CollectPaymentInfoAndConfirmBooking = async (req, res) => {
         error: true,
         message: "payment type and payment response not met",
       });
+    // adding payment status to the form data for sending payment status to the queue
+    formData.paymentStatus = req.body.order_status;
     const bookingHandler = new BookingSystem();
     // Store the payment info
     const booking = await bookingHandler.FinalizeBooking(formData, paymentType);

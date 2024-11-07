@@ -164,7 +164,7 @@ class NotificationsEvents {
     switch (this.eventId) {
       case "WELCOME_CUSTOMER":
         const to = ["customer", "admin"];
-        return 
+        return;
 
       default:
         break;

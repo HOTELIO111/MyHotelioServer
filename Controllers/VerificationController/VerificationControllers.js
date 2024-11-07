@@ -5,6 +5,7 @@ require("dotenv").config();
 const crypto = require("crypto");
 const { isMobileNumber, isEmail } = require("../utils");
 const { default: axios } = require("axios");
+const smsService = require("../notifications/sms/smsService");
 
 // need to modify more
 const SendEmailVerify = async (req, res) => {
@@ -58,7 +59,7 @@ const SendEmailVerify = async (req, res) => {
     res.status(400).json({ error: true, message: error.message });
   }
 };
-console.log("Inside sendmobile otp");
+// console.log("Inside sendmobile otp");
 const SendMobileVefication = async (req, res) => {
   try {
     // Extract the mobile number from the request parameters
@@ -85,9 +86,7 @@ const SendMobileVefication = async (req, res) => {
 
     const otp = crypto.randomInt(1000, 9999);
 
-    const response = await axios.get(
-      `https://sms.whistle.mobi/sendsms.jsp?user=Houdact&password=912be393a7XX&senderid=HOTLIO&mobiles=+91${number}&sms=${otp}%20is%20your%20account%20verification%20OTP.%20Treat%20this%20as%20confidential.%20Don%27t%20share%20this%20with%20anyone%20(otp)%20Houda%20Carjour%20Tourism`
-    );
+    const response = await smsService.sendOtpSMS({ mobileNumber: number, otp });
 
     if (response.status !== 200) {
       return res
