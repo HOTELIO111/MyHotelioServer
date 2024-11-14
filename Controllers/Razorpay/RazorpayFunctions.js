@@ -43,6 +43,12 @@ const verifyPaymentStatus = async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
   try {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        error: true,
+        message: "Invalid request",
+      });
+    }
     const response = await verifyPayment(
       razorpay_order_id,
       razorpay_payment_id,
