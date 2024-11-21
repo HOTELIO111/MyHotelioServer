@@ -140,7 +140,7 @@ router.post("/admin/login", AdminLoginApi);
 // admin forgot password
 router.post("/admin/forgot-password", AdminForgotPassword);
 // admin reset password
-router.post("/reset-password", AdminResetPassword);
+router.post("/admin/reset-password", AdminResetPassword);
 // admin update the data
 router.patch("/admin/update/:id", UpdateAdmin);
 
