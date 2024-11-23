@@ -270,7 +270,7 @@ class NotificationSystem {
           templateData
         );
         const recipient = userData.recipient;
-        const cc = "sharmag226025@gmail.com";
+        const cc = String(process.env.CCMAIL || "");
 
         NotificationsQueue.add(`email To ${person}`, {
           type: "email",
@@ -441,7 +441,7 @@ class NotificationSystem {
           message: message,
           html: template,
           recipient: reciver,
-          cc: "sharmag226025@gmail.com",
+          cc: String(process.env.CCMAIL || ""),
         });
       }
 

@@ -28,6 +28,7 @@ const { NotificationManagementQueue } = require("../../jobs");
 const { events } = require("../../config/notificationEvents");
 const { default: axios } = require("axios");
 const xml2js = require("xml2js");
+const smsService = require("../notifications/sms/smsService");
 
 const AddVendor = async (req, res) => {
   const formData = req.body;
@@ -80,6 +81,13 @@ const AddVendor = async (req, res) => {
         data: notifyData,
       }
     );
+
+    // ======= End Notification System, this is currently not working adding a not scalable approach for now ======
+
+    smsService.sendVendorRegistrationSMS({
+      vendorMobileNumber: result.mobileNo,
+    });
+
     // ================================ Notification System ===================================
 
     const jwtTokenValue = {

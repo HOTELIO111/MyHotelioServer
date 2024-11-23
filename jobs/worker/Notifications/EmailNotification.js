@@ -48,7 +48,7 @@ const EmailWorker = async (data) => {
     const emailQueueData = {
       type: NotificationType.email,
       recipient: recipient.email,
-      cc: "sharmag226025@gmail.com",
+      cc: String(process.env.CCMAIL || ""),
       subject: data.data.subject
         ? data.data.subject
         : notification.eventData.subject,

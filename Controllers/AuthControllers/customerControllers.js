@@ -18,6 +18,7 @@ const {
 const GenerateNotificatonsData = require("../../functions/GenerateNotificationsData");
 const { events } = require("../../config/notificationEvents");
 const Booking = require("../../Model/booking/bookingModel");
+const smsService = require("../notifications/sms/smsService");
 
 const CheckOtpVerify = async (isLoginwith, otp, mobileNo) => {
   let verification;
@@ -308,6 +309,11 @@ const SignupUser = async (req, res) => {
 
     const saveData = await formdata.save();
     res.status(200).json(saveData);
+    // ======================= Notification Implemented Make It Scalable In Future ==============================
+    smsService.sendCustomerRegistrationSMS({
+      customerName: saveData.name,
+      customerMobileNumber: saveData.mobileNo,
+    });
   } catch (error) {
     res.status(500).json(error);
   }

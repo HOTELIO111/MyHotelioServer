@@ -11,6 +11,7 @@ const bookingIdGenerate = require("./bookingIdGenerator");
 const ManageCancellationsWithPolicy = require("../../helper/booking/CancellationsPolicy");
 const RefundModel = require("../../Model/booking/RefundModel");
 const smsService = require("../notifications/sms/smsService");
+const RoomsTypeModel = require("../../Model/HotelModel/roomsTypeModel");
 
 class BookingSystem {
   constructor() {}
@@ -523,15 +524,18 @@ class BookingSystem {
       case "bookingConfirmation":
         let checkIn = new Date(this.bookingData.bookingDate.checkIn);
         let checkOut = new Date(this.bookingData.bookingDate.checkOut);
+        let checkInDate = `${checkIn.getDate()}/${
+          checkIn.getMonth() + 1
+        }/${checkIn.getFullYear()}`;
+        let checkOutDate = `${checkOut.getDate()}/${
+          checkOut.getMonth() + 1
+        }/${checkOut.getFullYear()}`;
+        const hotel = await HotelModel.findById(this.bookingData.hotel);
         smsService.sendBookingConfirmationSMS({
           customerName: this.bookingData.guest.name,
-          hotelName: "Hotel Name",
-          checkIn: `${checkIn.getDate()}/${
-            checkIn.getMonth() + 1
-          }/${checkIn.getFullYear()}`,
-          checkOut: `${checkOut.getDate()}/${
-            checkOut.getMonth() + 1
-          }/${checkOut.getFullYear()}`,
+          hotelName: hotel.hotelName,
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
           roomType: "Room Type",
           bookingId: this.bookingData.bookingId,
           customerMobileNumber: this.bookingData.guest.mobileNo,
@@ -559,12 +563,29 @@ class BookingSystem {
             customerMobileNumber: this.bookingData.guest.mobileNo,
           });
         });
+        smsService.sendVendorNewBookingSMS({
+          hotelName: hotel.hotelName,
+          customerName: this.bookingData.guest.name,
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          roomType: "Room Type",
+          amount: this.bookingData.totalAmount,
+          bookingId: this.bookingData.bookingId,
+          vendorMobileNumber: hotel.hotelMobileNo,
+        });
         return;
 
       case "cancelationConfirmation":
         smsService.sendCancellationConfirmationSMS({
           bookingId: this.bookingData.bookingId,
           customerMobileNumber: this.bookingData.guest.mobileNo,
+        });
+        smsService.sendVendorBookingCancelSMS({
+          hotelName,
+          customerName,
+          checkIn,
+          bookingId,
+          vendorMobileNumber,
         });
         return;
 
