@@ -1,10 +1,13 @@
 const {
   createOrder,
   verifyPayment,
+  capturePayment,
 } = require("../../helper/Payments/payementFuctions");
 const {
   CollectPaymentInfoAndConfirmBooking,
 } = require("../booking/bookingController");
+const Booking = require("../../Model/booking/bookingModel");
+const cron = require("node-cron");
 
 const initPayment = async (req, res) => {
   const { amount, receipt = "" } = req.body;
@@ -28,6 +31,30 @@ const validatePayment = async (req, res) => {
     if (response) {
       req.body.order_status = "Success";
       req.body.tracking_id = razorpay_payment_id;
+      // Capture payment after 3 minutes
+      cron.schedule("*/3 * * * *", async () => {
+        let booking = await Booking.findOne({ bookingId: req.body.order_id });
+        try {
+          let res = await capturePayment(
+            razorpay_payment_id,
+            booking.totalAmount
+          );
+          console.log(
+            "Razorpay :: Payment captured :: ",
+            razorpay_payment_id,
+            " :: Amount :: ",
+            booking.totalAmount
+          );
+        } catch (error) {
+          console.log(
+            "Razorpay :: Payment capture failed :: ",
+            razorpay_payment_id,
+            " :: Amount :: ",
+            booking.totalAmount
+          );
+          console.log("Error :: ", error);
+        }
+      });
       CollectPaymentInfoAndConfirmBooking(req, res);
     } else {
       res

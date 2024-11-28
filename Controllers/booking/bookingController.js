@@ -71,20 +71,36 @@ const GetBookings = async (req, res) => {
       response = await Booking.find({});
     }
 
-    res.status(200).json(response);
+    res.status(200).json({ error: false, message: "success", data: response });
   } catch (error) {
-    res.status(500).json({ error: "An error occurred" });
+    res.status(500).json({ error: true, message: error });
   }
 };
 
 //get single booking by booking id
 const GetSingleBooking = async (req, res) => {
   const { bookingId } = req.params;
-  let booking = await Booking.findOne({ bookingId: bookingId });
+  if (!bookingId) {
+    return res
+      .status(404)
+      .json({ error: true, message: "Booking Id is required" });
+  }
+  let booking = await Booking.aggregate([
+    { $match: { bookingId: bookingId } },
+    {
+      $lookup: {
+        from: "hotels",
+        localField: "hotel",
+        foreignField: "_id",
+        as: "hotel",
+      },
+    },
+    { $unwind: "$hotel" },
+  ]);
   if (!booking) {
     return res.status(404).json({ error: true, message: "No booking found" });
   }
-  res.status(200).json(booking);
+  res.status(200).json({ error: false, message: "success", data: booking[0] });
 };
 
 const GetDeleteBooking = async (req, res) => {

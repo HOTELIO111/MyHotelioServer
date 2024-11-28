@@ -51,6 +51,15 @@ const createOrder = async (amount, receipt = "receipt#1") => {
   }
 };
 
+const capturePayment = async (payment_id, amount) => {
+  try {
+    const payment = await instance.payments.capture(payment_id, amount * 100, "INR");
+    return payment;
+  } catch (error) {
+    return error;
+  }
+};
+
 const verifyPayment = async (
   razorpay_order_id,
   razorpay_payment_id,
@@ -77,4 +86,4 @@ const verifyPayment = async (
   }
 };
 
-module.exports = { CreateThePaymentInfo, createOrder, verifyPayment };
+module.exports = { CreateThePaymentInfo, createOrder, verifyPayment, capturePayment };
