@@ -96,6 +96,48 @@ const GetSingleBooking = async (req, res) => {
       },
     },
     { $unwind: "$hotel" },
+    {
+      $addFields: {
+        matchedRoom: {
+          $filter: {
+            input: "$hotel.rooms",
+            as: "room",
+            cond: { $eq: [{ $toString: "$$room._id" }, "$room"] },
+          },
+        },
+      },
+    },
+    { $unwind: "$matchedRoom" },
+    {
+      $lookup: {
+        from: "room-categories",
+        localField: "matchedRoom.roomType",
+        foreignField: "_id",
+        as: "roomTypeObj",
+      },
+    },
+    { $unwind: "$roomTypeObj" },
+    {
+      $addFields: {
+        room: {
+          roomType: "$roomTypeObj.title",
+          _id: "$matchedRoom._id",
+        },
+        hotelDetails: {
+          _id: "$hotel._id",
+          hotelName: "$hotel.hotelName",
+          hotelEmail: "$hotel.hotelEmail",
+          hotelMobileNo: "$hotel.hotelMobileNo",
+        },
+      },
+    },
+    {
+      $project: {
+        matchedRoom: 0,
+        roomTypeObj: 0,
+        hotel:0
+      },
+    },
   ]);
   if (!booking) {
     return res.status(404).json({ error: true, message: "No booking found" });

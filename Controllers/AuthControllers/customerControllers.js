@@ -577,7 +577,7 @@ const UpdateThePassword = async (req, res) => {
 };
 
 const GetUserDataByField = async (req, res) => {
-  const { field } = req.query;
+  const { field, listBooking } = req.query;
 
   const isLoginwith =
     isMobileNumber(field) === true
@@ -593,7 +593,14 @@ const GetUserDataByField = async (req, res) => {
 
   const credential = { [isLoginwith]: field };
   try {
-    const response = await CustomerAuthModel.findOne(credential);
+    let response;
+    if (listBooking) {
+      response = await CustomerAuthModel.findOne(credential).populate(
+        "bookings"
+      );
+    } else {
+      response = await CustomerAuthModel.findOne(credential);
+    }
     if (!response)
       return res.status(404).json({ error: true, message: "no user found" });
     res.status(200).json({ error: false, data: response });
