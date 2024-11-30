@@ -95,7 +95,20 @@ const GetSingleBooking = async (req, res) => {
         as: "hotel",
       },
     },
-    { $unwind: "$hotel" },
+    {
+      $addFields: {
+        hotel: {
+          $ifNull: [
+            { $arrayElemAt: ["$hotel", 0] },
+            {
+              hotelName: "Hotel Not Found",
+              hotelEmail: "Hotel Not Found",
+              hotelMobileNo: "Hotel Not Found",
+            },
+          ],
+        },
+      },
+    },
     {
       $addFields: {
         matchedRoom: {
@@ -107,7 +120,16 @@ const GetSingleBooking = async (req, res) => {
         },
       },
     },
-    { $unwind: "$matchedRoom" },
+    {
+      $addFields: {
+        matchedRoom: {
+          $ifNull: [
+            { $arrayElemAt: ["$matchedRoom", 0] },
+            { roomType: { $toObjectId: "$room" } },
+          ],
+        },
+      },
+    },
     {
       $lookup: {
         from: "room-categories",
@@ -116,7 +138,16 @@ const GetSingleBooking = async (req, res) => {
         as: "roomTypeObj",
       },
     },
-    { $unwind: "$roomTypeObj" },
+    {
+      $addFields: {
+        roomTypeObj: {
+          $ifNull: [
+            { $arrayElemAt: ["$roomTypeObj", 0] },
+            { title: "Property type not found" },
+          ],
+        },
+      },
+    },
     {
       $addFields: {
         room: {
@@ -135,7 +166,7 @@ const GetSingleBooking = async (req, res) => {
       $project: {
         matchedRoom: 0,
         roomTypeObj: 0,
-        hotel:0
+        hotel: 0,
       },
     },
   ]);
