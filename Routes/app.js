@@ -28,6 +28,7 @@ const BankDetials = require("./HotelRoutes/BankDetails");
 const EnquiryRoutes = require("./EnquiryRoutes");
 const WalletRoutes = require("./walletRoutes");
 const CouponRoutes = require("./coupons");
+const FlightRoutes = require("./Flight/flight");
 
 router.use("/util", Utils);
 router.use("/api", CustomerRoutes);
@@ -59,5 +60,6 @@ router.use("/analytics", AnalyticsRoutes);
 router.use("/enquiry", EnquiryRoutes);
 router.use("/wallet", WalletRoutes);
 router.use("/coupon", CouponRoutes);
+router.use("/flight", FlightRoutes);
 
 module.exports = router;
